@@ -1,0 +1,6 @@
+@InvoiceReminder_HostAddress = http://localhost:5216
+
+GET {{InvoiceReminder_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+    <RunConfiguration>
+        <MaxCpuCount>1</MaxCpuCount>
+    </RunConfiguration>
+    <DataCollectionRunSettings>
+        <DataCollectors>
+            <DataCollector friendlyName="Code Coverage" uri="datacollector://Microsoft/CodeCoverage/2.0">
+                <Configuration>
+                    <Exclude>
+                        <ModulePaths>
+                            <Exclude>
+                                **\Migrations\*
+                            </Exclude>
+                        </ModulePaths>
+                    </Exclude>
+                </Configuration>
+            </DataCollector>
+        </DataCollectors>
+    </DataCollectionRunSettings>
+</RunSettings>

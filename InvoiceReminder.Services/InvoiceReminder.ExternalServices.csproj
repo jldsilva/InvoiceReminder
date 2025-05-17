@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <UserSecretsId>cb5b3f1e-1e38-47a5-bcd4-457b0c7f1d0a</UserSecretsId>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Google.Apis.Gmail.v1" Version="1.69.0.3742" />
+        <PackageReference Include="itext" Version="9.2.0" />
+        <PackageReference Include="itext.bouncy-castle-adapter" Version="9.2.0" />
+        <PackageReference Include="itext.bouncy-castle-fips-adapter" Version="9.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.5" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.5" />
+        <PackageReference Include="SonarAnalyzer.CSharp" Version="10.9.0.115408">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Telegram.Bot" Version="22.5.1" />
+        <PackageReference Include="ZXing.Net" Version="0.16.10" />
+        <PackageReference Include="ZXing.Net.Bindings.ZKWeb.System.Drawing" Version="0.16.8" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\InvoiceReminder.Data\InvoiceReminder.Data.csproj" />
+    </ItemGroup>
+
+</Project>
