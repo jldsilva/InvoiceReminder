@@ -1,5 +1,8 @@
 name: Callstack.ai PR Review
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
     inputs:
