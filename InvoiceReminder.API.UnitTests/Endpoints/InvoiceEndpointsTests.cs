@@ -183,7 +183,7 @@ public sealed class InvoiceEndpointsTests
     }
 
     [TestMethod]
-    public async Task GetInvoiceById_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
+    public async Task GetInvoiceById_WhenUserIsAuthenticatedButServiceFails_ShouldReturnBadRequest()
     {
         // Arrange
         var id = Guid.NewGuid();
@@ -191,6 +191,31 @@ public sealed class InvoiceEndpointsTests
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _invoiceAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync<ArgumentException>();
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Success()));
+
+        // Act
+        var response = await _client.SendAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+
+        // Assert
+        _ = _invoiceAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        _ = result.ShouldNotBeNull();
+        _ = result.ShouldBeOfType<ProblemDetails>();
+    }
+
+    [TestMethod]
+    public async Task GetInvoiceById_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/{id}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+
+        _ = _invoiceAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync<ApplicationException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -290,7 +315,7 @@ public sealed class InvoiceEndpointsTests
     }
 
     [TestMethod]
-    public async Task GetInvoiceByBarcode_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
+    public async Task GetInvoiceByBarcode_WhenUserIsAuthenticatedButServiceFails_ShouldReturnBadRequest()
     {
         // Arrange
         var value = "12345678901234567890123456789012345678901234";
@@ -298,6 +323,31 @@ public sealed class InvoiceEndpointsTests
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _invoiceAppService.GetByBarcodeAsync(Arg.Any<string>()).ThrowsAsync<ArgumentException>();
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Success()));
+
+        // Act
+        var response = await _client.SendAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+
+        // Assert
+        _ = _invoiceAppService.Received(1).GetByBarcodeAsync(Arg.Any<string>());
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        _ = result.ShouldNotBeNull();
+        _ = result.ShouldBeOfType<ProblemDetails>();
+    }
+
+    [TestMethod]
+    public async Task GetInvoiceByBarcode_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
+    {
+        // Arrange
+        var value = "12345678901234567890123456789012345678901234";
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/get_by_barcode/{value}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+
+        _ = _invoiceAppService.GetByBarcodeAsync(Arg.Any<string>()).ThrowsAsync<ApplicationException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
