@@ -180,6 +180,31 @@ public sealed class UserEndpointsTests
     }
 
     [TestMethod]
+    public async Task GetUserById_WhenUserIsAuthenticatedButServiceFails_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/{id}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+
+        _ = _userAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync<ArgumentException>();
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Success()));
+
+        // Act
+        var response = await _client.SendAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+
+        // Assert
+        _ = _userAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        _ = result.ShouldNotBeNull();
+        _ = result.ShouldBeOfType<ProblemDetails>();
+    }
+
+    [TestMethod]
     public async Task GetUserById_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
@@ -187,7 +212,7 @@ public sealed class UserEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _userAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync(new ArgumentException("Service error"));
+        _ = _userAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync<ApplicationException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -288,6 +313,31 @@ public sealed class UserEndpointsTests
     }
 
     [TestMethod]
+    public async Task GetUserByEmail_WhenUserIsAuthenticatedButServiceFails_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var value = "test_user@mail_com";
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/get_by_email/{value}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+
+        _ = _userAppService.GetByEmailAsync(Arg.Any<string>()).ThrowsAsync<ArgumentException>();
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Success()));
+
+        // Act
+        var response = await _client.SendAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+
+        // Assert
+        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        _ = result.ShouldNotBeNull();
+        _ = result.ShouldBeOfType<ProblemDetails>();
+    }
+
+    [TestMethod]
     public async Task GetUserByEmail_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
@@ -295,7 +345,7 @@ public sealed class UserEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/get_by_email/{value}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _userAppService.GetByEmailAsync(Arg.Any<string>()).ThrowsAsync(new ArgumentException("Service error"));
+        _ = _userAppService.GetByEmailAsync(Arg.Any<string>()).ThrowsAsync<ApplicationException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())

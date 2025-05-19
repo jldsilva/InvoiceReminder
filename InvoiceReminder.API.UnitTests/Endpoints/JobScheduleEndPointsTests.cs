@@ -174,7 +174,7 @@ public sealed class JobScheduleEndPointsTests
     }
 
     [TestMethod]
-    public async Task GetJobScheduleById_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
+    public async Task GetJobScheduleById_WhenUserIsAuthenticatedButServiceFails_ShouldReturnBadRequest()
     {
         // Arrange
         var id = Guid.NewGuid();
@@ -182,6 +182,31 @@ public sealed class JobScheduleEndPointsTests
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync(new ArgumentException("Service error"));
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Success()));
+
+        // Act
+        var response = await _client.SendAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+
+        // Assert
+        _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        _ = result.ShouldNotBeNull();
+        _ = result.ShouldBeOfType<ProblemDetails>();
+    }
+
+    [TestMethod]
+    public async Task GetJobScheduleById_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/{id}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+
+        _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync(new ApplicationException("Service error"));
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -286,6 +311,31 @@ public sealed class JobScheduleEndPointsTests
     }
 
     [TestMethod]
+    public async Task GetJobScheduleByUserId_WhenUserIsAuthenticatedButServiceFails_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/get_by_user_id/{id}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+
+        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>()).ThrowsAsync<ArgumentException>();
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Success()));
+
+        // Act
+        var response = await _client.SendAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+
+        // Assert
+        _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        _ = result.ShouldNotBeNull();
+        _ = result.ShouldBeOfType<ProblemDetails>();
+    }
+
+    [TestMethod]
     public async Task GetJobScheduleByUserId_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
@@ -293,7 +343,7 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/get_by_user_id/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>()).ThrowsAsync(new ArgumentException("Service error"));
+        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>()).ThrowsAsync<ApplicationException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
