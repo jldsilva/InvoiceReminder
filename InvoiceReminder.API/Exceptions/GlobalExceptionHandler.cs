@@ -20,7 +20,9 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
 
         httpContext.Response.StatusCode = exception switch
         {
-            ApplicationException => StatusCodes.Status400BadRequest,
+            ArgumentException or
+            ArgumentNullException or
+            BadHttpRequestException => StatusCodes.Status400BadRequest,
             _ => StatusCodes.Status500InternalServerError
         };
 
