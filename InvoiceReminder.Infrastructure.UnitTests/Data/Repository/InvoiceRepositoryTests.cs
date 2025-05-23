@@ -37,8 +37,8 @@ public sealed class InvoiceRepositoryTests
         repository.ShouldSatisfyAllConditions(() =>
         {
             _ = repository.ShouldBeAssignableTo<IInvoiceRepository>();
-            _ = repository.ShouldBeAssignableTo<IRepositoryBase<Invoice>>();
-            _ = repository.ShouldBeAssignableTo<RepositoryBase<CoreDbContext, Invoice>>();
+            _ = repository.ShouldBeAssignableTo<IBaseRepository<Invoice>>();
+            _ = repository.ShouldBeAssignableTo<BaseRepository<CoreDbContext, Invoice>>();
 
             _ = repository.ShouldNotBeNull();
             _ = repository.ShouldBeOfType<InvoiceRepository>();

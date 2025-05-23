@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InvoiceReminder.API.Endpoints;
 
-public class LoginEndpoint : IEndpointDefinition
+public class LoginEndpoints : IEndpointDefinition
 {
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {

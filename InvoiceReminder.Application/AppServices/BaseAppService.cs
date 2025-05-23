@@ -5,13 +5,13 @@ using Mapster;
 
 namespace InvoiceReminder.Application.AppServices;
 
-public class AppServiceBase<TEntity, TEntityViewModel> : IAppServiceBase<TEntity, TEntityViewModel>
+public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity, TEntityViewModel>
     where TEntity : class where TEntityViewModel : class
 {
-    private readonly IRepositoryBase<TEntity> _repository;
+    private readonly IBaseRepository<TEntity> _repository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public AppServiceBase(IRepositoryBase<TEntity> repository, IUnitOfWork unitOfWork)
+    public BaseAppService(IBaseRepository<TEntity> repository, IUnitOfWork unitOfWork)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;

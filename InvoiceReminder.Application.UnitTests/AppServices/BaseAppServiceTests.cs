@@ -7,17 +7,17 @@ using Shouldly;
 namespace InvoiceReminder.Application.UnitTests.AppServices;
 
 [TestClass]
-public class AppServiceBaseTests
+public class BaseAppServiceTests
 {
-    private readonly AppServiceBase<TestEntity, TestEntityViewModel> _appService;
-    private readonly IRepositoryBase<TestEntity> _repository;
+    private readonly BaseAppService<TestEntity, TestEntityViewModel> _appService;
+    private readonly IBaseRepository<TestEntity> _repository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public AppServiceBaseTests()
+    public BaseAppServiceTests()
     {
-        _repository = Substitute.For<IRepositoryBase<TestEntity>>();
+        _repository = Substitute.For<IBaseRepository<TestEntity>>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _appService = new AppServiceBase<TestEntity, TestEntityViewModel>(_repository, _unitOfWork);
+        _appService = new BaseAppService<TestEntity, TestEntityViewModel>(_repository, _unitOfWork);
     }
 
     [TestMethod]

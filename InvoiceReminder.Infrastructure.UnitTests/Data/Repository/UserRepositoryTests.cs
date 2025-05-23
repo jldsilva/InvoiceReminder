@@ -37,8 +37,8 @@ public sealed class UserRepositoryTests
         repository.ShouldSatisfyAllConditions(() =>
         {
             _ = repository.ShouldBeAssignableTo<IUserRepository>();
-            _ = repository.ShouldBeAssignableTo<IRepositoryBase<User>>();
-            _ = repository.ShouldBeAssignableTo<RepositoryBase<CoreDbContext, User>>();
+            _ = repository.ShouldBeAssignableTo<IBaseRepository<User>>();
+            _ = repository.ShouldBeAssignableTo<BaseRepository<CoreDbContext, User>>();
 
             _ = repository.ShouldNotBeNull();
             _ = repository.ShouldBeOfType<UserRepository>();

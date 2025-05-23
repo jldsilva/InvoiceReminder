@@ -10,7 +10,7 @@ using Quartz.Spi;
 
 namespace InvoiceReminder.Application.AppServices;
 
-public class JobScheduleAppService : AppServiceBase<JobSchedule, JobScheduleViewModel>, IJobScheduleAppService
+public class JobScheduleAppService : BaseAppService<JobSchedule, JobScheduleViewModel>, IJobScheduleAppService
 {
     private readonly QuartzHostedService _quartz;
     private readonly IJobScheduleRepository _repository;

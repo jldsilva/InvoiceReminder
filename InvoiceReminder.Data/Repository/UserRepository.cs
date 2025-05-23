@@ -9,7 +9,7 @@ using System.Data;
 
 namespace InvoiceReminder.Data.Repository;
 
-public class UserRepository : RepositoryBase<CoreDbContext, User>, IUserRepository
+public class UserRepository : BaseRepository<CoreDbContext, User>, IUserRepository
 {
     private readonly IDbConnection _dbConnection;
     private readonly ILogger<UserRepository> _logger;

@@ -7,7 +7,7 @@ using Mapster;
 
 namespace InvoiceReminder.Application.AppServices;
 
-public class ScanEmailDefinitionAppService : AppServiceBase<ScanEmailDefinition, ScanEmailDefinitionViewModel>,
+public class ScanEmailDefinitionAppService : BaseAppService<ScanEmailDefinition, ScanEmailDefinitionViewModel>,
     IScanEmailDefinitionAppService
 {
     private readonly IScanEmailDefinitionRepository _repository;

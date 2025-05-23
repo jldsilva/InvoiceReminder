@@ -37,8 +37,8 @@ public sealed class JobScheduleRepositoryTests
         repository.ShouldSatisfyAllConditions(() =>
         {
             _ = repository.ShouldBeAssignableTo<IJobScheduleRepository>();
-            _ = repository.ShouldBeAssignableTo<IRepositoryBase<JobSchedule>>();
-            _ = repository.ShouldBeAssignableTo<RepositoryBase<CoreDbContext, JobSchedule>>();
+            _ = repository.ShouldBeAssignableTo<IBaseRepository<JobSchedule>>();
+            _ = repository.ShouldBeAssignableTo<BaseRepository<CoreDbContext, JobSchedule>>();
 
             _ = repository.ShouldNotBeNull();
             _ = repository.ShouldBeOfType<JobScheduleRepository>();
