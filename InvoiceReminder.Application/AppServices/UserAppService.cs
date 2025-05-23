@@ -7,7 +7,7 @@ using Mapster;
 
 namespace InvoiceReminder.Application.AppServices;
 
-public sealed class UserAppService : AppServiceBase<User, UserViewModel>, IUserAppService
+public sealed class UserAppService : BaseAppService<User, UserViewModel>, IUserAppService
 {
     private readonly IUserRepository _repository;
 

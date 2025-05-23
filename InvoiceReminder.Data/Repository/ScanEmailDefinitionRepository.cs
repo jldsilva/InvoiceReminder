@@ -8,7 +8,7 @@ using System.Data;
 
 namespace InvoiceReminder.Data.Repository;
 
-public class ScanEmailDefinitionRepository : RepositoryBase<CoreDbContext, ScanEmailDefinition>, IScanEmailDefinitionRepository
+public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanEmailDefinition>, IScanEmailDefinitionRepository
 {
     private readonly IDbConnection _dbConnection;
     private readonly ILogger<ScanEmailDefinitionRepository> _logger;

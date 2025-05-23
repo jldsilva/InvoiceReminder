@@ -7,7 +7,7 @@ using Mapster;
 
 namespace InvoiceReminder.Application.AppServices;
 
-public class InvoiceAppService : AppServiceBase<Invoice, InvoiceViewModel>, IInvoiceAppService
+public class InvoiceAppService : BaseAppService<Invoice, InvoiceViewModel>, IInvoiceAppService
 {
     private readonly IInvoiceRepository _repository;
 

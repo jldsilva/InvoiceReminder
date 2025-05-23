@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.ExternalSer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.UnitTests.Assets", "InvoiceReminder.UnitTests.Assets\InvoiceReminder.UnitTests.Assets.csproj", "{0D3F963F-37A2-40E6-865D-0FD732FC5376}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.ArchitectureTests", "InvoiceReminder.ArchitectureTests\InvoiceReminder.ArchitectureTests.csproj", "{F8FE30DD-52E6-4981-96A7-D4D487522A26}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -127,6 +129,10 @@ Global
 		{0D3F963F-37A2-40E6-865D-0FD732FC5376}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D3F963F-37A2-40E6-865D-0FD732FC5376}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D3F963F-37A2-40E6-865D-0FD732FC5376}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -153,6 +159,7 @@ Global
 		{1CC0FC52-71DE-4FEB-8A8F-3B8F879D33C1} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
 		{45590E22-E032-476B-848F-D43669E82DA2} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
 		{0D3F963F-37A2-40E6-865D-0FD732FC5376} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
+		{F8FE30DD-52E6-4981-96A7-D4D487522A26} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6165C451-34A2-4F1A-88D1-21F3EB4B587B}

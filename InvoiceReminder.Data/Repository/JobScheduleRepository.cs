@@ -8,7 +8,7 @@ using System.Data;
 
 namespace InvoiceReminder.Data.Repository;
 
-public class JobScheduleRepository : RepositoryBase<CoreDbContext, JobSchedule>, IJobScheduleRepository
+public class JobScheduleRepository : BaseRepository<CoreDbContext, JobSchedule>, IJobScheduleRepository
 {
     private readonly IDbConnection _dbConnection;
     private readonly ILogger<JobScheduleRepository> _logger;
