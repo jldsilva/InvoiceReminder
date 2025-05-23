@@ -1,18 +1,18 @@
-using InvoiceReminder.Data.Interfaces;
 using EFCore.BulkExtensions;
+using InvoiceReminder.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace InvoiceReminder.Data.Repository;
 
-public class RepositoryBase<TDbContext, TEntity> : IRepositoryBase<TEntity>
+public class BaseRepository<TDbContext, TEntity> : IBaseRepository<TEntity>
     where TDbContext : DbContext where TEntity : class
 {
     private readonly TDbContext _dbContext;
     private readonly DbSet<TEntity> _dbSet;
     private bool disposed = false;
 
-    public RepositoryBase(TDbContext dbContext)
+    public BaseRepository(TDbContext dbContext)
     {
         _dbContext = dbContext;
         _dbSet = _dbContext.Set<TEntity>();

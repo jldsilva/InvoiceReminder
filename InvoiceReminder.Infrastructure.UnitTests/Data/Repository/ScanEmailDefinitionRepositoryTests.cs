@@ -37,8 +37,8 @@ public sealed class ScanEmailDefinitionRepositoryTests
         repository.ShouldSatisfyAllConditions(() =>
         {
             _ = repository.ShouldBeAssignableTo<IScanEmailDefinitionRepository>();
-            _ = repository.ShouldBeAssignableTo<IRepositoryBase<ScanEmailDefinition>>();
-            _ = repository.ShouldBeAssignableTo<RepositoryBase<CoreDbContext, ScanEmailDefinition>>();
+            _ = repository.ShouldBeAssignableTo<IBaseRepository<ScanEmailDefinition>>();
+            _ = repository.ShouldBeAssignableTo<BaseRepository<CoreDbContext, ScanEmailDefinition>>();
 
             _ = repository.ShouldNotBeNull();
             _ = repository.ShouldBeOfType<ScanEmailDefinitionRepository>();

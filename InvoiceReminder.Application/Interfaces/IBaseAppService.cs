@@ -2,7 +2,7 @@ using InvoiceReminder.Application.Abstractions;
 
 namespace InvoiceReminder.Application.Interfaces;
 
-public interface IAppServiceBase<TEntity, TEntityViewModel> where TEntity : class where TEntityViewModel : class
+public interface IBaseAppService<TEntity, TEntityViewModel> where TEntity : class where TEntityViewModel : class
 {
     Task<Result<TEntityViewModel>> AddAsync(TEntityViewModel viewModel);
     Task<Result<int>> BulkInsertAsync(ICollection<TEntityViewModel> viewModels);

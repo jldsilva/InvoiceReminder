@@ -8,12 +8,12 @@ using System.Linq.Expressions;
 namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository;
 
 [TestClass]
-public class RepositoryBaseTests
+public class BaseRepositoryTests
 {
     private readonly SqliteConnection _connection;
     private readonly DbContextOptions<TestDbContext> _contextOptions;
 
-    public RepositoryBaseTests()
+    public BaseRepositoryTests()
     {
         _connection = new SqliteConnection("Filename=:memory:");
         _connection.Open();
@@ -47,7 +47,7 @@ public class RepositoryBaseTests
         // Arrange
         var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Test" };
         using var context = CreateContext();
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(context);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         // Act
         var addedEntity = await repository.AddAsync(entity);
@@ -69,7 +69,7 @@ public class RepositoryBaseTests
         };
 
         using var context = CreateContext();
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(context);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         // Act
         var count = await repository.BulkInsertAsync(entities);
@@ -92,7 +92,7 @@ public class RepositoryBaseTests
         // Arrange
         var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Test" };
         using var context = CreateContext();
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(context);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(context);
         _ = await repository.AddAsync(entity);
         _ = await context.SaveChangesAsync();
 
@@ -111,7 +111,7 @@ public class RepositoryBaseTests
         // Arrange
         var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Test" };
         using var context = CreateContext();
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(context);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         _ = await repository.AddAsync(entity);
         _ = await context.SaveChangesAsync();
@@ -133,7 +133,7 @@ public class RepositoryBaseTests
         // Arrange
         var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Test" };
         using var context = CreateContext();
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(context);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         _ = await repository.AddAsync(entity);
         _ = await context.SaveChangesAsync();
@@ -156,7 +156,7 @@ public class RepositoryBaseTests
         // Arrange
         var nonExistingId = Guid.NewGuid();
         using var context = CreateContext();
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(context);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         // Act
         var retrievedEntity = await repository.GetByIdAsync(nonExistingId);
@@ -176,7 +176,7 @@ public class RepositoryBaseTests
         };
 
         using var context = CreateContext();
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(context);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         repository.BulkInsertAsync(entities).Wait();
         _ = context.SaveChanges();
@@ -199,7 +199,7 @@ public class RepositoryBaseTests
         // Arrange
         var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Original Name" };
         using var context = CreateContext();
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(context);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         _ = await repository.AddAsync(entity);
         _ = await context.SaveChangesAsync();
@@ -227,7 +227,7 @@ public class RepositoryBaseTests
         // Arrange
         var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Original Name" };
         using var context = CreateContext();
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(context);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         _ = await repository.AddAsync(entity);
         _ = await context.SaveChangesAsync();
@@ -266,7 +266,7 @@ public class RepositoryBaseTests
         using var context = CreateContext();
         context.TestEntities.AddRange(entities);
         _ = await context.SaveChangesAsync();
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(context);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         // Act
         Expression<Func<TestEntity, bool>> predicate = e => e.Name.StartsWith("Test");
@@ -291,7 +291,7 @@ public class RepositoryBaseTests
             .UseSqlite(mockConnection)
             .Options;
         var mockDbContext = Substitute.For<TestDbContext>(options);
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(mockDbContext);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(mockDbContext);
 
         // Act
         repository.Dispose();
@@ -309,7 +309,7 @@ public class RepositoryBaseTests
             .UseSqlite(mockConnection)
             .Options;
         var mockDbContext = Substitute.For<TestDbContext>(options);
-        var repository = new RepositoryBase<TestDbContext, TestEntity>(mockDbContext);
+        var repository = new BaseRepository<TestDbContext, TestEntity>(mockDbContext);
 
         // Act
         repository.Dispose();

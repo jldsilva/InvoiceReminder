@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace InvoiceReminder.Data.Interfaces;
 
-public interface IRepositoryBase<TEntity> : IDisposable where TEntity : class
+public interface IBaseRepository<TEntity> : IDisposable where TEntity : class
 {
     Task<TEntity> AddAsync(TEntity entity);
     Task<int> BulkInsertAsync(ICollection<TEntity> entities);

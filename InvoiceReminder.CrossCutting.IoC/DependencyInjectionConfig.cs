@@ -48,7 +48,7 @@ public static class DependencyInjectionConfig
     private static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         _ = services.Scan(scan =>
-            scan.FromAssembliesOf(typeof(IAppServiceBase<,>))
+            scan.FromAssembliesOf(typeof(IBaseAppService<,>))
                 .AddClasses(classes => classes.InNamespaces("InvoiceReminder.Application.AppServices"))
                 .UsingRegistrationStrategy(RegistrationStrategy.Skip)
                 .AsImplementedInterfaces()
@@ -99,7 +99,7 @@ public static class DependencyInjectionConfig
     private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         _ = services.Scan(scan =>
-            scan.FromAssembliesOf(typeof(IRepositoryBase<>))
+            scan.FromAssembliesOf(typeof(IBaseRepository<>))
                 .AddClasses(classes => classes.InNamespaces("InvoiceReminder.Data.Repository"))
                 .UsingRegistrationStrategy(RegistrationStrategy.Skip)
                 .AsImplementedInterfaces()
