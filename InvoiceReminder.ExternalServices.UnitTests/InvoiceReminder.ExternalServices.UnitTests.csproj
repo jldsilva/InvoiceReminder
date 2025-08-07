@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSTest.Sdk/3.9.3">
+﻿<Project Sdk="MSTest.Sdk/3.10.1">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -20,6 +20,7 @@
   <ItemGroup>
     <PackageReference Include="itext.bouncy-castle-adapter" Version="9.2.0" />
     <PackageReference Include="itext.bouncy-castle-fips-adapter" Version="9.2.0" />
+    <PackageReference Include="Microsoft.CodeCoverage" Version="17.14.1" />
     <PackageReference Include="NSubstitute" Version="5.3.0" />
     <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17">
       <PrivateAssets>all</PrivateAssets>
@@ -31,13 +32,13 @@
   <ItemGroup>
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Update="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
-    <PackageReference Update="Microsoft.Testing.Extensions.TrxReport" Version="1.7.3" />
-    <PackageReference Update="MSTest.Analyzers" Version="3.9.3">
+    <PackageReference Update="Microsoft.Testing.Extensions.TrxReport" Version="1.8.1" />
+    <PackageReference Update="MSTest.Analyzers" Version="3.10.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Update="MSTest.TestAdapter" Version="3.9.3" />
-    <PackageReference Update="MSTest.TestFramework" Version="3.9.3" />
+    <PackageReference Update="MSTest.TestAdapter" Version="3.10.1" />
+    <PackageReference Update="MSTest.TestFramework" Version="3.10.1" />
   </ItemGroup>
 
 </Project>
