@@ -35,12 +35,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.JobSchedule
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Application", "InvoiceReminder.Application\InvoiceReminder.Application.csproj", "{995B652F-6095-4056-A1AB-F45AAF0135D2}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{66A414D1-0ABD-4675-A73D-0D0E7F12CB3D}"
-	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
-		CodeCoverage.runsettings = CodeCoverage.runsettings
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5 - Unit Tests", "5 - Unit Tests", "{67471F47-0B78-4F8A-95CD-145F78F644C3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.ExternalServices", "InvoiceReminder.Services\InvoiceReminder.ExternalServices.csproj", "{F2EB382B-25E4-43D8-8159-53DB5085DED6}"
@@ -62,6 +56,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.UnitTests.Assets", "InvoiceReminder.UnitTests.Assets\InvoiceReminder.UnitTests.Assets.csproj", "{0D3F963F-37A2-40E6-865D-0FD732FC5376}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.ArchitectureTests", "InvoiceReminder.ArchitectureTests\InvoiceReminder.ArchitectureTests.csproj", "{F8FE30DD-52E6-4981-96A7-D4D487522A26}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens de Solução", "{380A7511-A354-6D7A-0CC0-8FA1F1BA7B6C}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		CodeCoverage.runsettings = CodeCoverage.runsettings
+		Directory.Packages.props = Directory.Packages.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
