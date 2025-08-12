@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\InvoiceReminder.Data\InvoiceReminder.Data.csproj" />
     <ProjectReference Include="..\InvoiceReminder.Domain\InvoiceReminder.Domain.csproj" />
+    <ProjectReference Include="..\InvoiceReminder.ExternalServices\InvoiceReminder.ExternalServices.csproj" />
     <ProjectReference Include="..\InvoiceReminder.JobScheduler\InvoiceReminder.JobScheduler.csproj" />
   </ItemGroup>
     

@@ -10,8 +10,8 @@
     <ProjectReference Include="..\InvoiceReminder.Application\InvoiceReminder.Application.csproj" />
     <ProjectReference Include="..\InvoiceReminder.Authentication\InvoiceReminder.Authentication.csproj" />
     <ProjectReference Include="..\InvoiceReminder.Data\InvoiceReminder.Data.csproj" />
+    <ProjectReference Include="..\InvoiceReminder.ExternalServices\InvoiceReminder.ExternalServices.csproj" />
     <ProjectReference Include="..\InvoiceReminder.JobScheduler\InvoiceReminder.JobScheduler.csproj" />
-    <ProjectReference Include="..\InvoiceReminder.Services\InvoiceReminder.ExternalServices.csproj" />
   </ItemGroup>
     
   <ItemGroup>
