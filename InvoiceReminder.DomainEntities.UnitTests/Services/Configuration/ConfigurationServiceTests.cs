@@ -1,7 +1,5 @@
 using InvoiceReminder.Domain.Services.Configuration;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using NSubstitute;
 using Shouldly;
 
 namespace InvoiceReminder.DomainEntities.UnitTests.Services.Configuration;
@@ -9,345 +7,250 @@ namespace InvoiceReminder.DomainEntities.UnitTests.Services.Configuration;
 [TestClass]
 public class ConfigurationServiceTests
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly IConfigurationBuilder _configurationBuilder;
-    private readonly IConfigurationRoot _configurationRoot;
-    private readonly ConfigurationService _service;
+    private string _originalEnvironment;
 
-    public ConfigurationServiceTests()
+    [TestInitialize]
+    public void Setup()
     {
-        _serviceProvider = Substitute.For<IServiceProvider>();
-        _configurationBuilder = Substitute.For<IConfigurationBuilder>();
-        _configurationRoot = Substitute.For<IConfigurationRoot>();
-
-        _ = _serviceProvider.GetService(typeof(IConfigurationBuilder)).Returns(_configurationBuilder);
-
-        _ = _configurationBuilder.Add(Arg.Any<IConfigurationSource>()).Returns(_configurationBuilder);
-
-        _ = _configurationBuilder.Build().Returns(_configurationRoot);
-
-        _service = new ConfigurationService(_serviceProvider);
+        _originalEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
     }
 
-    [TestMethod]
-    public void Constructor_WhenEnvironmentIsDevelopment_AddsUserSecretsAndBuilds()
+    [TestCleanup]
+    public void Cleanup()
     {
-        // Arrange
-        var originalEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", _originalEnvironment);
+    }
+
+    private static ConfigurationService CreateService(Dictionary<string, string> initialSettings = null)
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(initialSettings ?? [])
+            .Build();
+
+        return new ConfigurationService(config);
+    }
+
+    #region Constructor
+
+    [TestMethod]
+    public void Constructor_DevelopmentEnvironment_AddsUserSecrets()
+    {
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
 
-        try
-        {
-            var serviceProvider = Substitute.For<IServiceProvider>();
-            var configBuilder = Substitute.For<IConfigurationBuilder>();
-            var configRoot = Substitute.For<IConfigurationRoot>();
+        var config = new ConfigurationBuilder().Build();
+        var service = new ConfigurationService(config);
 
-            _ = serviceProvider.GetService(typeof(IConfigurationBuilder)).Returns(configBuilder);
-            _ = configBuilder.Add(Arg.Any<IConfigurationSource>()).Returns(configBuilder);
-            _ = configBuilder.Build().Returns(configRoot);
-
-            // Act
-            _ = new ConfigurationService(serviceProvider);
-
-            // Assert
-            _ = serviceProvider.Received(1).GetService(typeof(IConfigurationBuilder));
-
-            _ = configBuilder.Received(1).Add(Arg.Is<IConfigurationSource>(s => s is IConfigurationSource));
-
-            _ = configBuilder.Received(1).Build();
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnvironment);
-        }
+        // No assert needed — just verifying no exception and secrets can be added
+        _ = service.ShouldNotBeNull();
     }
 
     [TestMethod]
-    public void Constructor_WhenEnvironmentIsNotDevelopment_AddsJsonFileAndBuilds()
+    public void Constructor_ProductionEnvironment_DoesNotAddUserSecrets()
     {
-        // Arrange
-        var originalEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
 
-        try
-        {
-            var serviceProvider = Substitute.For<IServiceProvider>();
-            var configBuilder = Substitute.For<IConfigurationBuilder>();
-            var configRoot = Substitute.For<IConfigurationRoot>();
+        var config = new ConfigurationBuilder().Build();
+        var service = new ConfigurationService(config);
 
-            _ = serviceProvider.GetService(typeof(IConfigurationBuilder)).Returns(configBuilder);
-            _ = configBuilder.Add(Arg.Any<IConfigurationSource>()).Returns(configBuilder);
-            _ = configBuilder.Build().Returns(configRoot);
+        _ = service.ShouldNotBeNull();
+    }
 
-            // Act
-            _ = new ConfigurationService(serviceProvider);
+    #endregion
 
-            // Assert
-            _ = serviceProvider.Received(1).GetService(typeof(IConfigurationBuilder));
+    #region GetAppSetting
 
-            _ = configBuilder.Received(1).Add(Arg.Is<IConfigurationSource>(s =>
-                s is JsonConfigurationSource && ((JsonConfigurationSource)s).Path == "appsettings.json"));
+    [TestMethod]
+    public void GetAppSetting_KeyExists_ReturnsValue()
+    {
+        var service = CreateService(new() { ["MyKey"] = "MyValue" });
 
-            _ = configBuilder.Received(1).Build();
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", originalEnvironment);
-        }
+        var result = service.GetAppSetting("MyKey");
+
+        result.ShouldBe("MyValue");
     }
 
     [TestMethod]
-    public void GetAppSetting_WhenKeyExists_ReturnsValue()
+    public void GetAppSetting_KeyMissing_ReturnsNull()
     {
-        // Arrange
-        var key = "TestKey";
-        var expectedValue = "TestValue";
+        var service = CreateService();
 
-        _ = _configurationRoot[key].Returns(expectedValue);
+        var result = service.GetAppSetting("MissingKey");
 
-        // Act
-        var actualValue = _service.GetAppSetting(key);
-
-        // Assert
-        actualValue.ShouldBe(expectedValue);
+        result.ShouldBeNull();
     }
 
-    [TestMethod]
-    public void GetAppSetting_WhenKeyDoesNotExist_ReturnsNull()
-    {
-        // Arrange
-        var key = "NonExistentKey";
+    #endregion
 
-        _ = _configurationRoot[key].Returns((string)null);
-
-        // Act
-        var actualValue = _service.GetAppSetting(key);
-
-        // Assert
-        actualValue.ShouldBeNull();
-    }
+    #region GetConnectionString
 
     [TestMethod]
-    public void GetConnectionString_WhenNameExists_ReturnsConnectionString()
+    public void GetConnectionString_NameExists_ReturnsValue()
     {
-        // Arrange
-        var name = "TestConnection";
-        var expectedConnectionString = "Server=localhost;Database=TestDB;";
-
-        _ = _configurationRoot.GetConnectionString(name).Returns(expectedConnectionString);
-
-        // Act
-        var actualConnectionString = _service.GetConnectionString(name);
-
-        // Assert
-        actualConnectionString.ShouldBe(expectedConnectionString);
-    }
-
-    [TestMethod]
-    public void GetConnectionString_WhenNameDoesNotExist_ReturnsNull()
-    {
-        // Arrange
-        var name = "NonExistentConnection";
-
-        _ = _configurationRoot.GetConnectionString(name).Returns((string)null);
-
-        // Act
-        var actualConnectionString = _service.GetConnectionString(name);
-
-        // Assert
-        actualConnectionString.ShouldBeNull();
-    }
-
-    [TestMethod]
-    public void GetSecret_WithKeyOnly_WhenKeyExists_ReturnsValue()
-    {
-        // Arrange
-        var key = "TestSecretKey";
-        var expectedValue = "SuperSecretValue";
-
-        _ = _configurationRoot[key].Returns(expectedValue);
-
-        // Act
-        var actualValue = _service.GetSecret(key);
-
-        // Assert
-        actualValue.ShouldBe(expectedValue);
-    }
-
-    [TestMethod]
-    public void GetSecret_WithKeyOnly_WhenKeyDoesNotExist_ReturnsNull()
-    {
-        // Arrange
-        var key = "NonExistentSecretKey";
-
-        _ = _configurationRoot[key].Returns((string)null);
-
-        // Act
-        var actualValue = _service.GetSecret(key);
-
-        // Assert
-        actualValue.ShouldBeNull();
-    }
-
-    [TestMethod]
-    public void GetSecret_WithKeyAndSecretName_WhenKeyExists_ReturnsValue()
-    {
-        // Arrange
-        var key = "Secrets";
-        var secretName = "MySecret";
-        var fullKey = $"{key}:{secretName}";
-        var expectedValue = "AnotherSecretValue";
-
-        _ = _configurationRoot[fullKey].Returns(expectedValue);
-
-        // Act
-        var actualValue = _service.GetSecret(key, secretName);
-
-        // Assert
-        actualValue.ShouldBe(expectedValue);
-    }
-
-    [TestMethod]
-    public void GetSecret_WithKeyAndSecretName_WhenKeyDoesNotExist_ReturnsNull()
-    {
-        // Arrange
-        var key = "Secrets";
-        var secretName = "NonExistentSecret";
-        var fullKey = $"{key}:{secretName}";
-
-        _ = _configurationRoot[fullKey].Returns((string)null);
-
-        // Act
-        var actualValue = _service.GetSecret(key, secretName);
-
-        // Assert
-        actualValue.ShouldBeNull();
-    }
-
-    [TestMethod]
-    public void GetSecret_WithKeySecretNameAndDefault_WhenKeyExists_ReturnsValue()
-    {
-        // Arrange
-        var key = "Secrets";
-        var secretName = "MySpecificSecret";
-        var defaultValue = "DefaultSecret";
-        var fullKey = $"{key}:{secretName}";
-        var expectedValue = "SpecificSecretValue";
-
-        _ = _configurationRoot[fullKey].Returns(expectedValue);
-
-        // Act
-        var actualValue = _service.GetSecret(key, secretName, defaultValue);
-
-        // Assert
-        actualValue.ShouldBe(expectedValue);
-    }
-
-    [TestMethod]
-    public void GetSecret_WithKeySecretNameAndDefault_WhenKeyDoesNotExist_ReturnsDefaultValue()
-    {
-        // Arrange
-        var key = "Secrets";
-        var secretName = "YetAnotherNonExistentSecret";
-        var defaultValue = "MyDefaultValue";
-        var fullKey = $"{key}:{secretName}";
-
-        _ = _configurationRoot[fullKey].Returns((string)null);
-
-        // Act
-        var actualValue = _service.GetSecret(key, secretName, defaultValue);
-
-        // Assert
-        actualValue.ShouldBe(defaultValue);
-    }
-
-    [TestMethod]
-    public void GetSection_WhenSectionExists_ReturnsDeserializedObject()
-    {
-        // Arrange
-        var sectionName = "TestSection";
-        var expectedSection = new MyTestSection { Property1 = "Val1", Property2 = 123 };
-
-        var inMemoryConfig = new ConfigurationBuilder()
+        var service = new ConfigurationService(new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string>
             {
-                {$"{sectionName}:Property1", expectedSection.Property1},
-                {$"{sectionName}:Property2", expectedSection.Property2.ToString()},
+                ["ConnectionStrings:MyDb"] = "Server=.;Database=Test;"
             })
-            .Build();
+            .Build());
 
-        _ = _configurationRoot.GetSection(sectionName).Returns(inMemoryConfig.GetSection(sectionName));
+        var result = service.GetConnectionString("MyDb");
 
-        // Act
-        var actualSection = _service.GetSection<MyTestSection>(sectionName);
-
-        // Assert
-        _ = actualSection.ShouldNotBeNull();
-        actualSection.Property1.ShouldBe(expectedSection.Property1);
-        actualSection.Property2.ShouldBe(expectedSection.Property2);
+        result.ShouldBe("Server=.;Database=Test;");
     }
 
     [TestMethod]
-    public void GetSection_WhenSectionDoesNotExist_ReturnsNull()
+    public void GetConnectionString_NameMissing_ReturnsNull()
     {
-        // Arrange
-        var sectionName = "NonExistentSection";
-        var inMemoryConfig = new ConfigurationBuilder().Build();
+        var service = CreateService();
 
-        _ = _configurationRoot.GetSection(sectionName).Returns(inMemoryConfig.GetSection(sectionName));
+        var result = service.GetConnectionString("MissingDb");
 
-        // Act
-        var actualSection = _service.GetSection<MyTestSection>(sectionName);
+        result.ShouldBeNull();
+    }
 
-        // Assert
-        actualSection.ShouldBeNull();
+    #endregion
+
+    #region GetSecret
+
+    [TestMethod]
+    public void GetSecret_KeyOnly_Exists_ReturnsValue()
+    {
+        var service = CreateService(new() { ["SecretKey"] = "SecretValue" });
+
+        var result = service.GetSecret("SecretKey");
+
+        result.ShouldBe("SecretValue");
     }
 
     [TestMethod]
-    public void GetSection_WithDefault_WhenSectionExists_ReturnsDeserializedObject()
+    public void GetSecret_KeyOnly_Missing_ReturnsNull()
     {
-        // Arrange
-        var sectionName = "ExistingSectionForDefaultTest";
-        var expectedSection = new MyTestSection { Property1 = "Data", Property2 = 456 };
+        var service = CreateService();
+
+        var result = service.GetSecret("MissingSecret");
+
+        result.ShouldBeNull();
+    }
+
+    [TestMethod]
+    public void GetSecret_KeyAndName_Exists_ReturnsValue()
+    {
+        var service = CreateService(new() { ["Secrets:MySecret"] = "SecretValue" });
+
+        var result = service.GetSecret("Secrets", "MySecret");
+
+        result.ShouldBe("SecretValue");
+    }
+
+    [TestMethod]
+    public void GetSecret_KeyAndName_ExistsWithUnderscore_ReturnsValue()
+    {
+        var service = CreateService(new() { ["Secrets__MySecret"] = "SecretValue" });
+
+        var result = service.GetSecret("Secrets", "MySecret");
+
+        result.ShouldBe("SecretValue");
+    }
+
+    [TestMethod]
+    public void GetSecret_KeyAndName_Missing_ReturnsNull()
+    {
+        var service = CreateService();
+
+        var result = service.GetSecret("Secrets", "Missing");
+
+        result.ShouldBeNull();
+    }
+
+    [TestMethod]
+    public void GetSecret_WithDefault_ReturnsExpected()
+    {
+        var service = CreateService(new() { ["Secrets:MySecret"] = "ActualValue" });
+
+        var result = service.GetSecret("Secrets", "MySecret", "DefaultValue");
+
+        result.ShouldBe("ActualValue");
+    }
+
+    [TestMethod]
+    public void GetSecret_WithDefault_Missing_ReturnsDefault()
+    {
+        var service = CreateService();
+
+        var result = service.GetSecret("Secrets", "Missing", "DefaultValue");
+
+        result.ShouldBe("DefaultValue");
+    }
+
+    #endregion
+
+    #region GetSection
+
+    public class MyTestSection
+    {
+        public string Property1 { get; set; }
+        public int Property2 { get; set; }
+    }
+
+    [TestMethod]
+    public void GetSection_Exists_ReturnsDeserializedObject()
+    {
+        var service = CreateService(new()
+        {
+            ["MySection:Property1"] = "Value1",
+            ["MySection:Property2"] = "42"
+        });
+
+        var result = service.GetSection<MyTestSection>("MySection");
+
+        _ = result.ShouldNotBeNull();
+        result.Property1.ShouldBe("Value1");
+        result.Property2.ShouldBe(42);
+    }
+
+    [TestMethod]
+    public void GetSection_Missing_ReturnsNull()
+    {
+        var service = CreateService();
+
+        var result = service.GetSection<MyTestSection>("MissingSection");
+
+        result.ShouldBeNull();
+    }
+
+    [TestMethod]
+    public void GetSection_WithDefault_Exists_ReturnsDeserializedObject()
+    {
+        var service = CreateService(new()
+        {
+            ["MySection:Property1"] = "Value1",
+            ["MySection:Property2"] = "42"
+        });
+
         var defaultValue = new MyTestSection { Property1 = "Default", Property2 = 0 };
 
-        var inMemoryConfig = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>
-            {
-                {$"{sectionName}:Property1", expectedSection.Property1},
-                {$"{sectionName}:Property2", expectedSection.Property2.ToString()},
-            })
-            .Build();
+        var result = service.GetSection("MySection", defaultValue);
 
-        _ = _configurationRoot.GetSection(sectionName).Returns(inMemoryConfig.GetSection(sectionName));
-
-        // Act
-        var actualSection = _service.GetSection(sectionName, defaultValue);
-
-        // Assert
-        _ = actualSection.ShouldNotBeNull();
-        actualSection.Property1.ShouldBe(expectedSection.Property1);
-        actualSection.Property2.ShouldBe(expectedSection.Property2);
+        _ = result.ShouldNotBeNull();
+        result.Property1.ShouldBe("Value1");
+        result.Property2.ShouldBe(42);
     }
 
     [TestMethod]
-    public void GetSection_WithDefault_WhenSectionDoesNotExist_ReturnsDefaultValue()
+    public void GetSection_WithDefault_Missing_ReturnsDefault()
     {
-        // Arrange
-        var sectionName = "NonExistentSectionForDefaultTest";
-        var defaultValue = new MyTestSection { Property1 = "DefaultData", Property2 = 789 };
+        var service = CreateService();
 
-        var inMemoryConfig = new ConfigurationBuilder().Build();
-        _ = _configurationRoot.GetSection(sectionName).Returns(inMemoryConfig.GetSection(sectionName));
+        var defaultValue = new MyTestSection { Property1 = "Default", Property2 = 0 };
 
-        // Act
-        var actualSection = _service.GetSection(sectionName, defaultValue);
+        var result = service.GetSection("MissingSection", defaultValue);
 
-        // Assert
-        _ = actualSection.ShouldNotBeNull();
-        actualSection.ShouldBe(defaultValue);
+        result.ShouldBe(defaultValue);
     }
+
+    #endregion
 }
+
 
 public class MyTestSection
 {

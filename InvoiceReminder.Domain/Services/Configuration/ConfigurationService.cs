@@ -1,19 +1,24 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace InvoiceReminder.Domain.Services.Configuration;
 
 public class ConfigurationService : IConfigurationService
 {
-    private readonly IConfigurationRoot _configuration;
+    private readonly IConfiguration _configuration;
 
-    public ConfigurationService(IServiceProvider serviceProvider)
+    public ConfigurationService(IConfiguration configuration)
     {
-        var configBuilder = serviceProvider.GetRequiredService<IConfigurationBuilder>();
+        var builder = new ConfigurationBuilder()
+            .AddConfiguration(configuration)
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables();
 
-        _configuration = IsDevelopment()
-            ? configBuilder.AddUserSecrets<ConfigurationService>().Build()
-            : configBuilder.AddJsonFile("appsettings.json").Build();
+        if (IsDevelopment())
+        {
+            _ = builder.AddUserSecrets<ConfigurationService>();
+        }
+
+        _configuration = builder.Build();
     }
 
     public string GetAppSetting(string key)
@@ -33,12 +38,12 @@ public class ConfigurationService : IConfigurationService
 
     public string GetSecret(string key, string secretName)
     {
-        return _configuration[$"{key}:{secretName}"];
+        return _configuration[$"{key}:{secretName}"] ?? _configuration[$"{key}__{secretName}"];
     }
 
     public string GetSecret(string key, string secretName, string defaultValue)
     {
-        return _configuration[$"{key}:{secretName}"] ?? defaultValue;
+        return GetSecret(key, secretName) ?? defaultValue;
     }
 
     public T GetSection<T>(string sectionName) where T : class
@@ -48,8 +53,7 @@ public class ConfigurationService : IConfigurationService
 
     public T GetSection<T>(string sectionName, T defaultValue) where T : class
     {
-        var section = _configuration.GetSection(sectionName).Get<T>();
-        return section ?? defaultValue;
+        return GetSection<T>(sectionName) ?? defaultValue;
     }
 
     private static bool IsDevelopment()

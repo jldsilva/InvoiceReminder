@@ -129,9 +129,10 @@ public static class DependencyInjectionConfig
     private static string GetConnectionString(this IServiceCollection services)
     {
         using var scope = services.BuildServiceProvider().CreateScope();
-        var cofig = scope.ServiceProvider.GetRequiredService<IConfigurationService>();
-
-        return cofig.GetConnectionString("DatabaseConnection");
+        var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var connStr = config.GetConnectionString("DatabaseConnection");
+        
+        return connStr;
     }
 
     private static bool IsMigrationRunning()

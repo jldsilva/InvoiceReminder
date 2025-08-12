@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.1 - Application", "2.1 - 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.2 - JobScheduler", "2.2 - JobScheduler", "{665C60E7-33FC-4B5B-B5EE-E31CDF83B1B1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.3 - External Services", "2.3 - External Services", "{BF3C7CE8-60C1-4A70-9BF1-22050115A1C4}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3 - Domain", "3 - Domain", "{05B89FDF-4F0D-4698-B37E-A45D8F18FE2B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4 - Infrastructure", "4 - Infrastructure", "{58388752-368A-4C7A-8540-9FB72E4132B2}"
@@ -22,6 +24,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4.2 - Data", "4.2 - Data", "{8844696D-6471-449B-819F-308309009B68}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4.3 - Crosscutting", "4.3 - Crosscutting", "{9E180232-F1E2-4A65-9C8B-17188EBE60AC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5 - Unit Tests", "5 - Unit Tests", "{67471F47-0B78-4F8A-95CD-145F78F644C3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.CrossCutting.IoC", "InvoiceReminder.CrossCutting.IoC\InvoiceReminder.CrossCutting.IoC.csproj", "{90BE8610-76AB-44DC-B39A-57B6C684BF33}"
 EndProject
@@ -35,11 +39,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.JobSchedule
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Application", "InvoiceReminder.Application\InvoiceReminder.Application.csproj", "{995B652F-6095-4056-A1AB-F45AAF0135D2}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5 - Unit Tests", "5 - Unit Tests", "{67471F47-0B78-4F8A-95CD-145F78F644C3}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.ExternalServices", "InvoiceReminder.Services\InvoiceReminder.ExternalServices.csproj", "{F2EB382B-25E4-43D8-8159-53DB5085DED6}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.3 - External Services", "2.3 - External Services", "{BF3C7CE8-60C1-4A70-9BF1-22050115A1C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.ExternalServices", "InvoiceReminder.ExternalServices\InvoiceReminder.ExternalServices.csproj", "{F2EB382B-25E4-43D8-8159-53DB5085DED6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.DomainEntities.UnitTests", "InvoiceReminder.DomainEntities.UnitTests\InvoiceReminder.DomainEntities.UnitTests.csproj", "{F50B9864-67DB-48DF-9B95-D78C126E0A2C}"
 EndProject
@@ -60,8 +60,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens de Solução", "{380A7511-A354-6D7A-0CC0-8FA1F1BA7B6C}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.env = .env
 		CodeCoverage.runsettings = CodeCoverage.runsettings
 		Directory.Packages.props = Directory.Packages.props
+		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
 Global
