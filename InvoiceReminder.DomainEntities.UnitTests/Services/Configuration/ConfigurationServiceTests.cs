@@ -40,7 +40,6 @@ public class ConfigurationServiceTests
         var config = new ConfigurationBuilder().Build();
         var service = new ConfigurationService(config);
 
-        // No assert needed — just verifying no exception and secrets can be added
         _ = service.ShouldNotBeNull();
     }
 
@@ -186,12 +185,6 @@ public class ConfigurationServiceTests
 
     #region GetSection
 
-    public class MyTestSection
-    {
-        public string Property1 { get; set; }
-        public int Property2 { get; set; }
-    }
-
     [TestMethod]
     public void GetSection_Exists_ReturnsDeserializedObject()
     {
@@ -250,7 +243,6 @@ public class ConfigurationServiceTests
 
     #endregion
 }
-
 
 public class MyTestSection
 {
