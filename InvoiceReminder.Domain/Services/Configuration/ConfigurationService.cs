@@ -8,15 +8,21 @@ public class ConfigurationService : IConfigurationService
 
     public ConfigurationService(IConfiguration configuration)
     {
+        var environment = configuration["ASPNETCORE_ENVIRONMENT"]
+            ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            ?? "Production";
+
         var builder = new ConfigurationBuilder()
             .AddConfiguration(configuration)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddEnvironmentVariables();
+            .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true);
 
-        if (IsDevelopment())
+        if (string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase))
         {
             _ = builder.AddUserSecrets<ConfigurationService>();
         }
+
+        _ = builder.AddEnvironmentVariables();
 
         _configuration = builder.Build();
     }
@@ -54,10 +60,5 @@ public class ConfigurationService : IConfigurationService
     public T GetSection<T>(string sectionName, T defaultValue) where T : class
     {
         return GetSection<T>(sectionName) ?? defaultValue;
-    }
-
-    private static bool IsDevelopment()
-    {
-        return Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
     }
 }

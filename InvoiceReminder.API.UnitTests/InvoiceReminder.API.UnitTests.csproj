@@ -15,7 +15,6 @@
     
   <ItemGroup>
     <ProjectReference Include="..\InvoiceReminder.API\InvoiceReminder.API.csproj" />
-    <ProjectReference Include="..\InvoiceReminder.ExternalServices\InvoiceReminder.ExternalServices.csproj" />
     <ProjectReference Include="..\InvoiceReminder.UnitTests.Assets\InvoiceReminder.UnitTests.Assets.csproj" />
   </ItemGroup>  
 

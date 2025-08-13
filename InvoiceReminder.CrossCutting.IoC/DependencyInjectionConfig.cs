@@ -62,7 +62,11 @@ public static class DependencyInjectionConfig
     {
         _ = _testEnvironments.Contains(_environment)
             ? services.AddDbContext<CoreDbContext>(options => options.UseInMemoryDatabase("TestDb"))
-            : services.AddDbContext<CoreDbContext>(options => options.UseNpgsql(services.GetConnectionString()));
+            : services.AddDbContext<CoreDbContext>((sp, options) =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                _ = options.UseNpgsql(config.GetConnectionString("DatabaseConnection"));
+            });
 
         return services;
     }
@@ -124,15 +128,6 @@ public static class DependencyInjectionConfig
         }
 
         return services;
-    }
-
-    private static string GetConnectionString(this IServiceCollection services)
-    {
-        using var scope = services.BuildServiceProvider().CreateScope();
-        var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-        var connStr = config.GetConnectionString("DatabaseConnection");
-        
-        return connStr;
     }
 
     private static bool IsMigrationRunning()
