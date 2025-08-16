@@ -41,7 +41,7 @@
     <PackageVersion Include="Scalar.AspNetCore" Version="2.6.9" />
     <PackageVersion Include="Scrutor" Version="6.1.0" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.15.0.120848" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.13.1" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <PackageVersion Include="Telegram.Bot" Version="22.6.0" />
   </ItemGroup>
   <ItemGroup>
