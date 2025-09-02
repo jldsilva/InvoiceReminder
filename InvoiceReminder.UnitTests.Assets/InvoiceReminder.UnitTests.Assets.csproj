@@ -1,9 +1,10 @@
-﻿<Project Sdk="MSTest.Sdk/3.10.2">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
