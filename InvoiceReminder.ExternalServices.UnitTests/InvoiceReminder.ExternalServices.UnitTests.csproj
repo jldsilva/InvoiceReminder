@@ -14,8 +14,6 @@
   </PropertyGroup>
     
   <ItemGroup>
-    <PackageReference Include="itext.bouncy-castle-adapter" />
-    <PackageReference Include="itext.bouncy-castle-fips-adapter" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="NSubstitute.Analyzers.CSharp">
       <PrivateAssets>all</PrivateAssets>
