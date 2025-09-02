@@ -9,9 +9,9 @@
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="EFCore.BulkExtensions" Version="9.0.1" />
     <PackageVersion Include="EFCore.BulkExtensions.PostgreSql" Version="9.0.1" />
-    <PackageVersion Include="itext" Version="9.2.0" />
-    <PackageVersion Include="itext.bouncy-castle-adapter" Version="9.2.0" />
-    <PackageVersion Include="itext.bouncy-castle-fips-adapter" Version="9.2.0" />
+    <PackageVersion Include="itext" Version="9.3.0" />
+    <PackageVersion Include="itext.bouncy-castle-adapter" Version="9.3.0" />
+    <PackageVersion Include="itext.bouncy-castle-fips-adapter" Version="9.3.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
@@ -38,11 +38,11 @@
     <PackageVersion Include="Npgsql" Version="9.0.3" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageVersion Include="Quartz" Version="3.15.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.6.9" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.7.2" />
     <PackageVersion Include="Scrutor" Version="6.1.0" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.15.0.120848" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
-    <PackageVersion Include="Telegram.Bot" Version="22.6.2" />
+    <PackageVersion Include="Telegram.Bot" Version="22.7.1" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Abstractions" Version="2.3.0" />
@@ -55,9 +55,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Update="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
-    <PackageVersion Update="Microsoft.Testing.Extensions.TrxReport" Version="1.8.2" />
-    <PackageVersion Update="MSTest.Analyzers" Version="3.10.2" />
-    <PackageVersion Update="MSTest.TestAdapter" Version="3.10.2" />
-    <PackageVersion Update="MSTest.TestFramework" Version="3.10.2" />
+    <PackageVersion Update="Microsoft.Testing.Extensions.TrxReport" Version="1.8.4" />
+    <PackageVersion Update="MSTest.Analyzers" Version="3.10.4" />
+    <PackageVersion Update="MSTest.TestAdapter" Version="3.10.4" />
+    <PackageVersion Update="MSTest.TestFramework" Version="3.10.4" />
   </ItemGroup>
 </Project>
