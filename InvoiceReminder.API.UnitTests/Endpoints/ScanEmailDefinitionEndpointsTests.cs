@@ -465,8 +465,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _scanEmailDefinitionAppService.GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>())
-            .ThrowsAsync(new ArgumentException("Service error"));
+        _ = _scanEmailDefinitionAppService.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>())
+            .ThrowsAsync<ApplicationException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
