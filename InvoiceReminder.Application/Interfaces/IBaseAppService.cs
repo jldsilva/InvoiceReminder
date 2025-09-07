@@ -1,4 +1,4 @@
-using InvoiceReminder.Application.Abstractions;
+using InvoiceReminder.Domain.Abstractions;
 
 namespace InvoiceReminder.Application.Interfaces;
 
