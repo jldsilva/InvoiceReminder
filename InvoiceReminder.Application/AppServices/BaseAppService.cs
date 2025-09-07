@@ -1,6 +1,6 @@
-using InvoiceReminder.Application.Abstractions;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Data.Interfaces;
+using InvoiceReminder.Domain.Abstractions;
 using Mapster;
 
 namespace InvoiceReminder.Application.AppServices;

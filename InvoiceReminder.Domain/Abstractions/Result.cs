@@ -1,4 +1,4 @@
-namespace InvoiceReminder.Application.Abstractions;
+namespace InvoiceReminder.Domain.Abstractions;
 
 public class Result<T>
 {

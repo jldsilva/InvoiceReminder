@@ -1,7 +1,7 @@
 using InvoiceReminder.API.UnitTests.Factories;
-using InvoiceReminder.Application.Abstractions;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
+using InvoiceReminder.Domain.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

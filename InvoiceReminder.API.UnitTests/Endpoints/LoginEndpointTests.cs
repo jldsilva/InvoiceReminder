@@ -1,11 +1,11 @@
 using InvoiceReminder.API.AuthenticationSetup;
 using InvoiceReminder.API.UnitTests.Factories;
-using InvoiceReminder.Application.Abstractions;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
 using InvoiceReminder.Authentication.Extensions;
 using InvoiceReminder.Authentication.Interfaces;
 using InvoiceReminder.Authentication.Jwt;
+using InvoiceReminder.Domain.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;

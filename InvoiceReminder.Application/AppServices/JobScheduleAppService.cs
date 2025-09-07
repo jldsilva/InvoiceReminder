@@ -1,7 +1,7 @@
-using InvoiceReminder.Application.Abstractions;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
 using InvoiceReminder.Data.Interfaces;
+using InvoiceReminder.Domain.Abstractions;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.JobScheduler.HostedService;
 using Mapster;
