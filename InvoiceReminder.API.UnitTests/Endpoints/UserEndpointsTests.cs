@@ -23,6 +23,8 @@ public sealed class UserEndpointsTests
     private readonly IAuthorizationService _authorizationService;
     private readonly IUserAppService _userAppService;
 
+    public TestContext TestContext { get; set; }
+
     public UserEndpointsTests()
     {
         var factory = new CustomWebApplicationFactory<Program>();
@@ -70,8 +72,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<IEnumerable<UserViewModel>>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<UserViewModel>>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetAll();
@@ -92,7 +94,7 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -114,8 +116,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetAll();
@@ -151,8 +153,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<UserViewModel>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<UserViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -173,7 +175,7 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -194,8 +196,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -219,8 +221,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -246,8 +248,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadAsStringAsync();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -283,8 +285,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<UserViewModel>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<UserViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
@@ -306,7 +308,7 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -327,8 +329,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
@@ -352,8 +354,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
@@ -379,8 +381,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadAsStringAsync();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
@@ -421,8 +423,8 @@ public sealed class UserEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(userViewModel);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<UserViewModel>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<UserViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).AddAsync(Arg.Any<UserViewModel>());
@@ -442,7 +444,7 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -476,8 +478,8 @@ public sealed class UserEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(userViewModel);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).AddAsync(Arg.Any<UserViewModel>());
@@ -525,8 +527,8 @@ public sealed class UserEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(usersViewModel);
-        var response = await _client.SendAsync(request);
-        var result = int.Parse(await response.Content.ReadAsStringAsync());
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = int.Parse(await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token));
 
         // Assert
         _ = _userAppService.Received(1).BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>());
@@ -546,7 +548,7 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -591,8 +593,8 @@ public sealed class UserEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(usersViewModel);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>());
@@ -634,8 +636,8 @@ public sealed class UserEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(userViewModel);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<UserViewModel>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<UserViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).UpdateAsync(Arg.Any<UserViewModel>());
@@ -655,7 +657,7 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -690,8 +692,8 @@ public sealed class UserEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(userViewModel);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).UpdateAsync(Arg.Any<UserViewModel>());
@@ -719,8 +721,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadAsStringAsync();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).RemoveAsync(Arg.Any<UserViewModel>());
@@ -740,7 +742,7 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -762,8 +764,8 @@ public sealed class UserEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).RemoveAsync(Arg.Any<UserViewModel>());

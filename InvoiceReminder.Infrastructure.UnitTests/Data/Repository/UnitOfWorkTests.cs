@@ -18,6 +18,8 @@ namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
         private readonly DbContextOptions<CoreDbContext> _contextOptions;
         private readonly ILogger<UnitOfWork> _logger;
 
+        public TestContext TestContext { get; set; }
+
         public UnitOfWorkTests()
         {
             _connection = new SqliteConnection("Filename=:memory:");
@@ -46,11 +48,11 @@ namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
         {
             // Arrange
             using var context = CreateContext();
-            _ = await context.Database.EnsureCreatedAsync();
+            _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationTokenSource.Token);
             var unitOfWork = CreateUnitOfWork(context);
 
             // Act
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
 
             // Assert
             context.Database.GetDbConnection().State.ShouldBe(ConnectionState.Closed);
@@ -61,13 +63,15 @@ namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
         {
             // Arrange
             using var context = CreateContext();
-            _ = await context.Database.EnsureCreatedAsync();
+            _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationTokenSource.Token);
             var unitOfWork = CreateUnitOfWork(context);
 
             _ = context.Users.Add(new User { Id = Guid.NewGuid() });
 
             // Act
-            var dataLayerException = await Should.ThrowAsync<DataLayerException>(async () => await unitOfWork.SaveChangesAsync());
+            var dataLayerException = await Should.ThrowAsync<DataLayerException>(
+                async () => await unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token)
+            );
 
             // Assert
             context.Database.GetDbConnection().State.ShouldBe(ConnectionState.Closed);
@@ -90,12 +94,12 @@ namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
         {
             // Arrange
             using var context = CreateContext();
-            _ = await context.Database.EnsureCreatedAsync();
-            await context.Database.OpenConnectionAsync();
+            _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationTokenSource.Token);
+            await context.Database.OpenConnectionAsync(TestContext.CancellationTokenSource.Token);
             var unitOfWork = CreateUnitOfWork(context);
 
             // Act
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
 
             // Assert
             context.Database.GetDbConnection().State.ShouldBe(ConnectionState.Closed);

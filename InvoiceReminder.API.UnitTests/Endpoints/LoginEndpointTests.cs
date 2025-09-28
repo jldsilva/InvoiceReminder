@@ -24,6 +24,8 @@ public class LoginEndpointTests
     private readonly IJwtProvider _jwtProvider;
     private readonly IUserAppService _userAppService;
 
+    public TestContext TestContext { get; set; }
+
     public LoginEndpointTests()
     {
         var factory = new CustomWebApplicationFactory<Program>();
@@ -65,8 +67,8 @@ public class LoginEndpointTests
 
         // Act
         request.Content = JsonContent.Create(loginRequest);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<JwtObject>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
@@ -103,8 +105,8 @@ public class LoginEndpointTests
 
         // Act
         request.Content = JsonContent.Create(loginRequest);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<JwtObject>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
@@ -148,8 +150,8 @@ public class LoginEndpointTests
 
         // Act
         request.Content = JsonContent.Create(loginRequest);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<JwtObject>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
@@ -180,8 +182,8 @@ public class LoginEndpointTests
 
         // Act
         request.Content = JsonContent.Create(loginRequest);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());

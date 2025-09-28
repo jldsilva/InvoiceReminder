@@ -26,7 +26,7 @@ public class QuartzHostedServiceTests
         _schedules = [];
 
         _ = _schedulerFactory.GetScheduler(Arg.Any<CancellationToken>()).Returns(_scheduler);
-        _ = _schedulerFactory.GetScheduler().Returns(_scheduler);
+        _ = _schedulerFactory.GetScheduler(Arg.Any<CancellationToken>()).Returns(_scheduler);
     }
 
     [TestMethod]
@@ -41,11 +41,11 @@ public class QuartzHostedServiceTests
 
         // Assert
         _ = _scheduler.Received(1).ScheduleJob(Arg.Is<IJobDetail>(j => j.Key.Name == $"{schedule.Id}.job"),
-            Arg.Is<ITrigger>(t => t.Key.Name == $"{schedule.Id}.trigger"));
+            Arg.Is<ITrigger>(t => t.Key.Name == $"{schedule.Id}.trigger"), Arg.Any<CancellationToken>());
 
         _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
 
-        await _scheduler.Received(1).Start();
+        await _scheduler.Received(1).Start(Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -65,7 +65,7 @@ public class QuartzHostedServiceTests
         var schedule = new JobSchedule { Id = Guid.NewGuid(), CronExpression = "0 0 * * * ?", UserId = Guid.NewGuid() };
         var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
 
-        _ = _scheduler.CheckExists(Arg.Any<JobKey>()).Returns(true);
+        _ = _scheduler.CheckExists(Arg.Any<JobKey>(), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
         await service.ReScheduleJobAsync(schedule);
@@ -75,11 +75,11 @@ public class QuartzHostedServiceTests
             Arg.Any<CancellationToken>());
 
         _ = _scheduler.Received(1).ScheduleJob(Arg.Is<IJobDetail>(j => j.Key.Name == $"{schedule.Id}.job"),
-            Arg.Is<ITrigger>(t => t.Key.Name == $"{schedule.Id}.trigger"));
+            Arg.Is<ITrigger>(t => t.Key.Name == $"{schedule.Id}.trigger"), Arg.Any<CancellationToken>());
 
         _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
 
-        await _scheduler.Received(1).Start();
+        await _scheduler.Received(1).Start(Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -89,7 +89,7 @@ public class QuartzHostedServiceTests
         var schedule = new JobSchedule { Id = Guid.NewGuid(), CronExpression = "0 0 * * * ?", UserId = Guid.NewGuid() };
         var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
 
-        _ = _scheduler.CheckExists(Arg.Any<JobKey>()).Returns(false);
+        _ = _scheduler.CheckExists(Arg.Any<JobKey>(), Arg.Any<CancellationToken>()).Returns(false);
 
         // Act
         await service.ReScheduleJobAsync(schedule);
@@ -98,11 +98,11 @@ public class QuartzHostedServiceTests
         _ = _scheduler.DidNotReceive().DeleteJob(Arg.Any<JobKey>(), Arg.Any<CancellationToken>());
 
         _ = _scheduler.Received(1).ScheduleJob(Arg.Is<IJobDetail>(j => j.Key.Name == $"{schedule.Id}.job"),
-            Arg.Is<ITrigger>(t => t.Key.Name == $"{schedule.Id}.trigger"));
+            Arg.Is<ITrigger>(t => t.Key.Name == $"{schedule.Id}.trigger"), Arg.Any<CancellationToken>());
 
         _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
 
-        await _scheduler.Received(1).Start();
+        await _scheduler.Received(1).Start(Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -183,9 +183,9 @@ public class QuartzHostedServiceTests
         await service.ResumeJobAsync(schedule);
 
         // Assert
-        _ = _scheduler.Received(1).ResumeJob(Arg.Is<JobKey>(k => k.Name == $"{schedule.Id}.job"));
+        _ = _scheduler.Received(1).ResumeJob(Arg.Is<JobKey>(k => k.Name == $"{schedule.Id}.job"), Arg.Any<CancellationToken>());
 
-        _ = _scheduler.Received(1).ResumeTrigger(Arg.Is<TriggerKey>(k => k.Name == $"{schedule.Id}.trigger"));
+        _ = _scheduler.Received(1).ResumeTrigger(Arg.Is<TriggerKey>(k => k.Name == $"{schedule.Id}.trigger"), Arg.Any<CancellationToken>());
 
         _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
     }
@@ -239,7 +239,8 @@ public class QuartzHostedServiceTests
             Arg.Any<EventId>(),
             Arg.Is<object>(o => o.ToString() == "Starting Job raised an Excepetion: invalid cron"),
             Arg.Any<SchedulerException>(),
-            Arg.Any<Func<object, Exception, string>>());
+            Arg.Any<Func<object, Exception, string>>()
+        );
 
         _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
     }

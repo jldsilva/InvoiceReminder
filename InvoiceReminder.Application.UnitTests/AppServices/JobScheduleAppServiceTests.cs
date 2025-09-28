@@ -18,6 +18,8 @@ public sealed class JobScheduleAppServiceTests
     private readonly IJobFactory _jobFactory;
     private readonly ISchedulerFactory _schedulerFactory;
 
+    public TestContext TestContext { get; set; }
+
     public JobScheduleAppServiceTests()
     {
         _repository = Substitute.For<IJobScheduleRepository>();
@@ -53,7 +55,7 @@ public sealed class JobScheduleAppServiceTests
 
         // Assert
         _ = await _repository.DidNotReceive().AddAsync(Arg.Any<JobSchedule>());
-        await _unitOfWork.DidNotReceive().SaveChangesAsync();
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(TestContext.CancellationTokenSource.Token);
 
         result.ShouldSatisfyAllConditions(() =>
         {
@@ -82,7 +84,7 @@ public sealed class JobScheduleAppServiceTests
 
         // Assert
         _ = await _repository.Received(1).AddAsync(Arg.Is<JobSchedule>(x => x.Id == viewModel.Id));
-        await _unitOfWork.Received(1).SaveChangesAsync();
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
