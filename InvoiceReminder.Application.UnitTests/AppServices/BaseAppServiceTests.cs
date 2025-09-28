@@ -28,8 +28,11 @@ public class BaseAppServiceTests
         // Arrange
         var viewModel = new TestEntityViewModel { Name = "Test" };
 
-        _ = _repository.AddAsync(Arg.Any<TestEntity>()).Returns(viewModel.Adapt<TestEntity>());
-        _ = _unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token).Returns(Task.CompletedTask);
+        _ = _repository.AddAsync(Arg.Any<TestEntity>(), Arg.Any<CancellationToken>())
+            .Returns(viewModel.Adapt<TestEntity>());
+
+        _ = _unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token)
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _appService.AddAsync(viewModel);
@@ -83,8 +86,11 @@ public class BaseAppServiceTests
             new() { Name = "Test2" }
         };
 
-        _ = _repository.BulkInsertAsync(Arg.Any<ICollection<TestEntity>>()).Returns(viewModels.Count);
-        _ = _unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token).Returns(Task.CompletedTask);
+        _ = _repository.BulkInsertAsync(Arg.Any<ICollection<TestEntity>>(), Arg.Any<CancellationToken>())
+            .Returns(viewModels.Count);
+
+        _ = _unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token)
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _appService.BulkInsertAsync(viewModels);

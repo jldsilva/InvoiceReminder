@@ -19,14 +19,14 @@ public class BaseRepository<TDbContext, TEntity> : IBaseRepository<TEntity>
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
     }
 
-    public virtual async Task<TEntity> AddAsync(TEntity entity)
+    public virtual async Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
-        _ = await _dbSet.AddAsync(entity);
+        _ = await _dbSet.AddAsync(entity, cancellationToken);
 
         return entity;
     }
 
-    public virtual async Task<int> BulkInsertAsync(ICollection<TEntity> entities)
+    public virtual async Task<int> BulkInsertAsync(ICollection<TEntity> entities, CancellationToken cancellationToken = default)
     {
         foreach (var entity in entities)
         {
@@ -34,7 +34,7 @@ public class BaseRepository<TDbContext, TEntity> : IBaseRepository<TEntity>
             entity.GetType().GetProperty("UpdatedAt")?.SetValue(entity, DateTime.Now);
         }
 
-        await _dbContext.BulkInsertAsync(entities);
+        await _dbContext.BulkInsertAsync(entities, cancellationToken: cancellationToken);
 
         return entities.Count;
     }

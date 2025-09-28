@@ -51,10 +51,10 @@ public sealed class JobScheduleAppServiceTests
         JobScheduleViewModel viewModel = null;
 
         // Act
-        var result = await appService.AddNewJobAsync(viewModel);
+        var result = await appService.AddNewJobAsync(viewModel, TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = await _repository.DidNotReceive().AddAsync(Arg.Any<JobSchedule>());
+        _ = await _repository.DidNotReceive().AddAsync(Arg.Any<JobSchedule>(), Arg.Any<CancellationToken>());
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
@@ -80,10 +80,11 @@ public sealed class JobScheduleAppServiceTests
         };
 
         // Act
-        var result = await appService.AddNewJobAsync(viewModel);
+        var result = await appService.AddNewJobAsync(viewModel, TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = await _repository.Received(1).AddAsync(Arg.Is<JobSchedule>(x => x.Id == viewModel.Id));
+        _ = await _repository.Received(1)
+            .AddAsync(Arg.Is<JobSchedule>(x => x.Id == viewModel.Id), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
