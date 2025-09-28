@@ -50,6 +50,8 @@ public class QuartzHostedServiceTests
         await _service.ScheduleJobAsync(schedule, cts.Token);
 
         // Assert
+        _ = await _schedulerFactory.Received(1).GetScheduler(Arg.Is<CancellationToken>(ct => ct == cts.Token));
+
         _ = _scheduler.Received(1).ScheduleJob(
             Arg.Is<IJobDetail>(j => j.Key.Name == $"{schedule.Id}.job"),
             Arg.Is<ITrigger>(t => t.Key.Name == $"{schedule.Id}.trigger"),
@@ -75,12 +77,13 @@ public class QuartzHostedServiceTests
         var schedule = _schedules[0];
         var jobKey = new JobKey($"{schedule.Id}.job");
 
-        _ = _scheduler.CheckExists(jobKey, Arg.Any<CancellationToken>()).Returns(true);
+        _ = _scheduler.CheckExists(jobKey, Arg.Is<CancellationToken>(ct => ct == cts.Token)).Returns(true);
 
         // Act
         await _service.DeleteJobAsync(schedule, cts.Token);
 
         // Assert
+        _ = await _scheduler.Received(1).CheckExists(jobKey, Arg.Is<CancellationToken>(ct => ct == cts.Token));
         _ = await _scheduler.Received(1).DeleteJob(jobKey, Arg.Is<CancellationToken>(ct => ct == cts.Token));
     }
 
