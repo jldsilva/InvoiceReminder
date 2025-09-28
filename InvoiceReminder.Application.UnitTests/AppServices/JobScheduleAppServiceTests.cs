@@ -55,7 +55,7 @@ public sealed class JobScheduleAppServiceTests
 
         // Assert
         _ = await _repository.DidNotReceive().AddAsync(Arg.Any<JobSchedule>());
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
