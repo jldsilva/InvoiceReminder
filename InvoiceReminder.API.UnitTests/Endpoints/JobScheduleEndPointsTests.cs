@@ -69,7 +69,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<IEnumerable<JobScheduleViewModel>>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<JobScheduleViewModel>>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetAll();
@@ -113,7 +113,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetAll();
@@ -148,7 +148,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -191,7 +191,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -216,7 +216,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -243,7 +243,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -286,7 +286,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<IEnumerable<JobScheduleViewModel>>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<JobScheduleViewModel>>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
@@ -328,7 +328,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
@@ -353,7 +353,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
@@ -380,7 +380,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
@@ -421,7 +421,7 @@ public sealed class JobScheduleEndPointsTests
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).AddNewJobAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
@@ -475,7 +475,7 @@ public sealed class JobScheduleEndPointsTests
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).AddNewJobAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
@@ -517,7 +517,7 @@ public sealed class JobScheduleEndPointsTests
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).UpdateAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
@@ -572,7 +572,7 @@ public sealed class JobScheduleEndPointsTests
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).UpdateAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
@@ -603,7 +603,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).RemoveAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
@@ -647,7 +647,7 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).RemoveAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
