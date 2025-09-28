@@ -415,7 +415,7 @@ public sealed class UserEndpointsTests
 
         var expectedResult = Result<UserViewModel>.Success(userViewModel);
 
-        _ = _userAppService.AddAsync(Arg.Any<UserViewModel>()).Returns(expectedResult);
+        _ = _userAppService.AddAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -427,7 +427,7 @@ public sealed class UserEndpointsTests
         var result = await response.Content.ReadFromJsonAsync<UserViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _userAppService.Received(1).AddAsync(Arg.Any<UserViewModel>());
+        _ = _userAppService.Received(1).AddAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<UserViewModel>();
@@ -470,7 +470,7 @@ public sealed class UserEndpointsTests
 
         var expectedResult = Result<UserViewModel>.Failure("Service error");
 
-        _ = _userAppService.AddAsync(Arg.Any<UserViewModel>()).Returns(expectedResult);
+        _ = _userAppService.AddAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -482,7 +482,7 @@ public sealed class UserEndpointsTests
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _userAppService.Received(1).AddAsync(Arg.Any<UserViewModel>());
+        _ = _userAppService.Received(1).AddAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -519,7 +519,8 @@ public sealed class UserEndpointsTests
 
         var expectedResult = Result<int>.Success(usersViewModel.Count);
 
-        _ = _userAppService.BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>()).Returns(expectedResult);
+        _ = _userAppService.BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -531,7 +532,7 @@ public sealed class UserEndpointsTests
         var result = int.Parse(await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token));
 
         // Assert
-        _ = _userAppService.Received(1).BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>());
+        _ = _userAppService.Received(1).BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         result.ShouldBeGreaterThan(0);
         _ = result.ShouldBeOfType<int>();
@@ -585,7 +586,8 @@ public sealed class UserEndpointsTests
 
         var expectedResult = Result<int>.Failure("Service error");
 
-        _ = _userAppService.BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>()).Returns(expectedResult);
+        _ = _userAppService.BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -597,7 +599,7 @@ public sealed class UserEndpointsTests
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _userAppService.Received(1).BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>());
+        _ = _userAppService.Received(1).BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -628,7 +630,7 @@ public sealed class UserEndpointsTests
 
         var expectedResult = Result<UserViewModel>.Success(userViewModel);
 
-        _ = _userAppService.UpdateAsync(Arg.Any<UserViewModel>()).Returns(expectedResult);
+        _ = _userAppService.UpdateAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -640,7 +642,7 @@ public sealed class UserEndpointsTests
         var result = await response.Content.ReadFromJsonAsync<UserViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _userAppService.Received(1).UpdateAsync(Arg.Any<UserViewModel>());
+        _ = _userAppService.Received(1).UpdateAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<UserViewModel>();
@@ -684,7 +686,7 @@ public sealed class UserEndpointsTests
 
         var expectedResult = Result<UserViewModel>.Failure("Service error");
 
-        _ = _userAppService.UpdateAsync(Arg.Any<UserViewModel>()).Returns(expectedResult);
+        _ = _userAppService.UpdateAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -696,7 +698,7 @@ public sealed class UserEndpointsTests
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _userAppService.Received(1).UpdateAsync(Arg.Any<UserViewModel>());
+        _ = _userAppService.Received(1).UpdateAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -715,7 +717,7 @@ public sealed class UserEndpointsTests
 
         var expectedResult = Result<UserViewModel>.Success(null);
 
-        _ = _userAppService.RemoveAsync(Arg.Any<UserViewModel>()).Returns(expectedResult);
+        _ = _userAppService.RemoveAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
@@ -725,7 +727,7 @@ public sealed class UserEndpointsTests
         var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _userAppService.Received(1).RemoveAsync(Arg.Any<UserViewModel>());
+        _ = _userAppService.Received(1).RemoveAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<string>();
@@ -757,7 +759,7 @@ public sealed class UserEndpointsTests
 
         var expectedResult = Result<UserViewModel>.Failure("Service error");
 
-        _ = _userAppService.RemoveAsync(Arg.Any<UserViewModel>()).Returns(expectedResult);
+        _ = _userAppService.RemoveAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -768,7 +770,7 @@ public sealed class UserEndpointsTests
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _userAppService.Received(1).RemoveAsync(Arg.Any<UserViewModel>());
+        _ = _userAppService.Received(1).RemoveAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();

@@ -17,7 +17,7 @@ public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity
         _unitOfWork = unitOfWork;
     }
 
-    public virtual async Task<Result<TEntityViewModel>> AddAsync(TEntityViewModel viewModel)
+    public virtual async Task<Result<TEntityViewModel>> AddAsync(TEntityViewModel viewModel, CancellationToken cancellationToken = default)
     {
         if (viewModel is null)
         {
@@ -26,20 +26,20 @@ public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity
 
         var entity = viewModel.Adapt<TEntity>();
 
-        _ = await _repository.AddAsync(entity);
-        await _unitOfWork.SaveChangesAsync();
+        _ = await _repository.AddAsync(entity, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result<TEntityViewModel>.Success(entity.Adapt<TEntityViewModel>());
     }
 
-    public virtual async Task<Result<int>> BulkInsertAsync(ICollection<TEntityViewModel> viewModels)
+    public virtual async Task<Result<int>> BulkInsertAsync(ICollection<TEntityViewModel> viewModels, CancellationToken cancellationToken = default)
     {
         if (viewModels is null || viewModels.Count == 0)
         {
             return Result<int>.Failure($"Parameter {nameof(viewModels)} was Null or Empty.");
         }
 
-        var result = await _repository.BulkInsertAsync(viewModels.Adapt<ICollection<TEntity>>());
+        var result = await _repository.BulkInsertAsync(viewModels.Adapt<ICollection<TEntity>>(), cancellationToken);
 
         return Result<int>.Success(result);
     }
@@ -62,7 +62,7 @@ public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity
             : Result<TEntityViewModel>.Success(entity.Adapt<TEntityViewModel>());
     }
 
-    public virtual async Task<Result<TEntityViewModel>> RemoveAsync(TEntityViewModel viewModel)
+    public virtual async Task<Result<TEntityViewModel>> RemoveAsync(TEntityViewModel viewModel, CancellationToken cancellationToken = default)
     {
         if (viewModel is null)
         {
@@ -70,12 +70,12 @@ public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity
         }
 
         _repository.Remove(viewModel.Adapt<TEntity>());
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result<TEntityViewModel>.Success(null);
     }
 
-    public virtual async Task<Result<TEntityViewModel>> UpdateAsync(TEntityViewModel viewModel)
+    public virtual async Task<Result<TEntityViewModel>> UpdateAsync(TEntityViewModel viewModel, CancellationToken cancellationToken = default)
     {
         if (viewModel is null)
         {
@@ -83,7 +83,7 @@ public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity
         }
 
         _ = _repository.Update(viewModel.Adapt<TEntity>());
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result<TEntityViewModel>.Success(viewModel);
     }

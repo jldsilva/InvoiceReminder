@@ -507,7 +507,8 @@ public sealed class JobScheduleEndPointsTests
 
         var expectedResult = Result<JobScheduleViewModel>.Success(jobScheduleViewModel);
 
-        _ = _jobScheduleAppService.UpdateAsync(Arg.Any<JobScheduleViewModel>()).Returns(expectedResult);
+        _ = _jobScheduleAppService.UpdateAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -519,7 +520,7 @@ public sealed class JobScheduleEndPointsTests
         var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).UpdateAsync(Arg.Any<JobScheduleViewModel>());
+        _ = _jobScheduleAppService.Received(1).UpdateAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<JobScheduleViewModel>();
@@ -561,7 +562,9 @@ public sealed class JobScheduleEndPointsTests
 
         var expectedResult = Result<JobScheduleViewModel>.Failure("Service error");
 
-        _ = _jobScheduleAppService.UpdateAsync(Arg.Any<JobScheduleViewModel>()).Returns(expectedResult);
+        _ = _jobScheduleAppService.UpdateAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
+
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
@@ -572,7 +575,7 @@ public sealed class JobScheduleEndPointsTests
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).UpdateAsync(Arg.Any<JobScheduleViewModel>());
+        _ = _jobScheduleAppService.Received(1).UpdateAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -591,7 +594,9 @@ public sealed class JobScheduleEndPointsTests
 
         var expectedResult = Result<JobScheduleViewModel>.Success(null);
 
-        _ = _jobScheduleAppService.RemoveAsync(Arg.Any<JobScheduleViewModel>()).Returns(expectedResult);
+        _ = _jobScheduleAppService.RemoveAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
+
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
@@ -601,7 +606,7 @@ public sealed class JobScheduleEndPointsTests
         var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).RemoveAsync(Arg.Any<JobScheduleViewModel>());
+        _ = _jobScheduleAppService.Received(1).RemoveAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<string>();
@@ -633,7 +638,8 @@ public sealed class JobScheduleEndPointsTests
 
         var expectedResult = Result<JobScheduleViewModel>.Failure("Service error");
 
-        _ = _jobScheduleAppService.RemoveAsync(Arg.Any<JobScheduleViewModel>()).Returns(expectedResult);
+        _ = _jobScheduleAppService.RemoveAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -644,7 +650,7 @@ public sealed class JobScheduleEndPointsTests
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).RemoveAsync(Arg.Any<JobScheduleViewModel>());
+        _ = _jobScheduleAppService.Received(1).RemoveAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
