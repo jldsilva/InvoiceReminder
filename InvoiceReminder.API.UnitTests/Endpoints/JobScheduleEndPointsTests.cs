@@ -411,7 +411,8 @@ public sealed class JobScheduleEndPointsTests
 
         var expectedResult = Result<JobScheduleViewModel>.Success(jobScheduleViewModel);
 
-        _ = _jobScheduleAppService.AddNewJobAsync(Arg.Any<JobScheduleViewModel>()).Returns(expectedResult);
+        _ = _jobScheduleAppService.AddNewJobAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -423,7 +424,7 @@ public sealed class JobScheduleEndPointsTests
         var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).AddNewJobAsync(Arg.Any<JobScheduleViewModel>());
+        _ = _jobScheduleAppService.Received(1).AddNewJobAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<JobScheduleViewModel>();
@@ -464,7 +465,8 @@ public sealed class JobScheduleEndPointsTests
 
         var expectedResult = Result<JobScheduleViewModel>.Failure("Service error");
 
-        _ = _jobScheduleAppService.AddNewJobAsync(Arg.Any<JobScheduleViewModel>()).Returns(expectedResult);
+        _ = _jobScheduleAppService.AddNewJobAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -476,7 +478,7 @@ public sealed class JobScheduleEndPointsTests
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).AddNewJobAsync(Arg.Any<JobScheduleViewModel>());
+        _ = _jobScheduleAppService.Received(1).AddNewJobAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();

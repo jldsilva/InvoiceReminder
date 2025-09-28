@@ -27,7 +27,7 @@ public class JobScheduleAppService : BaseAppService<JobSchedule, JobScheduleView
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<JobScheduleViewModel>> AddNewJobAsync(JobScheduleViewModel viewModel)
+    public async Task<Result<JobScheduleViewModel>> AddNewJobAsync(JobScheduleViewModel viewModel, CancellationToken cancellationToken = default)
     {
         if (viewModel is null)
         {
@@ -36,9 +36,9 @@ public class JobScheduleAppService : BaseAppService<JobSchedule, JobScheduleView
 
         var entity = viewModel.Adapt<JobSchedule>();
 
-        _ = await _repository.AddAsync(entity);
-        await _unitOfWork.SaveChangesAsync();
-        await _quartz.ScheduleJobAsync(entity);
+        _ = await _repository.AddAsync(entity, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _quartz.ScheduleJobAsync(entity, cancellationToken);
 
         return Result<JobScheduleViewModel>.Success(entity.Adapt<JobScheduleViewModel>());
     }
