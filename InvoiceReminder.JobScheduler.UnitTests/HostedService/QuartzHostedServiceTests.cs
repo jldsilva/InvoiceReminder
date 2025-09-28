@@ -26,7 +26,6 @@ public class QuartzHostedServiceTests
         _schedules = [];
 
         _ = _schedulerFactory.GetScheduler(Arg.Any<CancellationToken>()).Returns(_scheduler);
-        _ = _schedulerFactory.GetScheduler(Arg.Any<CancellationToken>()).Returns(_scheduler);
     }
 
     [TestMethod]

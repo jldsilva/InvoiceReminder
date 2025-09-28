@@ -26,10 +26,10 @@ public class BaseRepositoryTests
     }
 
     [TestInitialize]
-    public void Setup()
+    public async Task Setup()
     {
         using var context = new TestDbContext(_contextOptions);
-        _ = context.Database.EnsureCreated();
+        _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationTokenSource.Token);
     }
 
     [TestCleanup]
@@ -76,13 +76,14 @@ public class BaseRepositoryTests
         // Act
         var count = await repository.BulkInsertAsync(entities);
         _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        var total = await context.TestEntities.CountAsync(TestContext.CancellationTokenSource.Token);
 
         // Assert
         count.ShouldBe(entities.Count);
 
         context.ShouldSatisfyAllConditions(() =>
         {
-            context.TestEntities.CountAsync(TestContext.CancellationTokenSource.Token).Result.ShouldBe(entities.Count);
+            total.ShouldBe(entities.Count);
             context.TestEntities.ShouldAllBe(e => e.CreatedAt.HasValue && e.UpdatedAt.HasValue);
         });
 
@@ -168,20 +169,20 @@ public class BaseRepositoryTests
     }
 
     [TestMethod]
-    public void GetAll_Should_ReturnAllEntities()
+    public async Task GetAll_Should_ReturnAllEntities()
     {
         // Arrange
         var entities = new List<TestEntity>
-        {
-            new() { Id = Guid.NewGuid(), Name = "Test1" },
-            new() { Id = Guid.NewGuid(), Name = "Test2" }
-        };
+    {
+        new() { Id = Guid.NewGuid(), Name = "Test1" },
+        new() { Id = Guid.NewGuid(), Name = "Test2" }
+    };
 
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
-        repository.BulkInsertAsync(entities).Wait(TestContext.CancellationTokenSource.Token);
-        _ = context.SaveChanges();
+        _ = await repository.BulkInsertAsync(entities);
+        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
 
         // Act
         var allEntities = repository.GetAll().ToList();
