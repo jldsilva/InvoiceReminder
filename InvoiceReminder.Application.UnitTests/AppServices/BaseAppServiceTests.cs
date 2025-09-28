@@ -13,6 +13,8 @@ public class BaseAppServiceTests
     private readonly IBaseRepository<TestEntity> _repository;
     private readonly IUnitOfWork _unitOfWork;
 
+    public TestContext TestContext { get; set; }
+
     public BaseAppServiceTests()
     {
         _repository = Substitute.For<IBaseRepository<TestEntity>>();
@@ -27,7 +29,7 @@ public class BaseAppServiceTests
         var viewModel = new TestEntityViewModel { Name = "Test" };
 
         _ = _repository.AddAsync(Arg.Any<TestEntity>()).Returns(viewModel.Adapt<TestEntity>());
-        _ = _unitOfWork.SaveChangesAsync().Returns(Task.CompletedTask);
+        _ = _unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token).Returns(Task.CompletedTask);
 
         // Act
         var result = await _appService.AddAsync(viewModel);
@@ -82,7 +84,7 @@ public class BaseAppServiceTests
         };
 
         _ = _repository.BulkInsertAsync(Arg.Any<ICollection<TestEntity>>()).Returns(viewModels.Count);
-        _ = _unitOfWork.SaveChangesAsync().Returns(Task.CompletedTask);
+        _ = _unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token).Returns(Task.CompletedTask);
 
         // Act
         var result = await _appService.BulkInsertAsync(viewModels);
@@ -184,7 +186,7 @@ public class BaseAppServiceTests
         var entity = new TestEntityViewModel { Name = "Test" };
 
         _repository.Remove(Arg.Any<TestEntity>());
-        _ = _unitOfWork.SaveChangesAsync().Returns(Task.CompletedTask);
+        _ = _unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token).Returns(Task.CompletedTask);
 
         // Act
         var result = await _appService.RemoveAsync(entity);
@@ -219,7 +221,7 @@ public class BaseAppServiceTests
         var viewModel = new TestEntityViewModel { Name = "Updated" };
 
         _ = _repository.Update(Arg.Any<TestEntity>()).Returns(viewModel.Adapt<TestEntity>());
-        _ = _unitOfWork.SaveChangesAsync().Returns(Task.CompletedTask);
+        _ = _unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token).Returns(Task.CompletedTask);
 
         // Act
         var result = await _appService.UpdateAsync(viewModel);

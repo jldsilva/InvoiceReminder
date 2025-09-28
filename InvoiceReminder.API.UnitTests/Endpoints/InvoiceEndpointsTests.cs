@@ -23,6 +23,8 @@ public sealed class InvoiceEndpointsTests
     private readonly IAuthorizationService _authorizationService;
     private readonly IInvoiceAppService _invoiceAppService;
 
+    public TestContext TestContext { get; set; }
+
     public InvoiceEndpointsTests()
     {
         var factory = new CustomWebApplicationFactory<Program>();
@@ -72,8 +74,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<IEnumerable<InvoiceViewModel>>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<InvoiceViewModel>>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).GetAll();
@@ -94,7 +96,7 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -116,8 +118,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).GetAll();
@@ -154,8 +156,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<InvoiceViewModel>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<InvoiceViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -176,7 +178,7 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -197,8 +199,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -222,8 +224,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -249,8 +251,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadAsStringAsync();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
@@ -286,8 +288,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<InvoiceViewModel>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<InvoiceViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).GetByBarcodeAsync(Arg.Any<string>());
@@ -308,7 +310,7 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -329,8 +331,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).GetByBarcodeAsync(Arg.Any<string>());
@@ -354,8 +356,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).GetByBarcodeAsync(Arg.Any<string>());
@@ -381,8 +383,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadAsStringAsync();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).GetByBarcodeAsync(Arg.Any<string>());
@@ -424,8 +426,8 @@ public sealed class InvoiceEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(invoiceViewModel);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<InvoiceViewModel>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<InvoiceViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).AddAsync(Arg.Any<InvoiceViewModel>());
@@ -445,7 +447,7 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -480,8 +482,8 @@ public sealed class InvoiceEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(invoiceViewModel);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).AddAsync(Arg.Any<InvoiceViewModel>());
@@ -523,8 +525,8 @@ public sealed class InvoiceEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(invoiceViewModel);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<InvoiceViewModel>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<InvoiceViewModel>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).UpdateAsync(Arg.Any<InvoiceViewModel>());
@@ -544,7 +546,7 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -578,8 +580,8 @@ public sealed class InvoiceEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(invoiceViewModel);
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).UpdateAsync(Arg.Any<InvoiceViewModel>());
@@ -607,8 +609,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadAsStringAsync();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).RemoveAsync(Arg.Any<InvoiceViewModel>());
@@ -628,7 +630,7 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -650,8 +652,8 @@ public sealed class InvoiceEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
 
         // Assert
         _ = _invoiceAppService.Received(1).RemoveAsync(Arg.Any<InvoiceViewModel>());
