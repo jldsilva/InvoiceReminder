@@ -34,12 +34,12 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
-    <PackageVersion Include="Npgsql" Version="9.0.3" />
+    <PackageVersion Include="Npgsql" Version="9.0.4" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageVersion Include="Quartz" Version="3.15.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.8.8" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.8.10" />
     <PackageVersion Include="Scrutor" Version="6.1.0" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.15.0.120848" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
@@ -57,10 +57,10 @@
   </ItemGroup>
     
   <ItemGroup>
-    <PackageVersion Update="Microsoft.Testing.Extensions.CodeCoverage" Version="18.0.4" />
-    <PackageVersion Update="Microsoft.Testing.Extensions.TrxReport" Version="1.8.5" />
-    <PackageVersion Update="MSTest.Analyzers" Version="3.10.5" />
-    <PackageVersion Update="MSTest.TestAdapter" Version="3.10.5" />
-    <PackageVersion Update="MSTest.TestFramework" Version="3.10.5" />
-  </ItemGroup>
+    <PackageVersion Update="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" />
+    <PackageVersion Update="Microsoft.Testing.Extensions.TrxReport" Version="2.0.0" />
+    <PackageVersion Update="MSTest.Analyzers" Version="4.0.0" />
+    <PackageVersion Update="MSTest.TestAdapter" Version="4.0.0" />
+    <PackageVersion Update="MSTest.TestFramework" Version="4.0.0" />
+  </ItemGroup>    
 </Project>
