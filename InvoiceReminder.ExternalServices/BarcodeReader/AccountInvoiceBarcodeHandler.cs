@@ -37,7 +37,7 @@ public class AccountInvoiceBarcodeHandler : IInvoiceBarcodeHandler
         var month = int.Parse(new string([.. baseDateCode[2..4].Reverse()]));
         var day = int.Parse(new string([.. baseDateCode[4..6].Reverse()]));
 
-        return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Local);
+        return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
     }
 
     private static decimal GetPaymentValue(string content)

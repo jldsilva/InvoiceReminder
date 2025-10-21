@@ -53,7 +53,7 @@ public class BarcodeReaderServiceTests
                 Beneficiary = beneficiary,
                 Barcode = _bankBarcode,
                 Amount = 100.00m,
-                DueDate = DateTime.Now.AddDays(30)
+                DueDate = DateTime.UtcNow.AddDays(30)
             });
 
         // Act
@@ -82,7 +82,7 @@ public class BarcodeReaderServiceTests
                 Beneficiary = beneficiary,
                 Barcode = _bankBarcode,
                 Amount = 100.00m,
-                DueDate = DateTime.Now.AddDays(30)
+                DueDate = DateTime.UtcNow.AddDays(30)
             });
 
         // Act

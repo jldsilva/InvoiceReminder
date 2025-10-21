@@ -9,4 +9,41 @@ services:
       - "8081:8081"
     env_file:
       - .env
+    depends_on:
+      - db
+    networks:
+      - app-network
 
+  db:
+    image: postgres:latest
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    networks:
+      - app-network
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    command: >
+      http api:8080
+      --authtoken=${NGROK_AUTHTOKEN}
+      --domain=${NGROK_DOMAIN}
+    env_file:
+      - .env
+    ports:
+      - 4040:4040
+    networks:
+      - app-network
+
+volumes:
+  pgdata:
+
+networks:
+  app-network:
+    driver: bridge

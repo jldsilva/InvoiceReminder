@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InvoiceReminder.Data.Migrations
 {
     [DbContext(typeof(CoreDbContext))]
-    [Migration("20250509040148_Initial_Create")]
+    [Migration("20250930210104_Initial_Create")]
     partial class Initial_Create
     {
         /// <inheritdoc />
@@ -21,10 +21,66 @@ namespace InvoiceReminder.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("invoice_reminder")
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("InvoiceReminder.Domain.Entities.EmailAuthToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("access_token");
+
+                    b.Property<DateTime>("AccessTokenExpiry")
+                        .HasColumnType("timestamp")
+                        .HasColumnName("access_token_expiry");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("NonceValue")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("nonce_value");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("refresh_token");
+
+                    b.Property<string>("TokenProvider")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)")
+                        .HasColumnName("token_provider");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("email_auth_token", "invoice_reminder");
+                });
 
             modelBuilder.Entity("InvoiceReminder.Domain.Entities.Invoice", b =>
                 {
@@ -219,6 +275,15 @@ namespace InvoiceReminder.Data.Migrations
                     b.ToTable("user", "invoice_reminder");
                 });
 
+            modelBuilder.Entity("InvoiceReminder.Domain.Entities.EmailAuthToken", b =>
+                {
+                    b.HasOne("InvoiceReminder.Domain.Entities.User", null)
+                        .WithMany("EmailAuthTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InvoiceReminder.Domain.Entities.Invoice", b =>
                 {
                     b.HasOne("InvoiceReminder.Domain.Entities.User", null)
@@ -248,6 +313,8 @@ namespace InvoiceReminder.Data.Migrations
 
             modelBuilder.Entity("InvoiceReminder.Domain.Entities.User", b =>
                 {
+                    b.Navigation("EmailAuthTokens");
+
                     b.Navigation("Invoices");
 
                     b.Navigation("JobSchedules");

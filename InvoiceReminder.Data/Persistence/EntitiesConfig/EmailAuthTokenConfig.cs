@@ -7,11 +7,11 @@ using System.Runtime.CompilerServices;
 
 namespace InvoiceReminder.Data.Persistence.EntitiesConfig;
 
-internal class InvoiceConfig : IEntityTypeConfiguration<Invoice>
+internal class EmailAuthTokenConfig : IEntityTypeConfiguration<EmailAuthToken>
 {
-    public void Configure(EntityTypeBuilder<Invoice> builder)
+    public void Configure(EntityTypeBuilder<EmailAuthToken> builder)
     {
-        _ = builder.ToTable("invoice");
+        _ = builder.ToTable("email_auth_token");
 
         _ = builder.HasKey(x => x.Id);
 
@@ -26,26 +26,28 @@ internal class InvoiceConfig : IEntityTypeConfiguration<Invoice>
             .HasColumnType("uuid")
             .IsRequired();
 
-        _ = builder.Property(x => x.Bank)
-            .HasColumnName("bank")
-            .IsRequired()
-            .HasMaxLength(255);
-
-        _ = builder.Property(x => x.Beneficiary)
-            .HasColumnName("beneficiary")
-            .IsRequired()
-            .HasMaxLength(255);
-
-        _ = builder.Property(x => x.Barcode)
-            .HasColumnName("barcode")
+        _ = builder.Property(x => x.AccessToken)
+            .HasColumnName("access_token")
+            .HasMaxLength(512)
             .IsRequired();
 
-        _ = builder.Property(x => x.Amount)
-            .HasColumnName("amount")
+        _ = builder.Property(x => x.RefreshToken)
+            .HasColumnName("refresh_token")
+            .HasMaxLength(512)
             .IsRequired();
 
-        _ = builder.Property(x => x.DueDate)
-            .HasColumnName("due_date")
+        _ = builder.Property(x => x.NonceValue)
+            .HasColumnName("nonce_value")
+            .HasMaxLength(64)
+            .IsRequired();
+
+        _ = builder.Property(x => x.TokenProvider)
+            .HasColumnName("token_provider")
+            .HasMaxLength(25)
+            .IsRequired();
+
+        _ = builder.Property(x => x.AccessTokenExpiry)
+            .HasColumnName("access_token_expiry")
             .HasColumnType("timestamp with time zone")
             .IsRequired();
 

@@ -29,6 +29,7 @@ public class UserExtensionsTests
         {
             user.Invoices.ShouldBeEmpty();
             user.JobSchedules.ShouldBeEmpty();
+            user.EmailAuthTokens.ShouldBeEmpty();
             user.ScanEmailDefinitions.ShouldBeEmpty();
         });
     }
@@ -56,6 +57,7 @@ public class UserExtensionsTests
         {
             user.Invoices.ShouldContain(invoice);
             user.JobSchedules.ShouldBeEmpty();
+            user.EmailAuthTokens.ShouldBeEmpty();
             user.ScanEmailDefinitions.ShouldBeEmpty();
         });
     }
@@ -83,6 +85,35 @@ public class UserExtensionsTests
         {
             user.Invoices.ShouldBeEmpty();
             user.JobSchedules.ShouldContain(jobSchedule);
+            user.EmailAuthTokens.ShouldBeEmpty();
+            user.ScanEmailDefinitions.ShouldBeEmpty();
+        });
+    }
+
+    [TestMethod]
+    public void Handle_NewUserWithEmailAuthToken_AddsEmailAuthTokenToUserAndResult()
+    {
+        // Arrange
+        var result = new Dictionary<Guid, User>();
+        var user = new User { Id = Guid.NewGuid(), Name = "Test User" };
+        var emailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
+        var parameters = new UserParameters { EmailAuthToken = emailAuthToken };
+
+        // Act
+        _ = result.Handle(ref user, parameters);
+
+        // Assert
+        result.ShouldSatisfyAllConditions(result =>
+        {
+            result.ShouldContainKey(user.Id);
+            result[user.Id].EmailAuthTokens.ShouldContain(emailAuthToken);
+        });
+
+        user.ShouldSatisfyAllConditions(user =>
+        {
+            user.Invoices.ShouldBeEmpty();
+            user.JobSchedules.ShouldBeEmpty();
+            user.EmailAuthTokens.ShouldContain(emailAuthToken);
             user.ScanEmailDefinitions.ShouldBeEmpty();
         });
     }
@@ -109,6 +140,7 @@ public class UserExtensionsTests
         {
             user.Invoices.ShouldBeEmpty();
             user.JobSchedules.ShouldBeEmpty();
+            user.EmailAuthTokens.ShouldBeEmpty();
             user.ScanEmailDefinitions.ShouldContain(scanEmailDefinition);
         });
     }
@@ -125,6 +157,7 @@ public class UserExtensionsTests
             Name = "Existing User",
             Invoices = [existingInvoice],
             JobSchedules = [],
+            EmailAuthTokens = [],
             ScanEmailDefinitions = []
         };
         var result = new Dictionary<Guid, User> { { userId, existingUser } };
@@ -149,6 +182,7 @@ public class UserExtensionsTests
             newUserReference.Invoices.ShouldContain(existingInvoice);
             newUserReference.Invoices.ShouldContain(newInvoice);
             newUserReference.JobSchedules.ShouldBeEmpty();
+            newUserReference.EmailAuthTokens.ShouldBeEmpty();
             newUserReference.ScanEmailDefinitions.ShouldBeEmpty();
         });
     }
@@ -165,6 +199,7 @@ public class UserExtensionsTests
             Name = "Existing User",
             Invoices = [],
             JobSchedules = [existingJobSchedule],
+            EmailAuthTokens = [],
             ScanEmailDefinitions = []
         };
         var result = new Dictionary<Guid, User> { { userId, existingUser } };
@@ -189,6 +224,49 @@ public class UserExtensionsTests
             newUserReference.JobSchedules.Count.ShouldBe(2);
             newUserReference.JobSchedules.ShouldContain(existingJobSchedule);
             newUserReference.JobSchedules.ShouldContain(newJobSchedule);
+            newUserReference.EmailAuthTokens.ShouldBeEmpty();
+            newUserReference.ScanEmailDefinitions.ShouldBeEmpty();
+        });
+    }
+
+    [TestMethod]
+    public void Handle_ExistingUserWithNewEmailAuthToken_AddsEmailAuthTokenToExistingUserInResult()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var existingEmailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
+        var existingUser = new User
+        {
+            Id = userId,
+            Name = "Existing User",
+            Invoices = [],
+            JobSchedules = [],
+            EmailAuthTokens = [existingEmailAuthToken],
+            ScanEmailDefinitions = []
+        };
+        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var newUserReference = existingUser;
+        var newEmailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
+        var parameters = new UserParameters { EmailAuthToken = newEmailAuthToken };
+
+        // Act
+        _ = result.Handle(ref newUserReference, parameters);
+
+        // Assert
+        result.ShouldSatisfyAllConditions(result =>
+        {
+            result.ShouldContainKey(userId);
+            result[userId].EmailAuthTokens.ShouldContain(existingEmailAuthToken);
+            result[userId].EmailAuthTokens.ShouldContain(newEmailAuthToken);
+        });
+
+        newUserReference.ShouldSatisfyAllConditions(newUserReference =>
+        {
+            newUserReference.Invoices.ShouldBeEmpty();
+            newUserReference.JobSchedules.ShouldBeEmpty();
+            newUserReference.EmailAuthTokens.Count.ShouldBe(2);
+            newUserReference.EmailAuthTokens.ShouldContain(existingEmailAuthToken);
+            newUserReference.EmailAuthTokens.ShouldContain(newEmailAuthToken);
             newUserReference.ScanEmailDefinitions.ShouldBeEmpty();
         });
     }
@@ -205,6 +283,7 @@ public class UserExtensionsTests
             Name = "Existing User",
             Invoices = [],
             JobSchedules = [],
+            EmailAuthTokens = [],
             ScanEmailDefinitions = [existingScanEmailDefinition]
         };
         var result = new Dictionary<Guid, User> { { userId, existingUser } };
@@ -227,6 +306,7 @@ public class UserExtensionsTests
         {
             newUserReference.Invoices.ShouldBeEmpty();
             newUserReference.JobSchedules.ShouldBeEmpty();
+            newUserReference.EmailAuthTokens.ShouldBeEmpty();
             newUserReference.ScanEmailDefinitions.Count.ShouldBe(2);
             newUserReference.ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
             newUserReference.ScanEmailDefinitions.ShouldContain(newScanEmailDefinition);
@@ -292,6 +372,35 @@ public class UserExtensionsTests
     }
 
     [TestMethod]
+    public void Handle_ExistingUserWithSameEmailAuthToken_DoesNotAddDuplicate()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var existingEmailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
+        var existingUser = new User { Id = userId, Name = "Existing User", EmailAuthTokens = [existingEmailAuthToken] };
+        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var newUserReference = existingUser;
+        var parameters = new UserParameters { EmailAuthToken = existingEmailAuthToken };
+
+        // Act
+        _ = result.Handle(ref newUserReference, parameters);
+
+        // Assert
+        result.ShouldSatisfyAllConditions(result =>
+        {
+            result.ShouldContainKey(userId);
+            result[userId].EmailAuthTokens.Count.ShouldBe(1);
+            result[userId].EmailAuthTokens.ShouldContain(existingEmailAuthToken);
+        });
+
+        newUserReference.ShouldSatisfyAllConditions(newUserReference =>
+        {
+            newUserReference.EmailAuthTokens.Count.ShouldBe(1);
+            newUserReference.EmailAuthTokens.ShouldContain(existingEmailAuthToken);
+        });
+    }
+
+    [TestMethod]
     public void Handle_ExistingUserWithSameScanEmailDefinition_DoesNotAddDuplicate()
     {
         // Arrange
@@ -340,10 +449,12 @@ public class UserExtensionsTests
         var invoice = new Invoice { Id = Guid.NewGuid() };
         var jobSchedule = new JobSchedule { Id = Guid.NewGuid() };
         var scanEmailDefinition = new ScanEmailDefinition { Id = Guid.NewGuid() };
+        var emailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
         var parameters = new UserParameters
         {
             Invoice = invoice,
             JobSchedule = jobSchedule,
+            EmailAuthToken = emailAuthToken,
             ScanEmailDefinition = scanEmailDefinition
         };
 
@@ -356,6 +467,7 @@ public class UserExtensionsTests
             result.ShouldContainKey(user.Id);
             result[user.Id].Invoices.ShouldContain(invoice);
             result[user.Id].JobSchedules.ShouldContain(jobSchedule);
+            result[user.Id].EmailAuthTokens.ShouldContain(emailAuthToken);
             result[user.Id].ScanEmailDefinitions.ShouldContain(scanEmailDefinition);
         });
 
@@ -363,9 +475,11 @@ public class UserExtensionsTests
         {
             user.Invoices.Count.ShouldBe(1);
             user.JobSchedules.Count.ShouldBe(1);
+            user.EmailAuthTokens.Count.ShouldBe(1);
             user.ScanEmailDefinitions.Count.ShouldBe(1);
             user.Invoices.ShouldContain(invoice);
             user.JobSchedules.ShouldContain(jobSchedule);
+            user.EmailAuthTokens.ShouldContain(emailAuthToken);
             user.ScanEmailDefinitions.ShouldContain(scanEmailDefinition);
         });
     }
@@ -381,17 +495,20 @@ public class UserExtensionsTests
             Name = "Existing User",
             Invoices = [],
             JobSchedules = [],
+            EmailAuthTokens = [],
             ScanEmailDefinitions = []
         };
         var result = new Dictionary<Guid, User> { { userId, existingUser } };
         var newUserReference = existingUser;
         var invoice = new Invoice { Id = Guid.NewGuid() };
         var jobSchedule = new JobSchedule { Id = Guid.NewGuid() };
+        var emailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
         var scanEmailDefinition = new ScanEmailDefinition { Id = Guid.NewGuid() };
         var parameters = new UserParameters
         {
             Invoice = invoice,
             JobSchedule = jobSchedule,
+            EmailAuthToken = emailAuthToken,
             ScanEmailDefinition = scanEmailDefinition
         };
 
@@ -404,9 +521,11 @@ public class UserExtensionsTests
             result.ShouldContainKey(userId);
             result[userId].Invoices.Count.ShouldBe(1);
             result[userId].JobSchedules.Count.ShouldBe(1);
+            result[userId].EmailAuthTokens.Count.ShouldBe(1);
             result[userId].ScanEmailDefinitions.Count.ShouldBe(1);
             result[userId].Invoices.ShouldContain(invoice);
             result[userId].JobSchedules.ShouldContain(jobSchedule);
+            result[userId].EmailAuthTokens.ShouldContain(emailAuthToken);
             result[userId].ScanEmailDefinitions.ShouldContain(scanEmailDefinition);
         });
 
@@ -414,9 +533,11 @@ public class UserExtensionsTests
         {
             newUserReference.Invoices.Count.ShouldBe(1);
             newUserReference.JobSchedules.Count.ShouldBe(1);
+            newUserReference.EmailAuthTokens.Count.ShouldBe(1);
             newUserReference.ScanEmailDefinitions.Count.ShouldBe(1);
             newUserReference.Invoices.ShouldContain(invoice);
             newUserReference.JobSchedules.ShouldContain(jobSchedule);
+            newUserReference.EmailAuthTokens.ShouldContain(emailAuthToken);
             newUserReference.ScanEmailDefinitions.ShouldContain(scanEmailDefinition);
         });
     }
@@ -428,6 +549,7 @@ public class UserExtensionsTests
         var userId = Guid.NewGuid();
         var existingInvoice = new Invoice { Id = Guid.NewGuid() };
         var existingJobSchedule = new JobSchedule { Id = Guid.NewGuid() };
+        var exitingEmailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
         var existingScanEmailDefinition = new ScanEmailDefinition { Id = Guid.NewGuid() };
         var existingUser = new User
         {
@@ -435,6 +557,7 @@ public class UserExtensionsTests
             Name = "Existing User",
             Invoices = [existingInvoice],
             JobSchedules = [existingJobSchedule],
+            EmailAuthTokens = [exitingEmailAuthToken],
             ScanEmailDefinitions = [existingScanEmailDefinition]
         };
         var result = new Dictionary<Guid, User> { { userId, existingUser } };
@@ -443,6 +566,7 @@ public class UserExtensionsTests
         {
             Invoice = null,
             JobSchedule = null,
+            EmailAuthToken = null,
             ScanEmailDefinition = null
         };
 
@@ -455,9 +579,11 @@ public class UserExtensionsTests
             result.ShouldContainKey(userId);
             result[userId].Invoices.ShouldContain(existingInvoice);
             result[userId].JobSchedules.ShouldContain(existingJobSchedule);
+            result[userId].EmailAuthTokens.ShouldContain(exitingEmailAuthToken);
             result[userId].ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
             result[userId].Invoices.Count.ShouldBe(1);
             result[userId].JobSchedules.Count.ShouldBe(1);
+            result[userId].EmailAuthTokens.Count.ShouldBe(1);
             result[userId].ScanEmailDefinitions.Count.ShouldBe(1);
         });
 
@@ -465,9 +591,11 @@ public class UserExtensionsTests
         {
             newUserReference.Invoices.Count.ShouldBe(1);
             newUserReference.JobSchedules.Count.ShouldBe(1);
+            newUserReference.EmailAuthTokens.Count.ShouldBe(1);
             newUserReference.ScanEmailDefinitions.Count.ShouldBe(1);
             newUserReference.Invoices.ShouldContain(existingInvoice);
             newUserReference.JobSchedules.ShouldContain(existingJobSchedule);
+            newUserReference.EmailAuthTokens.ShouldContain(exitingEmailAuthToken);
             newUserReference.ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
         });
     }
@@ -482,6 +610,7 @@ public class UserExtensionsTests
         {
             Invoice = null,
             JobSchedule = null,
+            EmailAuthToken = null,
             ScanEmailDefinition = null
         };
 
@@ -494,6 +623,7 @@ public class UserExtensionsTests
             result.ShouldContainKey(user.Id);
             result[user.Id].Invoices.ShouldBeEmpty();
             result[user.Id].JobSchedules.ShouldBeEmpty();
+            result[user.Id].EmailAuthTokens.ShouldBeEmpty();
             result[user.Id].ScanEmailDefinitions.ShouldBeEmpty();
         });
 
@@ -501,6 +631,7 @@ public class UserExtensionsTests
         {
             user.Invoices.ShouldBeEmpty();
             user.JobSchedules.ShouldBeEmpty();
+            user.EmailAuthTokens.ShouldBeEmpty();
             user.ScanEmailDefinitions.ShouldBeEmpty();
         });
     }

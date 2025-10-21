@@ -1,7 +1,7 @@
-using InvoiceReminder.Domain.Entities;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
 using Google.Apis.Services;
+using InvoiceReminder.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 
@@ -19,10 +19,12 @@ public class GmailServiceWrapper : IGmailServiceWrapper
         _oAuthProvider = oAuthProvider;
     }
 
-    public async Task<IDictionary<string, byte[]>> GetAttachmentsAsync(string userEmail,
-        IEnumerable<ScanEmailDefinition> scanEmailDefinitions)
+    public async Task<IDictionary<string, byte[]>> GetAttachmentsAsync(User user)
     {
-        var (_, credential) = await _oAuthProvider.AuthorizeAsync(userEmail);
+        ArgumentNullException.ThrowIfNull(user);
+
+        var emailAuthToken = user.EmailAuthTokens.FirstOrDefault(t => t.TokenProvider == "Google");
+        var credential = await _oAuthProvider.AuthenticateAsync(emailAuthToken);
 
         var service = new GmailService(new BaseClientService.Initializer()
         {
@@ -43,8 +45,8 @@ public class GmailServiceWrapper : IGmailServiceWrapper
         if (response != null && response.Messages != null)
         {
             var messages = response.Messages.Select(message => message.Id);
-            var senderAddresses = scanEmailDefinitions.Select(x => x.SenderEmailAddress);
-            var attachments = scanEmailDefinitions.Select(x => x.AttachmentFileName.ToLowerInvariant());
+            var senderAddresses = user.ScanEmailDefinitions.Select(x => x.SenderEmailAddress);
+            var attachments = user.ScanEmailDefinitions.Select(x => x.AttachmentFileName.ToLowerInvariant());
 
             foreach (var messageId in messages)
             {
@@ -53,7 +55,7 @@ public class GmailServiceWrapper : IGmailServiceWrapper
 
                 if (senderAddresses.Any(from.Contains))
                 {
-                    var beneficiary = scanEmailDefinitions.First(x => from.Contains(x.SenderEmailAddress)).Beneficiary;
+                    var beneficiary = user.ScanEmailDefinitions.First(x => from.Contains(x.SenderEmailAddress)).Beneficiary;
 
                     var msgPart = email.Payload.Parts
                         .First(p => !string.IsNullOrWhiteSpace(p.Filename)

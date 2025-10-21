@@ -51,6 +51,7 @@ public class SendMessageServiceTests
             Id = userId,
             Email = "test@example.com",
             TelegramChatId = 12345,
+            EmailAuthTokens = [new EmailAuthToken { AccessToken = "access_token" }],
             ScanEmailDefinitions =
             [
                 new ScanEmailDefinition
@@ -75,7 +76,7 @@ public class SendMessageServiceTests
 
         _ = _userRepository.GetByIdAsync(Arg.Any<Guid>()).Returns(Task.FromResult(user));
 
-        _ = _gmailService.GetAttachmentsAsync(Arg.Any<string>(), Arg.Any<ICollection<ScanEmailDefinition>>())
+        _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>())
             .Returns(attachments);
 
         _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
@@ -86,10 +87,10 @@ public class SendMessageServiceTests
 
         // Assert
         _ = _userRepository.Received(1).GetByIdAsync(Arg.Any<Guid>());
-        _ = _gmailService.Received(1).GetAttachmentsAsync(Arg.Any<string>(), Arg.Any<ICollection<ScanEmailDefinition>>());
+        _ = _gmailService.Received(1).GetAttachmentsAsync(Arg.Any<User>());
         _ = _barcodeReader.Received(1).ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
         _ = _telegramMessageService.Received(1).SendMessageAsync(Arg.Any<long>(), Arg.Any<string>());
-        _ = _invoiceRepository.Received(1).BulkInsertAsync(Arg.Any<ICollection<Invoice>>());
+        _ = _invoiceRepository.Received(1).BulkInsertAsync(Arg.Any<ICollection<Invoice>>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(result =>
         {
@@ -116,6 +117,37 @@ public class SendMessageServiceTests
             Arg.Any<EventId>(),
             Arg.Is<object>(o => o.ToString().Contains("User not found")),
             exception,
+            Arg.Any<Func<object, Exception, string>>()
+        );
+    }
+
+    [TestMethod]
+    public async Task SendMessage_ShouldNot_SendMessages_When_UserHasNoAuthenticationToken()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new User
+        {
+            Id = userId,
+            Email = "test@example.com",
+            TelegramChatId = 12345,
+            EmailAuthTokens = [],
+            ScanEmailDefinitions = []
+        };
+
+        _ = _userRepository.GetByIdAsync(Arg.Any<Guid>()).Returns(user);
+
+        // Act
+        var result = await _sendMessageService.SendMessage(userId);
+
+        // Assert
+        result.ShouldBe($"No Authentication Token found for userId: {userId}");
+
+        _logger.Received(1).Log(
+            LogLevel.Warning,
+            Arg.Any<EventId>(),
+            Arg.Is<object>(o => o.ToString().Contains("No Authentication Token found")),
+            null,
             Arg.Any<Func<object, Exception, string>>()
         );
     }

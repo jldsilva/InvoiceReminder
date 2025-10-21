@@ -1,11 +1,13 @@
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Responses;
+using InvoiceReminder.Domain.Abstractions;
+using InvoiceReminder.Domain.Entities;
 
 namespace InvoiceReminder.ExternalServices.Gmail;
 
 public interface IGoogleOAuthService
 {
-    Task<(string, UserCredential)> AuthorizeAsync(string userEmail);
-    Task<TokenResponse> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
-    Task RevokeAcessToken(string userEmail, string token, CancellationToken cancellationToken = default);
+    Task<UserCredential> AuthenticateAsync(EmailAuthToken authToken, CancellationToken cancellationToken = default);
+    Result<string> GetAuthorizationUrl(string state);
+    Task<Result<UserCredential>> GrantAuthorizationAsync(Guid userId, string authCode, CancellationToken cancellationToken = default);
+    Task<Result<string>> RevokeAuthorizationAsync(Guid userId, CancellationToken cancellationToken = default);
 }

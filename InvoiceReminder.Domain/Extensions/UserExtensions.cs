@@ -13,6 +13,7 @@ public static class UserExtensions
         {
             user.Invoices ??= [];
             user.JobSchedules ??= [];
+            user.EmailAuthTokens ??= [];
             user.ScanEmailDefinitions ??= [];
 
             if (parameters.Invoice is not null &&
@@ -25,6 +26,12 @@ public static class UserExtensions
                 user.JobSchedules.FirstOrDefault(js => js.Id == parameters.JobSchedule.Id) is null)
             {
                 user.JobSchedules.Add(parameters.JobSchedule);
+            }
+
+            if (parameters.EmailAuthToken is not null &&
+                user.EmailAuthTokens.FirstOrDefault(eat => eat.Id == parameters.EmailAuthToken.Id) is null)
+            {
+                user.EmailAuthTokens.Add(parameters.EmailAuthToken);
             }
 
             if (parameters.ScanEmailDefinition is not null &&
@@ -47,6 +54,12 @@ public static class UserExtensions
                 existingUser.JobSchedules.FirstOrDefault(js => js.Id == parameters.JobSchedule.Id) is null)
             {
                 existingUser.JobSchedules.Add(parameters.JobSchedule);
+            }
+
+            if (parameters.EmailAuthToken is not null &&
+                existingUser.EmailAuthTokens.FirstOrDefault(eat => eat.Id == parameters.EmailAuthToken.Id) is null)
+            {
+                existingUser.EmailAuthTokens.Add(parameters.EmailAuthToken);
             }
 
             if (parameters.ScanEmailDefinition is not null &&
