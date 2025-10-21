@@ -53,7 +53,7 @@ public class BankInvoiceBarcodeHandler : IInvoiceBarcodeHandler
     {
         var value = content.Replace(".", "").Replace(" ", "");
         var expirationFactor = value.Substring(33, 4);
-        var baseDate = new DateTime(2022, 5, 29, 0, 0, 0, DateTimeKind.Local);
+        var baseDate = new DateTime(2022, 5, 29, 0, 0, 0, DateTimeKind.Utc);
 
         return baseDate.AddDays(int.Parse(expirationFactor));
     }

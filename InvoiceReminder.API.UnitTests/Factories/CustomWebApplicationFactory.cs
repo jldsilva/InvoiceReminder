@@ -1,5 +1,6 @@
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Authentication.Interfaces;
+using InvoiceReminder.ExternalServices.Gmail;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -19,6 +20,7 @@ public class CustomWebApplicationFactory<TStartup> : WebApplicationFactory<TStar
         _ = builder.ConfigureServices(services =>
         {
             _ = services.RemoveAll<IAuthorizationService>();
+            _ = services.RemoveAll<IGoogleOAuthService>();
             _ = services.RemoveAll<IJwtProvider>();
             _ = services.RemoveAll<IHostedService>();
             _ = services.RemoveAll<IInvoiceAppService>();
@@ -27,6 +29,7 @@ public class CustomWebApplicationFactory<TStartup> : WebApplicationFactory<TStar
             _ = services.RemoveAll<IUserAppService>();
 
             _ = services.AddSingleton(Substitute.For<IAuthorizationService>());
+            _ = services.AddSingleton(Substitute.For<IGoogleOAuthService>());
             _ = services.AddSingleton(Substitute.For<IJwtProvider>());
             _ = services.AddSingleton(Substitute.For<IInvoiceAppService>());
             _ = services.AddSingleton(Substitute.For<IJobScheduleAppService>());

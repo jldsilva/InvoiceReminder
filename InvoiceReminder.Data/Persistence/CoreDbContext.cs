@@ -8,6 +8,7 @@ public class CoreDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<JobSchedule> Schedules => Set<JobSchedule>();
+    public DbSet<EmailAuthToken> EmailAuthTokens => Set<EmailAuthToken>();
     public DbSet<ScanEmailDefinition> ScanEmailDefinitions => Set<ScanEmailDefinition>();
 
     public CoreDbContext() { }
@@ -34,13 +35,13 @@ public class CoreDbContext : DbContext
         {
             if (entityEntry.State == EntityState.Added)
             {
-                ((EntityDefaults)entityEntry.Entity).CreatedAt = DateTime.Now;
-                ((EntityDefaults)entityEntry.Entity).UpdatedAt = DateTime.Now;
+                ((EntityDefaults)entityEntry.Entity).CreatedAt = DateTime.UtcNow;
+                ((EntityDefaults)entityEntry.Entity).UpdatedAt = DateTime.UtcNow;
             }
 
             if (entityEntry.State == EntityState.Modified)
             {
-                ((EntityDefaults)entityEntry.Entity).UpdatedAt = DateTime.Now;
+                ((EntityDefaults)entityEntry.Entity).UpdatedAt = DateTime.UtcNow;
             }
         }
 

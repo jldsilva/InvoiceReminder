@@ -1,8 +1,12 @@
-using Google.Apis.Auth;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Gmail.v1;
+using InvoiceReminder.Data.Interfaces;
+using InvoiceReminder.Domain.Abstractions;
+using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.Domain.Services.Configuration;
+using InvoiceReminder.Domain.Services.TokenCrypto;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 
@@ -12,66 +16,163 @@ namespace InvoiceReminder.ExternalServices.Gmail;
 public class GoogleOAuthService : IGoogleOAuthService
 {
     private readonly ILogger<GoogleOAuthService> _logger;
-    private readonly string _clientId;
-    private readonly string _clientSecret;
+    private readonly IEmailAuthTokenRepository _tokenRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly GoogleAuthorizationCodeFlow _flow;
+    private readonly string _redirectUri;
+    private readonly byte[] _key;
 
-    public GoogleOAuthService(ILogger<GoogleOAuthService> logger, IConfigurationService configurationService)
+    public GoogleOAuthService(
+        IEmailAuthTokenRepository tokenRepository,
+        IConfigurationService configurationService,
+        IUnitOfWork unitOfWork,
+        ILogger<GoogleOAuthService> logger)
     {
+        _flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+        {
+            ClientSecrets = new ClientSecrets
+            {
+                ClientId = configurationService.GetSecret("appKeys", "googleOauthClientId"),
+                ClientSecret = configurationService.GetSecret("appKeys", "googleOauthClientSecret")
+            },
+            Scopes = [GmailService.Scope.GmailReadonly]
+        });
+
+        _key = Convert.FromBase64String(configurationService.GetSecret("appKeys", "tokenEncryptionKey"));
         _logger = logger;
-        _clientId = configurationService.GetSecret("appKeys", "googleOauthClientId");
-        _clientSecret = configurationService.GetSecret("appKeys", "googleOauthClientSecret");
+        _tokenRepository = tokenRepository;
+        _unitOfWork = unitOfWork;
+        _redirectUri = configurationService.GetSecret("appKeys", "googleOauthRedirectUri");
     }
 
-    public async Task<(string, UserCredential)> AuthorizeAsync(string userEmail)
+    public async Task<UserCredential> AuthenticateAsync(
+        EmailAuthToken authToken, CancellationToken cancellationToken = default)
     {
-        var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-            new ClientSecrets
-            {
-                ClientId = _clientId,
-                ClientSecret = _clientSecret
-            },
-            ["email", "profile", "https://mail.google.com/"],
-            userEmail,
-            CancellationToken.None
-        );
+        ArgumentNullException.ThrowIfNull(authToken);
 
-        if (credential.Token.IsStale)
+        if (!authToken.IsStale)
         {
-            _logger.LogInformation("Token is stale, refreshing...");
-
-            credential.Token = await RefreshAccessTokenAsync(credential.Token.RefreshToken);
+            return new UserCredential(_flow, authToken.UserId.ToString(), new TokenResponse
+            {
+                AccessToken = authToken.AccessToken,
+                RefreshToken = TokenCryptoService.Decrypt(authToken.RefreshToken, authToken.NonceValue, _key),
+                ExpiresInSeconds = (long?)(authToken.AccessTokenExpiry - DateTime.UtcNow).TotalSeconds
+            });
         }
 
-        var jwtPayload = await GoogleJsonWebSignature.ValidateAsync(credential.Token.IdToken);
+        var tokenResponse = await RefreshAuthTokenAsync(authToken, cancellationToken);
 
-        return (jwtPayload.Email, credential);
+        return new UserCredential(_flow, authToken.UserId.ToString(), tokenResponse);
     }
 
-    public async Task<TokenResponse> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+    public Result<string> GetAuthorizationUrl(string state)
     {
-        var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-        {
-            ClientSecrets = new ClientSecrets
-            {
-                ClientId = _clientId,
-                ClientSecret = _clientSecret
-            }
-        });
+        ArgumentException.ThrowIfNullOrWhiteSpace(state);
 
-        return await flow.RefreshTokenAsync(string.Empty, refreshToken, cancellationToken);
+        var authorizationCodeRequest = _flow.CreateAuthorizationCodeRequest(_redirectUri);
+        authorizationCodeRequest.Scope = GmailService.Scope.GmailModify;
+        authorizationCodeRequest.State = state;
+
+        var authorizationUrl = authorizationCodeRequest.Build();
+
+        return string.IsNullOrWhiteSpace(authorizationUrl.AbsoluteUri)
+            ? Result<string>.Failure("Failed to generate authorization URL")
+            : Result<string>.Success(authorizationUrl.AbsoluteUri);
     }
 
-    public async Task RevokeAcessToken(string userEmail, string token, CancellationToken cancellationToken = default)
+    public async Task<Result<UserCredential>> GrantAuthorizationAsync(
+        Guid userId, string authCode, CancellationToken cancellationToken = default)
     {
-        var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+        try
         {
-            ClientSecrets = new ClientSecrets
-            {
-                ClientId = _clientId,
-                ClientSecret = _clientSecret
-            }
-        });
+            var tokenResponse = await _flow.ExchangeCodeForTokenAsync(
+            userId.ToString(),
+            authCode,
+            _redirectUri,
+            cancellationToken);
 
-        await flow.RevokeTokenAsync(userEmail, token, cancellationToken);
+            var (encryptedToken, nonceValue) = TokenCryptoService.Encrypt(tokenResponse.RefreshToken, _key);
+
+            var emailAuthToken = new EmailAuthToken
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                AccessToken = tokenResponse.AccessToken,
+                RefreshToken = encryptedToken,
+                NonceValue = nonceValue,
+                TokenProvider = "Google",
+                AccessTokenExpiry = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresInSeconds ?? 3600)
+            };
+
+            _ = await _tokenRepository.AddAsync(emailAuthToken, cancellationToken);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return Result<UserCredential>.Success(new UserCredential(_flow, userId.ToString(), tokenResponse));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error granting authorization for user {UserId}", userId);
+
+            return Result<UserCredential>.Failure("Error granting authorization for user");
+        }
+    }
+
+    public async Task<Result<string>> RevokeAuthorizationAsync(
+        Guid userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var emailAuthToken = await _tokenRepository.GetByUserIdAsync(userId, "Google");
+
+            if (emailAuthToken == null)
+            {
+                return Result<string>.Failure($"No Authorization Token to revoke to the given Id...");
+            }
+
+            _tokenRepository.Remove(emailAuthToken);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            await _flow.RevokeTokenAsync(userId.ToString(), emailAuthToken.AccessToken, cancellationToken);
+
+            return Result<string>.Success("Authorization Token revoked successfully!");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Revoking Authorization Token failed: {Message}", ex.Message);
+
+            return Result<string>.Failure($"Error revoking Authorization Token: {ex.Message}");
+        }
+    }
+
+    private async Task<TokenResponse> RefreshAuthTokenAsync(
+        EmailAuthToken authToken, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var currentRefreshToken = TokenCryptoService.Decrypt(authToken.RefreshToken, authToken.NonceValue, _key);
+            var tokenResponse = await _flow.RefreshTokenAsync(authToken.UserId.ToString(), currentRefreshToken, cancellationToken);
+            var (encryptedRefreshToken, nonceValue) = TokenCryptoService.Encrypt(tokenResponse.RefreshToken, _key);
+
+            authToken.AccessToken = tokenResponse.AccessToken;
+            authToken.RefreshToken = encryptedRefreshToken;
+            authToken.NonceValue = nonceValue;
+            authToken.AccessTokenExpiry = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresInSeconds ?? 3600);
+
+            _ = _tokenRepository.Update(authToken);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return tokenResponse;
+        }
+        catch (Exception)
+        {
+            _tokenRepository.Remove(authToken);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            throw;
+        }
     }
 }

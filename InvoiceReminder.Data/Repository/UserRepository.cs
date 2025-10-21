@@ -25,6 +25,8 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             on u.id = i.user_id
             left join invoice_reminder.job_schedule js
             on u.id = js.user_id
+            left join invoice_reminder.email_auth_token eat
+            on u.id = eat.user_id
             left join scan_email_definition sed
             on u.id = sed.user_id
             """;
@@ -38,13 +40,14 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
         {
             var filter = "where u.email = @value";
 
-            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, ScanEmailDefinition, User>
-                ($"{_query} {filter}", (user, invoice, jobschedule, scanEmailDefinition) =>
+            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, ScanEmailDefinition, EmailAuthToken, User>
+                ($"{_query} {filter}", (user, invoice, jobschedule, scanEmailDefinition, emailAuthToken) =>
                 {
                     var parameters = new UserParameters
                     {
                         Invoice = invoice,
                         JobSchedule = jobschedule,
+                        EmailAuthToken = emailAuthToken,
                         ScanEmailDefinition = scanEmailDefinition
                     };
 
@@ -71,13 +74,14 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
         {
             var filter = "where u.id = @id";
 
-            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, ScanEmailDefinition, User>
-                ($"{_query} {filter}", (user, invoice, jobschedule, scanEmailDefinition) =>
+            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, EmailAuthToken, ScanEmailDefinition, User>
+                ($"{_query} {filter}", (user, invoice, jobschedule, emailAuthToken, scanEmailDefinition) =>
                 {
                     var parameters = new UserParameters
                     {
                         Invoice = invoice,
                         JobSchedule = jobschedule,
+                        EmailAuthToken = emailAuthToken,
                         ScanEmailDefinition = scanEmailDefinition
                     };
 

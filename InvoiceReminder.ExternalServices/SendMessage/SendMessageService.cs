@@ -40,12 +40,23 @@ public class SendMessageService : ISendMessageService
         {
             var invoices = new List<Invoice>();
             var user = await _userRepository.GetByIdAsync(userId);
-            attachments = await _gmailService.GetAttachmentsAsync(user.Email, user.ScanEmailDefinitions);
+
+            if (user.EmailAuthTokens is null || user.EmailAuthTokens.Count == 0)
+            {
+                var message = $"No Authentication Token found for userId: {userId}";
+
+                _logger.LogWarning("{Message}", message);
+
+                return message;
+            }
+
+            attachments = await _gmailService.GetAttachmentsAsync(user);
 
             foreach (var attachment in attachments)
             {
                 var invoiceType = user.ScanEmailDefinitions
-                    .FirstOrDefault(x => x.Beneficiary == attachment.Key).InvoiceType;
+                    .FirstOrDefault(x => x.Beneficiary == attachment.Key)
+                    .InvoiceType;
 
                 var invoice = _barcodeReaderService.ReadTextContentFromPdf(attachment.Value, attachment.Key, invoiceType);
                 invoice.Id = Guid.NewGuid();

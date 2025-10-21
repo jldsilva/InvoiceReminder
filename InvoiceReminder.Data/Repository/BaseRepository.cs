@@ -30,8 +30,8 @@ public class BaseRepository<TDbContext, TEntity> : IBaseRepository<TEntity>
     {
         foreach (var entity in entities)
         {
-            entity.GetType().GetProperty("CreatedAt")?.SetValue(entity, DateTime.Now);
-            entity.GetType().GetProperty("UpdatedAt")?.SetValue(entity, DateTime.Now);
+            entity.GetType().GetProperty("CreatedAt")?.SetValue(entity, DateTime.UtcNow);
+            entity.GetType().GetProperty("UpdatedAt")?.SetValue(entity, DateTime.UtcNow);
         }
 
         await _dbContext.BulkInsertAsync(entities, cancellationToken: cancellationToken);

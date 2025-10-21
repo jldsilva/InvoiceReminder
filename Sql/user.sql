@@ -1,4 +1,0 @@
-INSERT INTO invoice_reminder."user" (id,telegram_chat_id,"name",email,"password",created_at,updated_at) VALUES
-	 ('209d2df6-35c2-4e1a-8281-e7b8aa9f95fd'::uuid,207249972,'Jefferson L. da Silva','jefferson.silva@acad.pucrs.br','8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92','2025-05-06','2025-05-06'),
-	 ('0d77a03d-ac35-480c-b409-a08133409c7c'::uuid,0,'Joh Doe','john.doe@notmail.com','8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92','2025-05-06','2025-05-06'),
-	 ('59918776-f6c6-4def-93b1-95d7a7717942'::uuid,0,'Jane Doe','jane.doe@notmail.com','8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92','2025-05-06','2025-05-06');

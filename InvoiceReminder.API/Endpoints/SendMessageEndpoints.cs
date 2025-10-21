@@ -15,6 +15,7 @@ public class SendMessageEndpoints : IEndpointDefinition
                     : Results.Problem(result);
             })
             .WithName("SendMessage")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
