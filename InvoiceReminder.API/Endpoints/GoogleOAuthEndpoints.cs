@@ -28,7 +28,7 @@ public class GoogleOAuthEndpoints : IEndpointDefinition
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
-                    : Results.Problem("Error processing Callback");
+                    : Results.Problem(result.Error);
             })
             .WithName("Authorize")
             .AllowAnonymous()
