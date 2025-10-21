@@ -166,7 +166,7 @@ public class GoogleOAuthService : IGoogleOAuthService
 
             return tokenResponse;
         }
-        catch (Exception)
+        catch (TokenResponseException trex) when (trex.Error.Error is "invalid_grant" or "invalid_client")
         {
             _tokenRepository.Remove(authToken);
 
