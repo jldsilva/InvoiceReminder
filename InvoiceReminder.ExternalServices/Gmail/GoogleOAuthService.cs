@@ -35,7 +35,7 @@ public class GoogleOAuthService : IGoogleOAuthService
                 ClientId = configurationService.GetSecret("appKeys", "googleOauthClientId"),
                 ClientSecret = configurationService.GetSecret("appKeys", "googleOauthClientSecret")
             },
-            Scopes = [GmailService.Scope.GmailReadonly]
+            Scopes = [GmailService.Scope.GmailModify]
         });
 
         _key = Convert.FromBase64String(configurationService.GetSecret("appKeys", "tokenEncryptionKey"));
@@ -130,11 +130,11 @@ public class GoogleOAuthService : IGoogleOAuthService
                 return Result<string>.Failure($"No Authorization Token to revoke to the given Id...");
             }
 
+            await _flow.RevokeTokenAsync(userId.ToString(), emailAuthToken.AccessToken, cancellationToken);
+
             _tokenRepository.Remove(emailAuthToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            await _flow.RevokeTokenAsync(userId.ToString(), emailAuthToken.AccessToken, cancellationToken);
 
             return Result<string>.Success("Authorization Token revoked successfully!");
         }
@@ -142,7 +142,7 @@ public class GoogleOAuthService : IGoogleOAuthService
         {
             _logger.LogError(ex, "Revoking Authorization Token failed: {Message}", ex.Message);
 
-            return Result<string>.Failure($"Error revoking Authorization Token: {ex.Message}");
+            return Result<string>.Failure("Error revoking Authorization Token.");
         }
     }
 

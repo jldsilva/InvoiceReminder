@@ -10,21 +10,21 @@ namespace InvoiceReminder.ExternalServices.SendMessage;
 public class SendMessageService : ISendMessageService
 {
     private readonly ILogger<SendMessageService> _logger;
-    private readonly IBarcodeReaderService _barcodeReaderService;
+    private readonly IBarcodeReaderService _barcodeService;
     private readonly IGmailServiceWrapper _gmailService;
     private readonly ITelegramMessageService _telegramMessageService;
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly IUserRepository _userRepository;
 
     public SendMessageService(
-        IBarcodeReaderService barcodeReaderService,
+        IBarcodeReaderService barcodeService,
         IGmailServiceWrapper gmailService,
         ITelegramMessageService telegramMessageService,
         IInvoiceRepository invoiceRepository,
         IUserRepository userRepository,
         ILogger<SendMessageService> logger)
     {
-        _barcodeReaderService = barcodeReaderService;
+        _barcodeService = barcodeService;
         _gmailService = gmailService;
         _telegramMessageService = telegramMessageService;
         _invoiceRepository = invoiceRepository;
@@ -40,25 +40,22 @@ public class SendMessageService : ISendMessageService
         {
             var invoices = new List<Invoice>();
             var user = await _userRepository.GetByIdAsync(userId);
+            var (isValid, validationMessage) = ValidateUser(user);
 
-            if (user.EmailAuthTokens is null || user.EmailAuthTokens.Count == 0)
+            if (!isValid)
             {
-                var message = $"No Authentication Token found for userId: {userId}";
-
-                _logger.LogWarning("{Message}", message);
-
-                return message;
+                return validationMessage;
             }
 
             attachments = await _gmailService.GetAttachmentsAsync(user);
 
             foreach (var attachment in attachments)
             {
-                var invoiceType = user.ScanEmailDefinitions
+                var invoiceType = user.ScanEmailDefinitions?
                     .FirstOrDefault(x => x.Beneficiary == attachment.Key)
                     .InvoiceType;
 
-                var invoice = _barcodeReaderService.ReadTextContentFromPdf(attachment.Value, attachment.Key, invoiceType);
+                var invoice = _barcodeService.ReadTextContentFromPdf(attachment.Value, attachment.Key, invoiceType.Value);
                 invoice.Id = Guid.NewGuid();
                 invoice.UserId = userId;
                 invoices.Add(invoice);
@@ -68,7 +65,7 @@ public class SendMessageService : ISendMessageService
                 <b>• Emissor:</b> {invoice.Bank}
                 <b>• Beneficiário:</b> {invoice.Beneficiary}
                 <b>• Cód. Pagamento:</b> {invoice.Barcode}
-                <b>• Vencimento:</b> {invoice.DueDate:dd/MM/yyy}
+                <b>• Vencimento:</b> {invoice.DueDate:dd/MM/yyyy}
                 <b>• Valor:</b> R${invoice.Amount}
                 """;
 
@@ -87,5 +84,30 @@ public class SendMessageService : ISendMessageService
         }
 
         return $"Total messages sent: {attachments.Count}";
+    }
+
+    private (bool, string) ValidateUser(User user)
+    {
+        var message = string.Empty;
+
+        if (user is null)
+        {
+            message = $"User not found!";
+
+            _logger.LogWarning("{Message}", message);
+
+            return (false, message);
+        }
+
+        if (user.EmailAuthTokens is null || user.EmailAuthTokens.Count == 0)
+        {
+            message = $"No Authentication Token found for userId: {user.Id}";
+
+            _logger.LogWarning("{Message}", message);
+
+            return (false, message);
+        }
+
+        return (true, message);
     }
 }

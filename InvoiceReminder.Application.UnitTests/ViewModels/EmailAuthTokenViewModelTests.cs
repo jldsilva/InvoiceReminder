@@ -1,5 +1,6 @@
 using InvoiceReminder.Application.ViewModels;
 using InvoiceReminder.UnitTests.Assets;
+using Shouldly;
 
 namespace InvoiceReminder.Application.UnitTests.ViewModels;
 
@@ -13,5 +14,27 @@ public sealed class EmailAuthTokenViewModelTests
         var tester = new PropertyTester(sut);
 
         tester.TestProperties();
+    }
+
+    [TestMethod]
+    public void IsStale_WhenAccessTokenExpired_ReturnsTrue()
+    {
+        var sut = new EmailAuthTokenViewModel
+        {
+            AccessTokenExpiry = DateTime.UtcNow.AddMinutes(-1)
+        };
+
+        sut.IsStale.ShouldBe(true);
+    }
+
+    [TestMethod]
+    public void IsStale_WhenAccessTokenValid_ReturnsFalse()
+    {
+        var sut = new EmailAuthTokenViewModel
+        {
+            AccessTokenExpiry = DateTime.UtcNow.AddMinutes(10)
+        };
+
+        sut.IsStale.ShouldBe(false);
     }
 }
