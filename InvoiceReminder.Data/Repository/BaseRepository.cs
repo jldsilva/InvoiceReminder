@@ -49,9 +49,9 @@ public class BaseRepository<TDbContext, TEntity> : IBaseRepository<TEntity>
         _ = _dbSet.Remove(entity);
     }
 
-    public virtual async Task<TEntity> GetByIdAsync(Guid id)
+    public virtual async Task<TEntity> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.FindAsync(id);
+        return await _dbSet.FindAsync([id], cancellationToken);
     }
 
     public virtual IEnumerable<TEntity> GetAll()

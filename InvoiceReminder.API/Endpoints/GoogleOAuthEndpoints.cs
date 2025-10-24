@@ -22,9 +22,10 @@ public class GoogleOAuthEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/authorize", async (IGoogleOAuthService oAuthService, Guid state, string code) =>
+        _ = endpoint.MapGet("/authorize",
+            async (IGoogleOAuthService oAuthService, CancellationToken ct, Guid state, string code) =>
             {
-                var result = await oAuthService.GrantAuthorizationAsync(state, code);
+                var result = await oAuthService.GrantAuthorizationAsync(state, code, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -36,9 +37,9 @@ public class GoogleOAuthEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapDelete("/revoke", async (IGoogleOAuthService oAuthService, Guid id) =>
+        _ = endpoint.MapDelete("/revoke", async (IGoogleOAuthService oAuthService, CancellationToken ct, Guid id) =>
             {
-                var result = await oAuthService.RevokeAuthorizationAsync(id);
+                var result = await oAuthService.RevokeAuthorizationAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)

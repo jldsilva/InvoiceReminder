@@ -48,11 +48,11 @@ namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
         {
             // Arrange
             using var context = CreateContext();
-            _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationTokenSource.Token);
+            _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationToken);
             var unitOfWork = CreateUnitOfWork(context);
 
             // Act
-            await unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+            await unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
             // Assert
             context.Database.GetDbConnection().State.ShouldBe(ConnectionState.Closed);
@@ -63,14 +63,14 @@ namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
         {
             // Arrange
             using var context = CreateContext();
-            _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationTokenSource.Token);
+            _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationToken);
             var unitOfWork = CreateUnitOfWork(context);
 
             _ = context.Users.Add(new User { Id = Guid.NewGuid() });
 
             // Act
             var dataLayerException = await Should.ThrowAsync<DataLayerException>(
-                async () => await unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token)
+                async () => await unitOfWork.SaveChangesAsync(TestContext.CancellationToken)
             );
 
             // Assert
@@ -94,12 +94,12 @@ namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
         {
             // Arrange
             using var context = CreateContext();
-            _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationTokenSource.Token);
-            await context.Database.OpenConnectionAsync(TestContext.CancellationTokenSource.Token);
+            _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationToken);
+            await context.Database.OpenConnectionAsync(TestContext.CancellationToken);
             var unitOfWork = CreateUnitOfWork(context);
 
             // Act
-            await unitOfWork.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+            await unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
             // Assert
             context.Database.GetDbConnection().State.ShouldBe(ConnectionState.Closed);

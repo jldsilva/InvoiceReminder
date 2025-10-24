@@ -6,5 +6,8 @@ namespace InvoiceReminder.Application.Interfaces;
 
 public interface IEmailAuthTokenAppService : IBaseAppService<EmailAuthToken, EmailAuthTokenViewModel>
 {
-    Task<Result<EmailAuthTokenViewModel>> GetByUserIdAsync(Guid id, string tokenProvider);
+    Task<Result<EmailAuthTokenViewModel>> GetByUserIdAsync(
+        Guid id, string tokenProvider,
+        CancellationToken cancellationToken = default
+    );
 }

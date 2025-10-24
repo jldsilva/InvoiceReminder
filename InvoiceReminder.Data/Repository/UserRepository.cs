@@ -32,16 +32,17 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             """;
     }
 
-    public async Task<User> GetByEmailAsync(string value)
+    public async Task<User> GetByEmailAsync(string value, CancellationToken cancellationToken = default)
     {
         var result = new Dictionary<Guid, User>();
 
         try
         {
             var filter = "where u.email = @value";
+            var command = new CommandDefinition($"{_query} {filter}", new { value }, cancellationToken: cancellationToken);
 
             _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, ScanEmailDefinition, EmailAuthToken, User>
-                ($"{_query} {filter}", (user, invoice, jobschedule, scanEmailDefinition, emailAuthToken) =>
+                (command, (user, invoice, jobschedule, scanEmailDefinition, emailAuthToken) =>
                 {
                     var parameters = new UserParameters
                     {
@@ -55,7 +56,6 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
 
                     return user;
                 },
-                param: new { value },
                 splitOn: "id");
         }
         catch (Exception ex)
@@ -66,16 +66,17 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
         return result.FirstOrDefault().Value;
     }
 
-    public override async Task<User> GetByIdAsync(Guid id)
+    public override async Task<User> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var result = new Dictionary<Guid, User>();
 
         try
         {
             var filter = "where u.id = @id";
+            var command = new CommandDefinition($"{_query} {filter}", new { id }, cancellationToken: cancellationToken);
 
-            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, EmailAuthToken, ScanEmailDefinition, User>
-                ($"{_query} {filter}", (user, invoice, jobschedule, emailAuthToken, scanEmailDefinition) =>
+            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, EmailAuthToken, ScanEmailDefinition, User>(
+                command, (user, invoice, jobschedule, emailAuthToken, scanEmailDefinition) =>
                 {
                     var parameters = new UserParameters
                     {
@@ -89,7 +90,6 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
 
                     return user;
                 },
-                param: new { id },
                 splitOn: "id");
         }
         catch (Exception ex)

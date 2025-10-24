@@ -1,7 +1,7 @@
+using Dapper;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Domain.Entities;
-using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Data;
@@ -19,15 +19,16 @@ public class JobScheduleRepository : BaseRepository<CoreDbContext, JobSchedule>,
         _logger = logger;
     }
 
-    public async Task<IEnumerable<JobSchedule>> GetByUserIdAsync(Guid id)
+    public async Task<IEnumerable<JobSchedule>> GetByUserIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var jobSchedule = Enumerable.Empty<JobSchedule>();
 
         try
         {
             var query = @"select * from invoice_reminder.job_schedule j where j.user_id = @id";
+            var command = new CommandDefinition(query, new { id }, cancellationToken: cancellationToken);
 
-            jobSchedule = await _dbConnection.QueryAsync<JobSchedule>(query, param: new { id });
+            jobSchedule = await _dbConnection.QueryAsync<JobSchedule>(command);
         }
         catch (Exception ex)
         {

@@ -6,5 +6,5 @@ namespace InvoiceReminder.Application.Interfaces;
 public interface IJobScheduleAppService : IBaseAppService<JobSchedule, JobScheduleViewModel>
 {
     Task<Result<JobScheduleViewModel>> AddNewJobAsync(JobScheduleViewModel viewModel, CancellationToken cancellationToken = default);
-    Task<Result<IEnumerable<JobScheduleViewModel>>> GetByUserIdAsync(Guid id);
+    Task<Result<IEnumerable<JobScheduleViewModel>>> GetByUserIdAsync(Guid id, CancellationToken cancellationToken = default);
 }

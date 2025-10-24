@@ -19,19 +19,19 @@ public class EmailAuthTokenRepository : BaseRepository<CoreDbContext, EmailAuthT
         _logger = logger;
     }
 
-    public async Task<EmailAuthToken> GetByUserIdAsync(Guid id, string tokenProvider)
+    public async Task<EmailAuthToken> GetByUserIdAsync(Guid id, string tokenProvider, CancellationToken cancellationToken = default)
     {
         EmailAuthToken emailAuthToken = null;
 
         try
         {
-            var parameters = new { id, tokenProvider };
             var query = """
                 select * from invoice_reminder.email_auth_token eat
                 where eat.user_id = @id and eat.token_provider = @tokenProvider
                 """;
+            var command = new CommandDefinition(query, new { id, tokenProvider }, cancellationToken: cancellationToken);
 
-            emailAuthToken = await _dbConnection.QueryFirstOrDefaultAsync<EmailAuthToken>(query, param: parameters);
+            emailAuthToken = await _dbConnection.QueryFirstOrDefaultAsync<EmailAuthToken>(command);
         }
         catch (Exception ex)
         {

@@ -15,6 +15,8 @@ public sealed class ScanEmailDefinitionAppServiceTests
     private readonly IScanEmailDefinitionRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 
+    public TestContext TestContext { get; set; }
+
     public ScanEmailDefinitionAppServiceTests()
     {
         _repository = Substitute.For<IScanEmailDefinitionRepository>();
@@ -55,13 +57,15 @@ public sealed class ScanEmailDefinitionAppServiceTests
             UpdatedAt = DateTime.UtcNow
         };
 
-        _ = _repository.GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>()).Returns(scanEmailDefinition);
+        _ = _repository.GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(scanEmailDefinition);
 
         // Act
-        var result = await appService.GetBySenderBeneficiaryAsync(beneficiary, userId);
+        var result = await appService.GetBySenderBeneficiaryAsync(beneficiary, userId, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetBySenderBeneficiaryAsync(beneficiary, userId);
+        _ = _repository.Received(1)
+            .GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
@@ -81,13 +85,15 @@ public sealed class ScanEmailDefinitionAppServiceTests
         var beneficiary = "Test Beneficiary";
         var userId = Guid.NewGuid();
 
-        _ = _repository.GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>()).Returns((ScanEmailDefinition)null);
+        _ = _repository.GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((ScanEmailDefinition)null);
 
         // Act
-        var result = await appService.GetBySenderBeneficiaryAsync(beneficiary, userId);
+        var result = await appService.GetBySenderBeneficiaryAsync(beneficiary, userId, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetBySenderBeneficiaryAsync(beneficiary, userId);
+        _ = _repository.Received(1)
+            .GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
@@ -117,13 +123,15 @@ public sealed class ScanEmailDefinitionAppServiceTests
             UpdatedAt = DateTime.UtcNow
         };
 
-        _ = _repository.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>()).Returns(scanEmailDefinition);
+        _ = _repository.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(scanEmailDefinition);
 
         // Act
-        var result = await appService.GetBySenderEmailAddressAsync(beneficiary, userId);
+        var result = await appService.GetBySenderEmailAddressAsync(beneficiary, userId, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetBySenderEmailAddressAsync(beneficiary, userId);
+        _ = _repository.Received(1)
+            .GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
@@ -143,13 +151,15 @@ public sealed class ScanEmailDefinitionAppServiceTests
         var beneficiary = "not_existing@email.com";
         var userId = Guid.NewGuid();
 
-        _ = _repository.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>()).Returns((ScanEmailDefinition)null);
+        _ = _repository.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((ScanEmailDefinition)null);
 
         // Act
-        var result = await appService.GetBySenderEmailAddressAsync(beneficiary, userId);
+        var result = await appService.GetBySenderEmailAddressAsync(beneficiary, userId, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetBySenderEmailAddressAsync(beneficiary, userId);
+        _ = _repository.Received(1)
+            .GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
@@ -181,13 +191,13 @@ public sealed class ScanEmailDefinitionAppServiceTests
             }
         };
 
-        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>()).Returns(scanEmailDefinitions);
+        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(scanEmailDefinitions);
 
         // Act
-        var result = await appService.GetByUserIdAsync(userId);
+        var result = await appService.GetByUserIdAsync(userId, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetByUserIdAsync(userId);
+        _ = _repository.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
@@ -205,13 +215,13 @@ public sealed class ScanEmailDefinitionAppServiceTests
         // Arrange
         var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
         var userId = Guid.NewGuid();
-        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>()).Returns([]);
+        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
 
         // Act
-        var result = await appService.GetByUserIdAsync(userId);
+        var result = await appService.GetByUserIdAsync(userId, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetByUserIdAsync(userId);
+        _ = _repository.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {

@@ -22,6 +22,8 @@ public class SendMessageServiceTests
     private readonly IUserRepository _userRepository;
     private readonly SendMessageService _sendMessageService;
 
+    public TestContext TestContext { get; set; }
+
     public SendMessageServiceTests()
     {
         _logger = Substitute.For<ILogger<SendMessageService>>();
@@ -74,22 +76,22 @@ public class SendMessageServiceTests
 
         var attachments = new Dictionary<string, byte[]> { { "Test Beneficiary", Array.Empty<byte>() } };
 
-        _ = _userRepository.GetByIdAsync(Arg.Any<Guid>()).Returns(Task.FromResult(user));
+        _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(user));
 
-        _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>())
+        _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(attachments);
 
         _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(invoice);
 
         // Act
-        var result = await _sendMessageService.SendMessage(userId);
+        var result = await _sendMessageService.SendMessage(userId, TestContext.CancellationToken);
 
         // Assert
-        _ = _userRepository.Received(1).GetByIdAsync(Arg.Any<Guid>());
-        _ = _gmailService.Received(1).GetAttachmentsAsync(Arg.Any<User>());
+        _ = _userRepository.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        _ = _gmailService.Received(1).GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
         _ = _barcodeReader.Received(1).ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
-        _ = _telegramMessageService.Received(1).SendMessageAsync(Arg.Any<long>(), Arg.Any<string>());
+        _ = _telegramMessageService.Received(1).SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         _ = _invoiceRepository.Received(1).BulkInsertAsync(Arg.Any<ICollection<Invoice>>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(result =>
@@ -107,10 +109,13 @@ public class SendMessageServiceTests
         var userId = Guid.NewGuid();
         var exception = new Exception("User not found");
 
-        _ = _userRepository.GetByIdAsync(userId).Returns(Task.FromException<User>(exception));
+        _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<User>(exception));
 
         // Act && Assert
-        _ = await Should.ThrowAsync<InvalidOperationException>(async () => await _sendMessageService.SendMessage(userId));
+        _ = await Should.ThrowAsync<InvalidOperationException>(async () =>
+            await _sendMessageService.SendMessage(userId, TestContext.CancellationToken)
+        );
 
         _logger.Received(1).Log(
             LogLevel.Error,
@@ -135,10 +140,10 @@ public class SendMessageServiceTests
             ScanEmailDefinitions = []
         };
 
-        _ = _userRepository.GetByIdAsync(Arg.Any<Guid>()).Returns(user);
+        _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(user);
 
         // Act
-        var result = await _sendMessageService.SendMessage(userId);
+        var result = await _sendMessageService.SendMessage(userId, TestContext.CancellationToken);
 
         // Assert
         result.ShouldBe($"No Authentication Token found for userId: {userId}");

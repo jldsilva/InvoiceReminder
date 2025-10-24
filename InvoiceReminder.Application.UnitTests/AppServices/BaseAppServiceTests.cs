@@ -35,9 +35,11 @@ public class BaseAppServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _appService.AddAsync(viewModel, TestContext.CancellationTokenSource.Token);
+        var result = await _appService.AddAsync(viewModel, TestContext.CancellationToken);
 
         // Assert
+        _ = _repository.Received(1).AddAsync(Arg.Any<TestEntity>(), Arg.Any<CancellationToken>());
+
         result.ShouldSatisfyAllConditions(() =>
         {
             result.IsSuccess.ShouldBeTrue();
@@ -50,7 +52,7 @@ public class BaseAppServiceTests
     public async Task AddAsync_Should_Return_Failure_When_ViewModel_Is_Null()
     {
         // Arrange && Act
-        var result = await _appService.AddAsync(null, TestContext.CancellationTokenSource.Token);
+        var result = await _appService.AddAsync(null, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>
@@ -65,7 +67,7 @@ public class BaseAppServiceTests
     public async Task BulkInsertAsync_Should_Return_Failure_When_ViewModels_Are_Null()
     {
         // Arrange && Act
-        var result = await _appService.BulkInsertAsync(null, TestContext.CancellationTokenSource.Token);
+        var result = await _appService.BulkInsertAsync(null, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>
@@ -93,9 +95,11 @@ public class BaseAppServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _appService.BulkInsertAsync(viewModels, TestContext.CancellationTokenSource.Token);
+        var result = await _appService.BulkInsertAsync(viewModels, TestContext.CancellationToken);
 
         // Assert
+        _ = _repository.Received(1).BulkInsertAsync(Arg.Any<ICollection<TestEntity>>(), Arg.Any<CancellationToken>());
+
         result.ShouldSatisfyAllConditions(() =>
         {
             result.IsSuccess.ShouldBeTrue();
@@ -113,6 +117,8 @@ public class BaseAppServiceTests
         var result = _appService.GetAll();
 
         // Assert
+        _ = _repository.Received(1).GetAll();
+
         result.ShouldSatisfyAllConditions(() =>
         {
             result.IsSuccess.ShouldBeFalse();
@@ -137,6 +143,8 @@ public class BaseAppServiceTests
         var result = _appService.GetAll();
 
         // Assert
+        _ = _repository.Received(1).GetAll();
+
         result.ShouldSatisfyAllConditions(() =>
         {
             result.IsSuccess.ShouldBeTrue();
@@ -152,12 +160,14 @@ public class BaseAppServiceTests
         var id = Guid.Parse("42ab20e5-0742-4d32-a76e-7c45fd74dac3");
         var entity = new TestEntity { Name = "Test" };
 
-        _ = _repository.GetByIdAsync(Arg.Any<Guid>()).Returns(entity);
+        _ = _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(entity);
 
         // Act
-        var result = await _appService.GetByIdAsync(id);
+        var result = await _appService.GetByIdAsync(id, TestContext.CancellationToken);
 
         // Assert
+        _ = _repository.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         result.ShouldSatisfyAllConditions(() =>
         {
             result.IsSuccess.ShouldBeTrue();
@@ -171,12 +181,15 @@ public class BaseAppServiceTests
     {
         // Arrange
         var id = Guid.Parse("42ab20e5-0742-4d32-a76e-7c45fd74dac3");
-        _ = _repository.GetByIdAsync(Arg.Any<Guid>()).Returns(Task.FromResult<TestEntity>(null));
+        _ = _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<TestEntity>(null));
 
         // Act
-        var result = await _appService.GetByIdAsync(id);
+        var result = await _appService.GetByIdAsync(id, TestContext.CancellationToken);
 
         // Assert
+        _ = _repository.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         result.ShouldSatisfyAllConditions(() =>
         {
             result.IsSuccess.ShouldBeFalse();
@@ -195,9 +208,11 @@ public class BaseAppServiceTests
         _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
         // Act
-        var result = await _appService.RemoveAsync(entity, TestContext.CancellationTokenSource.Token);
+        var result = await _appService.RemoveAsync(entity, TestContext.CancellationToken);
 
         // Assert
+        _repository.Received(1).Remove(Arg.Any<TestEntity>());
+
         result.ShouldSatisfyAllConditions(() =>
         {
             result.IsSuccess.ShouldBeTrue();
@@ -209,7 +224,7 @@ public class BaseAppServiceTests
     public async Task RemoveAsync_Should_Return_Failure_When_ViewModel_Is_Null()
     {
         // Arrange && Act
-        var result = await _appService.RemoveAsync(null, TestContext.CancellationTokenSource.Token);
+        var result = await _appService.RemoveAsync(null, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>
@@ -230,9 +245,11 @@ public class BaseAppServiceTests
         _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
         // Act
-        var result = await _appService.UpdateAsync(viewModel, TestContext.CancellationTokenSource.Token);
+        var result = await _appService.UpdateAsync(viewModel, TestContext.CancellationToken);
 
         // Assert
+        _ = _repository.Received(1).Update(Arg.Any<TestEntity>());
+
         result.ShouldSatisfyAllConditions(() =>
         {
             result.IsSuccess.ShouldBeTrue();
@@ -245,7 +262,7 @@ public class BaseAppServiceTests
     public async Task UpdateAsync_Should_Return_Failure_When_ViewModel_Is_Null()
     {
         // Arrange && Act
-        var result = await _appService.UpdateAsync(null, TestContext.CancellationTokenSource.Token);
+        var result = await _appService.UpdateAsync(null, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>

@@ -16,6 +16,8 @@ public sealed class InvoiceRepositoryTests
     private readonly ILogger<InvoiceRepository> _logger;
     private readonly IInvoiceRepository _repository;
 
+    public TestContext TestContext { get; set; }
+
     public InvoiceRepositoryTests()
     {
         var options = new DbContextOptionsBuilder<CoreDbContext>()
@@ -52,10 +54,10 @@ public sealed class InvoiceRepositoryTests
         var barcode = "12345678901234567890123456789012345678901234";
         var invoice = new Invoice { Barcode = barcode };
 
-        _ = _repository.GetByBarCodeAsync(Arg.Any<string>()).Returns(invoice);
+        _ = _repository.GetByBarCodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(invoice);
 
         // Act
-        var result = await _repository.GetByBarCodeAsync(barcode);
+        var result = await _repository.GetByBarCodeAsync(barcode, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>

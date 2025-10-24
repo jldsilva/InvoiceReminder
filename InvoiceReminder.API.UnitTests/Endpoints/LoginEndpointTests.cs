@@ -62,17 +62,20 @@ public class LoginEndpointTests
             Expiration = DateTime.UtcNow.AddMinutes(60)
         };
 
-        _ = _userAppService.GetByEmailAsync(Arg.Any<string>()).Returns(Result<UserViewModel>.Success(expectedUser));
+        _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<UserViewModel>.Success(expectedUser));
+
         _ = _jwtProvider.Generate(Arg.Any<UserViewModel>()).Returns(expectedJwtObject);
 
         // Act
         request.Content = JsonContent.Create(loginRequest);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationToken);
 
         // Assert
-        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
+        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         _ = _jwtProvider.Received(1).Generate(Arg.Any<UserViewModel>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         result.ShouldSatisfyAllConditions(result =>
@@ -101,16 +104,18 @@ public class LoginEndpointTests
             AuthenticationToken = null
         };
 
-        _ = _userAppService.GetByEmailAsync(Arg.Any<string>()).Returns(Result<UserViewModel>.Failure("User not found"));
+        _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<UserViewModel>.Failure("User not found"));
 
         // Act
         request.Content = JsonContent.Create(loginRequest);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationToken);
 
         // Assert
-        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
+        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserViewModel>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
 
         result.ShouldSatisfyAllConditions(result =>
@@ -146,16 +151,18 @@ public class LoginEndpointTests
             AuthenticationToken = null
         };
 
-        _ = _userAppService.GetByEmailAsync(loginRequest.Email).Returns(Result<UserViewModel>.Success(expectedUser));
+        _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<UserViewModel>.Success(expectedUser));
 
         // Act
         request.Content = JsonContent.Create(loginRequest);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationToken);
 
         // Assert
-        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
+        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserViewModel>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
 
         result.ShouldSatisfyAllConditions(result =>
@@ -178,16 +185,18 @@ public class LoginEndpointTests
             Password = "password"
         };
 
-        _ = _userAppService.GetByEmailAsync(Arg.Any<string>()).ThrowsAsync(new Exception("Service error"));
+        _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new Exception("Service error"));
 
         // Act
         request.Content = JsonContent.Create(loginRequest);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>());
+        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserViewModel>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
 
         result.ShouldSatisfyAllConditions(result =>

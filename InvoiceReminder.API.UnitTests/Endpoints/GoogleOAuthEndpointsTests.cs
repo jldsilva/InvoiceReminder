@@ -52,12 +52,13 @@ public sealed class GoogleOAuthEndpointsTests
             .Returns(Result<string>.Success("https://accounts.google.com/o/oauth2/v2/auth"));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationToken);
         var url = result.Trim('"');
 
         // Assert
         _ = _oAuthService.Received(1).GetAuthorizationUrl(Arg.Any<string>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         url.ShouldNotBeNullOrEmpty();
         url.ShouldStartWith("https://accounts.google.com/o/oauth2/v2/auth");
@@ -75,7 +76,7 @@ public sealed class GoogleOAuthEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -96,11 +97,12 @@ public sealed class GoogleOAuthEndpointsTests
         _ = _oAuthService.GetAuthorizationUrl(Arg.Any<string>()).Throws<ArgumentException>();
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
         _ = _oAuthService.Received(1).GetAuthorizationUrl(Arg.Any<string>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -121,11 +123,12 @@ public sealed class GoogleOAuthEndpointsTests
         _ = _oAuthService.GetAuthorizationUrl(Arg.Any<string>()).Throws<ApplicationException>();
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
         _ = _oAuthService.Received(1).GetAuthorizationUrl(Arg.Any<string>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -149,15 +152,17 @@ public sealed class GoogleOAuthEndpointsTests
         var userCredential = new UserCredential(flow, "", new Google.Apis.Auth.OAuth2.Responses.TokenResponse());
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/google_oauth/authorize?state={state}&code={code}");
 
-        _ = _oAuthService.GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>())
+        _ = _oAuthService.GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<UserCredential>.Success(userCredential));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationToken);
 
         // Assert
-        _ = _oAuthService.Received(1).GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>());
+        _ = _oAuthService.Received(1)
+            .GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         result.ShouldNotBeNullOrWhiteSpace();
         result.ShouldContain("accessToken");
@@ -171,14 +176,17 @@ public sealed class GoogleOAuthEndpointsTests
         var code = "test_code";
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/google_oauth/authorize?state={state}&code={code}");
 
-        _ = _oAuthService.GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>()).ThrowsAsync<ArgumentException>();
+        _ = _oAuthService.GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<ArgumentException>();
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _oAuthService.Received(1).GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>());
+        _ = _oAuthService.Received(1)
+            .GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -192,14 +200,17 @@ public sealed class GoogleOAuthEndpointsTests
         var code = "test_code";
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/google_oauth/authorize?state={state}&code={code}");
 
-        _ = _oAuthService.GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>()).ThrowsAsync<ApplicationException>();
+        _ = _oAuthService.GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<ApplicationException>();
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _oAuthService.Received(1).GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>());
+        _ = _oAuthService.Received(1)
+            .GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -222,12 +233,13 @@ public sealed class GoogleOAuthEndpointsTests
             .Returns(Result<string>.Success(expectedMessage));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationToken);
         var message = result.Trim('"');
 
         // Assert
         _ = _oAuthService.Received(1).RevokeAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         message.ShouldNotBeNullOrWhiteSpace();
         message.ShouldBeEquivalentTo(expectedMessage);
@@ -245,7 +257,7 @@ public sealed class GoogleOAuthEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -267,11 +279,12 @@ public sealed class GoogleOAuthEndpointsTests
             .ThrowsAsync<ArgumentException>();
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
         _ = _oAuthService.Received(1).RevokeAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -293,11 +306,12 @@ public sealed class GoogleOAuthEndpointsTests
             .ThrowsAsync<ApplicationException>();
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
         _ = _oAuthService.Received(1).RevokeAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();

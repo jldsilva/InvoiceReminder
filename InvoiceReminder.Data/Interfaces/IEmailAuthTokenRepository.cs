@@ -4,5 +4,5 @@ namespace InvoiceReminder.Data.Interfaces;
 
 public interface IEmailAuthTokenRepository : IBaseRepository<EmailAuthToken>
 {
-    Task<EmailAuthToken> GetByUserIdAsync(Guid id, string tokenProvider);
+    Task<EmailAuthToken> GetByUserIdAsync(Guid id, string tokenProvider, CancellationToken cancellationToken = default);
 }

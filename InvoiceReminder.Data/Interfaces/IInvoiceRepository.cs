@@ -4,5 +4,5 @@ namespace InvoiceReminder.Data.Interfaces;
 
 public interface IInvoiceRepository : IBaseRepository<Invoice>
 {
-    Task<Invoice> GetByBarCodeAsync(string value);
+    Task<Invoice> GetByBarCodeAsync(string value, CancellationToken cancellationToken = default);
 }

@@ -16,6 +16,8 @@ public sealed class ScanEmailDefinitionRepositoryTests
     private readonly ILogger<ScanEmailDefinitionRepository> _logger;
     private readonly IScanEmailDefinitionRepository _repository;
 
+    public TestContext TestContext { get; set; }
+
     public ScanEmailDefinitionRepositoryTests()
     {
         var options = new DbContextOptionsBuilder<CoreDbContext>()
@@ -52,10 +54,11 @@ public sealed class ScanEmailDefinitionRepositoryTests
         var userId = Guid.NewGuid();
         var scanEmailDefinition = new ScanEmailDefinition { UserId = userId, Beneficiary = "test" };
 
-        _ = _repository.GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>()).Returns(scanEmailDefinition);
+        _ = _repository.GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(scanEmailDefinition);
 
         // Act
-        var result = await _repository.GetBySenderBeneficiaryAsync("test", userId);
+        var result = await _repository.GetBySenderBeneficiaryAsync("test", userId, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>
@@ -73,10 +76,11 @@ public sealed class ScanEmailDefinitionRepositoryTests
         var userId = Guid.NewGuid();
         var scanEmailDefinition = new ScanEmailDefinition { UserId = userId, SenderEmailAddress = "test@mail.com" };
 
-        _ = _repository.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>()).Returns(scanEmailDefinition);
+        _ = _repository.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(scanEmailDefinition);
 
         // Act
-        var result = await _repository.GetBySenderEmailAddressAsync("test@mail.com", userId);
+        var result = await _repository.GetBySenderEmailAddressAsync("test@mail.com", userId, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>
@@ -98,10 +102,10 @@ public sealed class ScanEmailDefinitionRepositoryTests
             new() { Id = Guid.NewGuid(), UserId = userId, Beneficiary = "test_B" }
         };
 
-        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>()).Returns(collection);
+        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(collection);
 
         // Act
-        var result = await _repository.GetByUserIdAsync(userId);
+        var result = await _repository.GetByUserIdAsync(userId, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>

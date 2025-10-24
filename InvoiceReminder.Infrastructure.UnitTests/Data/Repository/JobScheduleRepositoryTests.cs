@@ -16,6 +16,8 @@ public sealed class JobScheduleRepositoryTests
     private readonly ILogger<JobScheduleRepository> _logger;
     private readonly IJobScheduleRepository _repository;
 
+    public TestContext TestContext { get; set; }
+
     public JobScheduleRepositoryTests()
     {
         var options = new DbContextOptionsBuilder<CoreDbContext>()
@@ -51,10 +53,11 @@ public sealed class JobScheduleRepositoryTests
         // Arrange
         var userId = Guid.NewGuid();
         var jobSchedule = new List<JobSchedule> { new() { UserId = userId } };
-        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>()).Returns(jobSchedule);
+
+        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(jobSchedule);
 
         // Act
-        var result = await _repository.GetByUserIdAsync(userId);
+        var result = await _repository.GetByUserIdAsync(userId, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>

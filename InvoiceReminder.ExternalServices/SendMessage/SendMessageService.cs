@@ -32,14 +32,14 @@ public class SendMessageService : ISendMessageService
         _logger = logger;
     }
 
-    public async Task<string> SendMessage(Guid userId)
+    public async Task<string> SendMessage(Guid userId, CancellationToken cancellationToken = default)
     {
         IDictionary<string, byte[]> attachments;
 
         try
         {
             var invoices = new List<Invoice>();
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
             var (isValid, validationMessage) = ValidateUser(user);
 
             if (!isValid)
@@ -47,7 +47,7 @@ public class SendMessageService : ISendMessageService
                 return validationMessage;
             }
 
-            attachments = await _gmailService.GetAttachmentsAsync(user);
+            attachments = await _gmailService.GetAttachmentsAsync(user, cancellationToken);
 
             foreach (var attachment in attachments)
             {
@@ -69,10 +69,10 @@ public class SendMessageService : ISendMessageService
                 <b>• Valor:</b> R${invoice.Amount}
                 """;
 
-                await _telegramMessageService.SendMessageAsync(user.TelegramChatId, message);
+                await _telegramMessageService.SendMessageAsync(user.TelegramChatId, message, cancellationToken);
             }
 
-            _ = await _invoiceRepository.BulkInsertAsync(invoices);
+            _ = await _invoiceRepository.BulkInsertAsync(invoices, cancellationToken);
         }
         catch (Exception ex)
         {

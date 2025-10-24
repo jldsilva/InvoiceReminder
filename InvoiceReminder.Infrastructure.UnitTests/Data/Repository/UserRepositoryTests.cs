@@ -16,6 +16,8 @@ public sealed class UserRepositoryTests
     private readonly ILogger<UserRepository> _logger;
     private readonly IUserRepository _repository;
 
+    public TestContext TestContext { get; set; }
+
     public UserRepositoryTests()
     {
         var options = new DbContextOptionsBuilder<CoreDbContext>()
@@ -52,10 +54,10 @@ public sealed class UserRepositoryTests
         var email = "user_test@mail.com";
         var user = new User { Id = Guid.NewGuid(), Email = email };
 
-        _ = _repository.GetByEmailAsync(Arg.Any<string>()).Returns(user);
+        _ = _repository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(user);
 
         // Act
-        var result = await _repository.GetByEmailAsync(email);
+        var result = await _repository.GetByEmailAsync(email, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>
@@ -73,10 +75,10 @@ public sealed class UserRepositoryTests
         var userId = Guid.NewGuid();
         var user = new User { Id = userId };
 
-        _ = _repository.GetByIdAsync(Arg.Any<Guid>()).Returns(user);
+        _ = _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(user);
 
         // Act
-        var result = await _repository.GetByIdAsync(userId);
+        var result = await _repository.GetByIdAsync(userId, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>

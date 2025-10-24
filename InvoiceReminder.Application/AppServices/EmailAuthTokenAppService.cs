@@ -16,9 +16,11 @@ public class EmailAuthTokenAppService : BaseAppService<EmailAuthToken, EmailAuth
         _repository = repository;
     }
 
-    public async Task<Result<EmailAuthTokenViewModel>> GetByUserIdAsync(Guid id, string tokenProvider)
+    public async Task<Result<EmailAuthTokenViewModel>> GetByUserIdAsync(
+        Guid id, string tokenProvider,
+        CancellationToken cancellationToken = default)
     {
-        var entity = await _repository.GetByUserIdAsync(id, tokenProvider);
+        var entity = await _repository.GetByUserIdAsync(id, tokenProvider, cancellationToken);
 
         return entity is null
             ? Result<EmailAuthTokenViewModel>.Failure("EmailAuthToken not Found.")

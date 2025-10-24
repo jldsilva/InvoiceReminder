@@ -19,15 +19,16 @@ public class InvoiceRepository : BaseRepository<CoreDbContext, Invoice>, IInvoic
         _logger = logger;
     }
 
-    public async Task<Invoice> GetByBarCodeAsync(string value)
+    public async Task<Invoice> GetByBarCodeAsync(string value, CancellationToken cancellationToken = default)
     {
         Invoice invoice = null;
 
         try
         {
             var query = @"select * from invoice_reminder.invoice b where rtrim(b.barcode) = @value";
+            var command = new CommandDefinition(query, new { value }, cancellationToken: cancellationToken);
 
-            invoice = await _dbConnection.QueryFirstOrDefaultAsync<Invoice>(query, param: new { value });
+            invoice = await _dbConnection.QueryFirstOrDefaultAsync<Invoice>(command);
         }
         catch (Exception ex)
         {

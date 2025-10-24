@@ -25,9 +25,9 @@ public class UserEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/{id}", async (IUserAppService userAppService, Guid id) =>
+        _ = endpoint.MapGet("/{id}", async (IUserAppService userAppService, CancellationToken ct, Guid id) =>
         {
-            var result = await userAppService.GetByIdAsync(id);
+            var result = await userAppService.GetByIdAsync(id, ct);
 
             return result.IsSuccess
                 ? Results.Ok(result.Value)
@@ -39,7 +39,8 @@ public class UserEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/get_by_email/{value}", async (IUserAppService userAppService, string value) =>
+        _ = endpoint.MapGet("/get_by_email/{value}",
+            async (IUserAppService userAppService, CancellationToken ct, string value) =>
             {
                 var result = await userAppService.GetByEmailAsync(value);
 
@@ -53,11 +54,12 @@ public class UserEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapPost("/", async (IUserAppService userAppService, [FromBody] UserViewModel userViewModel) =>
+        _ = endpoint.MapPost("/",
+            async (IUserAppService userAppService, CancellationToken ct, [FromBody] UserViewModel userViewModel) =>
             {
                 userViewModel.Password = userViewModel.Password.ToSHA256();
 
-                var result = await userAppService.AddAsync(userViewModel);
+                var result = await userAppService.AddAsync(userViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Created($"/api/user/{result.Value.Email}", result.Value)
@@ -69,15 +71,15 @@ public class UserEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapPost("/bulk_insert", async (IUserAppService userAppService,
-            [FromBody] ICollection<UserViewModel> usersViewModel) =>
+        _ = endpoint.MapPost("/bulk_insert",
+            async (IUserAppService userAppService, CancellationToken ct, [FromBody] ICollection<UserViewModel> usersViewModel) =>
             {
                 foreach (var user in usersViewModel)
                 {
                     user.Password = user.Password.ToSHA256();
                 }
 
-                var result = await userAppService.BulkInsertAsync(usersViewModel);
+                var result = await userAppService.BulkInsertAsync(usersViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Created("/api/user/", result.Value)
@@ -89,9 +91,10 @@ public class UserEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapPut("/", async (IUserAppService userAppService, [FromBody] UserViewModel userViewModel) =>
+        _ = endpoint.MapPut("/",
+            async (IUserAppService userAppService, CancellationToken ct, [FromBody] UserViewModel userViewModel) =>
             {
-                var result = await userAppService.UpdateAsync(userViewModel);
+                var result = await userAppService.UpdateAsync(userViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -103,9 +106,10 @@ public class UserEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapDelete("/", async (IUserAppService userAppService, [FromBody] UserViewModel userViewModel) =>
+        _ = endpoint.MapDelete("/",
+            async (IUserAppService userAppService, CancellationToken ct, [FromBody] UserViewModel userViewModel) =>
             {
-                var result = await userAppService.RemoveAsync(userViewModel);
+                var result = await userAppService.RemoveAsync(userViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.NoContent()

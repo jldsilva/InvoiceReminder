@@ -21,13 +21,13 @@ public class TelegramMessageService : ITelegramMessageService
         _botClient = new TelegramBotClient(botToken);
     }
 
-    public async Task SendMessageAsync(long chatId, string message)
+    public async Task SendMessageAsync(long chatId, string message, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation($"Sending a new message...");
 
         try
         {
-            _ = await _botClient.SendMessage(chatId, message, ParseMode.Html);
+            _ = await _botClient.SendMessage(chatId, message, ParseMode.Html, cancellationToken: cancellationToken);
         }
         catch (ApiRequestException ex)
         {
