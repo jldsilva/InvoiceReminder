@@ -24,9 +24,9 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/{id}", async (IInvoiceAppService invoiceAppService, Guid id) =>
+        _ = endpoint.MapGet("/{id}", async (IInvoiceAppService invoiceAppService, CancellationToken ct, Guid id) =>
             {
-                var result = await invoiceAppService.GetByIdAsync(id);
+                var result = await invoiceAppService.GetByIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -38,9 +38,10 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/get_by_barcode/{value}", async (IInvoiceAppService invoiceAppService, string value) =>
+        _ = endpoint.MapGet("/get_by_barcode/{value}",
+            async (IInvoiceAppService invoiceAppService, CancellationToken ct, string value) =>
             {
-                var result = await invoiceAppService.GetByBarcodeAsync(value);
+                var result = await invoiceAppService.GetByBarcodeAsync(value, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -52,9 +53,10 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapPost("/", async (IInvoiceAppService invoiceAppService, [FromBody] InvoiceViewModel invoiceViewModel) =>
+        _ = endpoint.MapPost("/",
+            async (IInvoiceAppService invoiceAppService, CancellationToken ct, [FromBody] InvoiceViewModel invoiceViewModel) =>
             {
-                var result = await invoiceAppService.AddAsync(invoiceViewModel);
+                var result = await invoiceAppService.AddAsync(invoiceViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Created($"/api/invoice/{result.Value.Barcode}", result.Value)
@@ -66,9 +68,10 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapPut("/", async (IInvoiceAppService invoiceAppService, [FromBody] InvoiceViewModel invoiceViewModel) =>
+        _ = endpoint.MapPut("/",
+            async (IInvoiceAppService invoiceAppService, CancellationToken ct, [FromBody] InvoiceViewModel invoiceViewModel) =>
             {
-                var result = await invoiceAppService.UpdateAsync(invoiceViewModel);
+                var result = await invoiceAppService.UpdateAsync(invoiceViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -80,9 +83,10 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapDelete("/", async (IInvoiceAppService invoiceAppService, [FromBody] InvoiceViewModel invoiceViewModel) =>
+        _ = endpoint.MapDelete("/",
+            async (IInvoiceAppService invoiceAppService, CancellationToken ct, [FromBody] InvoiceViewModel invoiceViewModel) =>
             {
-                var result = await invoiceAppService.RemoveAsync(invoiceViewModel);
+                var result = await invoiceAppService.RemoveAsync(invoiceViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.NoContent()

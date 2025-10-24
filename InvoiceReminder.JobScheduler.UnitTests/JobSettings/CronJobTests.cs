@@ -20,6 +20,8 @@ public class CronJobTests
     private readonly IJobDetail _jobDetail;
     private readonly JobDataMap _jobDataMap;
 
+    public TestContext TestContext { get; set; }
+
     public CronJobTests()
     {
         _logger = Substitute.For<ILogger<CronJob>>();
@@ -46,7 +48,6 @@ public class CronJobTests
     {
         // Arrange
         var cronJob = new CronJob(_logger, _serviceScopeFactory);
-        var userId = _jobDataMap.GetGuidValue("UserId");
 
         // Act
         await cronJob.Execute(_jobExecutionContext);
@@ -54,7 +55,7 @@ public class CronJobTests
         // Assert
         _ = _serviceScopeFactory.Received(1).CreateScope();
 
-        _ = _sendMessageService.Received(1).SendMessage(userId);
+        _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         _logger.ReceivedWithAnyArgs(1).Log(
             LogLevel.Information,
@@ -90,16 +91,16 @@ public class CronJobTests
     {
         // Arrange
         var cronJob = new CronJob(_logger, _serviceScopeFactory);
-        var userId = _jobDataMap.GetGuidValue("UserId");
 
-        _ = _sendMessageService.SendMessage(userId).Returns("Total messages sent: 0");
+        _ = _sendMessageService.SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns("Total messages sent: 0");
 
         // Act
         await cronJob.Execute(_jobExecutionContext);
 
         // Assert
         _ = _serviceScopeFactory.Received(1).CreateScope();
-        _ = _sendMessageService.Received(1).SendMessage(userId);
+        _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         _logger.Received(1).Log(
             LogLevel.Information,

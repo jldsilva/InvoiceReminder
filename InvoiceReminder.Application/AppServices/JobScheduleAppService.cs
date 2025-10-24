@@ -27,7 +27,9 @@ public class JobScheduleAppService : BaseAppService<JobSchedule, JobScheduleView
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<JobScheduleViewModel>> AddNewJobAsync(JobScheduleViewModel viewModel, CancellationToken cancellationToken = default)
+    public async Task<Result<JobScheduleViewModel>> AddNewJobAsync(
+        JobScheduleViewModel viewModel,
+        CancellationToken cancellationToken = default)
     {
         if (viewModel is null)
         {
@@ -43,9 +45,11 @@ public class JobScheduleAppService : BaseAppService<JobSchedule, JobScheduleView
         return Result<JobScheduleViewModel>.Success(entity.Adapt<JobScheduleViewModel>());
     }
 
-    public async Task<Result<IEnumerable<JobScheduleViewModel>>> GetByUserIdAsync(Guid id)
+    public async Task<Result<IEnumerable<JobScheduleViewModel>>> GetByUserIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
-        var entity = await _repository.GetByUserIdAsync(id);
+        var entity = await _repository.GetByUserIdAsync(id, cancellationToken);
 
         return !entity.Any()
             ? Result<IEnumerable<JobScheduleViewModel>>.Failure("Empty Result")

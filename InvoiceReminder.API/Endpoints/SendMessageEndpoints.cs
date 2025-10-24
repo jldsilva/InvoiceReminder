@@ -6,9 +6,10 @@ public class SendMessageEndpoints : IEndpointDefinition
 {
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        _ = endpoints.MapGet("/api/send_message/{id}", async (ISendMessageService messageService, Guid id) =>
+        _ = endpoints.MapGet("/api/send_message/{id}",
+            async (ISendMessageService messageService, CancellationToken ct, Guid id) =>
             {
-                var result = await messageService.SendMessage(id);
+                var result = await messageService.SendMessage(id, ct);
 
                 return !string.IsNullOrEmpty(result)
                     ? Results.Ok(result)

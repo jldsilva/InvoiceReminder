@@ -123,7 +123,7 @@ public class GoogleOAuthService : IGoogleOAuthService
     {
         try
         {
-            var emailAuthToken = await _tokenRepository.GetByUserIdAsync(userId, "Google");
+            var emailAuthToken = await _tokenRepository.GetByUserIdAsync(userId, "Google", cancellationToken);
 
             if (emailAuthToken == null)
             {
@@ -151,8 +151,8 @@ public class GoogleOAuthService : IGoogleOAuthService
     {
         try
         {
-            var currentRefreshToken = TokenCryptoService.Decrypt(authToken.RefreshToken, authToken.NonceValue, _key);
-            var tokenResponse = await _flow.RefreshTokenAsync(authToken.UserId.ToString(), currentRefreshToken, cancellationToken);
+            var refreshToken = TokenCryptoService.Decrypt(authToken.RefreshToken, authToken.NonceValue, _key);
+            var tokenResponse = await _flow.RefreshTokenAsync(authToken.UserId.ToString(), refreshToken, cancellationToken);
             var (encryptedRefreshToken, nonceValue) = TokenCryptoService.Encrypt(tokenResponse.RefreshToken, _key);
 
             authToken.AccessToken = tokenResponse.AccessToken;

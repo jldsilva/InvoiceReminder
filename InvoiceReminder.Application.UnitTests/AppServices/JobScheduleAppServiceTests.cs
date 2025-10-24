@@ -51,7 +51,7 @@ public sealed class JobScheduleAppServiceTests
         JobScheduleViewModel viewModel = null;
 
         // Act
-        var result = await appService.AddNewJobAsync(viewModel, TestContext.CancellationTokenSource.Token);
+        var result = await appService.AddNewJobAsync(viewModel, TestContext.CancellationToken);
 
         // Assert
         _ = await _repository.DidNotReceive().AddAsync(Arg.Any<JobSchedule>(), Arg.Any<CancellationToken>());
@@ -80,7 +80,7 @@ public sealed class JobScheduleAppServiceTests
         };
 
         // Act
-        var result = await appService.AddNewJobAsync(viewModel, TestContext.CancellationTokenSource.Token);
+        var result = await appService.AddNewJobAsync(viewModel, TestContext.CancellationToken);
 
         // Assert
         _ = await _repository.Received(1)
@@ -115,13 +115,13 @@ public sealed class JobScheduleAppServiceTests
             }
         };
 
-        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>()).Returns(jobSchedules);
+        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(jobSchedules);
 
         // Act
-        var result = await appService.GetByUserIdAsync(userId);
+        var result = await appService.GetByUserIdAsync(userId, TestContext.CancellationToken);
 
         // Assert
-        _ = await _repository.Received(1).GetByUserIdAsync(userId);
+        _ = await _repository.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
@@ -140,13 +140,13 @@ public sealed class JobScheduleAppServiceTests
         var appService = new JobScheduleAppService(_repository, _schedulerFactory, _jobFactory, _unitOfWork);
         var userId = Guid.NewGuid();
 
-        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>()).Returns([]);
+        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
 
         // Act
-        var result = await appService.GetByUserIdAsync(userId);
+        var result = await appService.GetByUserIdAsync(userId, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetByUserIdAsync(userId);
+        _ = _repository.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {

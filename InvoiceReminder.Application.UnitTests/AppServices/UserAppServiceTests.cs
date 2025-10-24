@@ -15,6 +15,8 @@ public sealed class UserAppServiceTests
     private readonly IUserRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 
+    public TestContext TestContext { get; set; }
+
     public UserAppServiceTests()
     {
         _repository = Substitute.For<IUserRepository>();
@@ -54,13 +56,13 @@ public sealed class UserAppServiceTests
             UpdatedAt = DateTime.UtcNow
         };
 
-        _ = _repository.GetByEmailAsync(Arg.Any<string>()).Returns(user);
+        _ = _repository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(user);
 
         // Act
-        var result = await appService.GetByEmailAsync(email);
+        var result = await appService.GetByEmailAsync(email, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetByEmailAsync(email);
+        _ = _repository.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
@@ -79,13 +81,13 @@ public sealed class UserAppServiceTests
         var appService = new UserAppService(_repository, _unitOfWork);
         var email = "not_existing@test.com";
 
-        _ = _repository.GetByEmailAsync(Arg.Any<string>()).Returns((User)null);
+        _ = _repository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((User)null);
 
         // Act
-        var result = await appService.GetByEmailAsync(email);
+        var result = await appService.GetByEmailAsync(email, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetByEmailAsync(email);
+        _ = _repository.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {

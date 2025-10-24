@@ -27,7 +27,7 @@ public class UnitOfWork : IUnitOfWork
     {
         try
         {
-            await OpenConnection();
+            await OpenConnection(cancellationToken);
 
             _transaction = await _connection.BeginTransactionAsync(cancellationToken);
 
@@ -50,11 +50,11 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    private async Task OpenConnection()
+    private async Task OpenConnection(CancellationToken cancellationToken = default)
     {
         if (_connection.State == ConnectionState.Closed)
         {
-            await _connection.OpenAsync();
+            await _connection.OpenAsync(cancellationToken);
         }
     }
 

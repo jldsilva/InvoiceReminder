@@ -13,6 +13,8 @@ public sealed class EmailAuthTokenAppServiceTests
     private readonly IEmailAuthTokenRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 
+    public TestContext TestContext { get; set; }
+
     public EmailAuthTokenAppServiceTests()
     {
         _repository = Substitute.For<IEmailAuthTokenRepository>();
@@ -53,13 +55,14 @@ public sealed class EmailAuthTokenAppServiceTests
             UpdatedAt = DateTime.UtcNow
         };
 
-        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<string>()).Returns(emailAuthToken);
+        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(emailAuthToken);
 
         // Act
-        var result = await appService.GetByUserIdAsync(userId, tokenProvider);
+        var result = await appService.GetByUserIdAsync(userId, tokenProvider, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<string>());
+        _ = _repository.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
@@ -78,13 +81,14 @@ public sealed class EmailAuthTokenAppServiceTests
         var userId = Guid.NewGuid();
         var tokenProvider = "Google";
 
-        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<string>()).Returns((EmailAuthToken)null);
+        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns((EmailAuthToken)null);
 
         // Act
-        var result = await appService.GetByUserIdAsync(userId, tokenProvider);
+        var result = await appService.GetByUserIdAsync(userId, tokenProvider, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<string>());
+        _ = _repository.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {

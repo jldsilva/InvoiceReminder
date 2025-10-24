@@ -24,9 +24,10 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/{id}", async (IScanEmailDefinitionAppService scanEmailDefinitionAppService, Guid id) =>
+        _ = endpoint.MapGet("/{id}",
+            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService, CancellationToken ct, Guid id) =>
             {
-                var result = await scanEmailDefinitionAppService.GetByIdAsync(id);
+                var result = await scanEmailDefinitionAppService.GetByIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -38,8 +39,8 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/get_by_user_id/{id}", async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
-            Guid id) =>
+        _ = endpoint.MapGet("/get_by_user_id/{id}",
+            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService, CancellationToken ct, Guid id) =>
             {
                 var result = await scanEmailDefinitionAppService.GetByUserIdAsync(id);
 
@@ -53,10 +54,13 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/{email}/{id}", async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
-            string email, Guid id) =>
+        _ = endpoint.MapGet("/{email}/{id}",
+            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
+                CancellationToken ct,
+                string email,
+                Guid id) =>
             {
-                var result = await scanEmailDefinitionAppService.GetBySenderEmailAddressAsync(email, id);
+                var result = await scanEmailDefinitionAppService.GetBySenderEmailAddressAsync(email, id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -68,10 +72,12 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapPost("/", async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
-            [FromBody] ScanEmailDefinitionViewModel scanEmailDefinitionViewModel) =>
+        _ = endpoint.MapPost("/",
+            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
+                CancellationToken ct,
+                [FromBody] ScanEmailDefinitionViewModel scanEmailDefinitionViewModel) =>
             {
-                var result = await scanEmailDefinitionAppService.AddAsync(scanEmailDefinitionViewModel);
+                var result = await scanEmailDefinitionAppService.AddAsync(scanEmailDefinitionViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Created($"/api/scan-email-definition/{result.Value.Id}", result.Value)
@@ -83,10 +89,12 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapPut("/", async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
-            [FromBody] ScanEmailDefinitionViewModel scanEmailDefinitionViewModel) =>
+        _ = endpoint.MapPut("/",
+            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
+                CancellationToken ct,
+                [FromBody] ScanEmailDefinitionViewModel scanEmailDefinitionViewModel) =>
             {
-                var result = await scanEmailDefinitionAppService.UpdateAsync(scanEmailDefinitionViewModel);
+                var result = await scanEmailDefinitionAppService.UpdateAsync(scanEmailDefinitionViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -98,10 +106,12 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapDelete("/", async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
-            [FromBody] ScanEmailDefinitionViewModel scanEmailDefinitionViewModel) =>
+        _ = endpoint.MapDelete("/",
+            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
+                CancellationToken ct,
+                [FromBody] ScanEmailDefinitionViewModel scanEmailDefinitionViewModel) =>
             {
-                var result = await scanEmailDefinitionAppService.RemoveAsync(scanEmailDefinitionViewModel);
+                var result = await scanEmailDefinitionAppService.RemoveAsync(scanEmailDefinitionViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.NoContent()

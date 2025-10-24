@@ -19,12 +19,12 @@ public class GmailServiceWrapper : IGmailServiceWrapper
         _oAuthProvider = oAuthProvider;
     }
 
-    public async Task<IDictionary<string, byte[]>> GetAttachmentsAsync(User user)
+    public async Task<IDictionary<string, byte[]>> GetAttachmentsAsync(User user, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);
 
         var emailAuthToken = user.EmailAuthTokens.FirstOrDefault(t => t.TokenProvider == "Google");
-        var credential = await _oAuthProvider.AuthenticateAsync(emailAuthToken);
+        var credential = await _oAuthProvider.AuthenticateAsync(emailAuthToken, cancellationToken);
 
         var service = new GmailService(new BaseClientService.Initializer()
         {
@@ -40,7 +40,7 @@ public class GmailServiceWrapper : IGmailServiceWrapper
         resource.LabelIds = "INBOX";
         resource.Q = "is:unread";
 
-        var response = await resource.ExecuteAsync();
+        var response = await resource.ExecuteAsync(cancellationToken);
 
         if (response != null && response.Messages != null)
         {
@@ -50,7 +50,7 @@ public class GmailServiceWrapper : IGmailServiceWrapper
 
             foreach (var messageId in messages)
             {
-                var email = await messagesResource.Get("me", messageId).ExecuteAsync();
+                var email = await messagesResource.Get("me", messageId).ExecuteAsync(cancellationToken);
                 var from = email.Payload.Headers.First(h => h.Name == "From").Value;
 
                 if (senderAddresses.Any(from.Contains))
@@ -62,16 +62,18 @@ public class GmailServiceWrapper : IGmailServiceWrapper
                         && attachments.Any(p.Filename.ToLowerInvariant().Contains));
 
                     var attachment = await messagesResource.Attachments.Get("me", messageId, msgPart.Body.AttachmentId)
-                        .ExecuteAsync();
+                        .ExecuteAsync(cancellationToken);
 
                     var modifyMessage = new ModifyMessageRequest
                     {
                         RemoveLabelIds = ["UNREAD"]
                     };
 
-                    result.Add(beneficiary, Convert.FromBase64String(attachment.Data.Replace('-', '+').Replace('_', '/')));
+                    result.Add(beneficiary, Convert.FromBase64String(attachment.Data.Replace('-', '+')
+                        .Replace('_', '/')));
 
-                    _ = await service.Users.Messages.Modify(modifyMessage, "me", messageId).ExecuteAsync();
+                    _ = await service.Users.Messages.Modify(modifyMessage, "me", messageId)
+                        .ExecuteAsync(cancellationToken);
                 }
             }
         }

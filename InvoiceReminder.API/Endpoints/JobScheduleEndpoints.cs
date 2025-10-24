@@ -24,9 +24,9 @@ public class JobScheduleEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/{id}", async (IJobScheduleAppService jobScheduleAppService, Guid id) =>
+        _ = endpoint.MapGet("/{id}", async (IJobScheduleAppService jobScheduleAppService, CancellationToken ct, Guid id) =>
             {
-                var result = await jobScheduleAppService.GetByIdAsync(id);
+                var result = await jobScheduleAppService.GetByIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -39,9 +39,10 @@ public class JobScheduleEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/get_by_user_id/{id}", async (IJobScheduleAppService jobScheduleAppService, Guid id) =>
+        _ = endpoint.MapGet("/get_by_user_id/{id}",
+            async (IJobScheduleAppService jobScheduleAppService, CancellationToken ct, Guid id) =>
             {
-                var result = await jobScheduleAppService.GetByUserIdAsync(id);
+                var result = await jobScheduleAppService.GetByUserIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -54,10 +55,12 @@ public class JobScheduleEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapPost("/", async (IJobScheduleAppService jobScheduleAppService,
-            [FromBody] JobScheduleViewModel jobScheduleViewModel) =>
+        _ = endpoint.MapPost("/",
+            async (IJobScheduleAppService jobScheduleAppService,
+                CancellationToken ct,
+                [FromBody] JobScheduleViewModel jobScheduleViewModel) =>
             {
-                var result = await jobScheduleAppService.AddNewJobAsync(jobScheduleViewModel);
+                var result = await jobScheduleAppService.AddNewJobAsync(jobScheduleViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Created($"/api/invoice/{result.Value.Id}", result.Value)
@@ -69,10 +72,12 @@ public class JobScheduleEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapPut("/", async (IJobScheduleAppService jobScheduleAppService,
-            [FromBody] JobScheduleViewModel jobScheduleViewModel) =>
+        _ = endpoint.MapPut("/",
+            async (IJobScheduleAppService jobScheduleAppService,
+                CancellationToken ct,
+                [FromBody] JobScheduleViewModel jobScheduleViewModel) =>
             {
-                var result = await jobScheduleAppService.UpdateAsync(jobScheduleViewModel);
+                var result = await jobScheduleAppService.UpdateAsync(jobScheduleViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -84,10 +89,12 @@ public class JobScheduleEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapDelete("/", async (IJobScheduleAppService jobScheduleAppService,
-            [FromBody] JobScheduleViewModel jobScheduleViewModel) =>
+        _ = endpoint.MapDelete("/",
+            async (IJobScheduleAppService jobScheduleAppService,
+                CancellationToken ct,
+                [FromBody] JobScheduleViewModel jobScheduleViewModel) =>
             {
-                var result = await jobScheduleAppService.RemoveAsync(jobScheduleViewModel);
+                var result = await jobScheduleAppService.RemoveAsync(jobScheduleViewModel, ct);
 
                 return result.IsSuccess
                     ? Results.NoContent()

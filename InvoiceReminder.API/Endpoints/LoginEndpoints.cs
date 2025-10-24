@@ -11,9 +11,12 @@ public class LoginEndpoints : IEndpointDefinition
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
         _ = endpoints.MapPost("/api/login",
-            async (IJwtProvider jwtProvider, IUserAppService userAppService, [FromBody] LoginRequest request) =>
+            async (IJwtProvider jwtProvider,
+                IUserAppService userAppService,
+                CancellationToken ct,
+                [FromBody] LoginRequest request) =>
             {
-                var result = await userAppService.GetByEmailAsync(request.Email);
+                var result = await userAppService.GetByEmailAsync(request.Email, ct);
 
                 if (!result.IsSuccess)
                 {
@@ -24,7 +27,9 @@ public class LoginEndpoints : IEndpointDefinition
                     && request.Password.ToSHA256().Equals(result.Value.Password)
                     && request.Email.Equals(result.Value.Email);
 
-                return isValid ? Results.Ok(jwtProvider.Generate(result.Value)) : Results.Unauthorized();
+                return isValid
+                    ? Results.Ok(jwtProvider.Generate(result.Value))
+                    : Results.Unauthorized();
             })
             .WithName("Login")
             .AllowAnonymous()

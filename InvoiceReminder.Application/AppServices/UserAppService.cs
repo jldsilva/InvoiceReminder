@@ -16,9 +16,9 @@ public sealed class UserAppService : BaseAppService<User, UserViewModel>, IUserA
         _repository = repository;
     }
 
-    public async Task<Result<UserViewModel>> GetByEmailAsync(string value)
+    public async Task<Result<UserViewModel>> GetByEmailAsync(string value, CancellationToken cancellationToken = default)
     {
-        var entity = await _repository.GetByEmailAsync(value);
+        var entity = await _repository.GetByEmailAsync(value, cancellationToken);
 
         return entity is null
             ? Result<UserViewModel>.Failure("User not Found.")

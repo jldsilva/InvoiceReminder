@@ -69,11 +69,12 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<IEnumerable<ScanEmailDefinitionViewModel>>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<ScanEmailDefinitionViewModel>>(TestContext.CancellationToken);
 
         // Assert
         _ = _scanEmailDefinitionAppService.Received(1).GetAll();
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         result.ShouldSatisfyAllConditions(result =>
@@ -95,7 +96,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -117,11 +118,12 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
         _ = _scanEmailDefinitionAppService.Received(1).GetAll();
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -148,18 +150,20 @@ public sealed class ScanEmailDefinitionEndpointsTests
             UpdatedAt = DateTime.UtcNow
         });
 
-        _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>()).Returns(expectedResult);
+        _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ScanEmailDefinitionViewModel>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ScanEmailDefinitionViewModel>(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ScanEmailDefinitionViewModel>();
@@ -178,7 +182,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -192,18 +196,20 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync<ArgumentException>();
+        _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<ArgumentException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -217,18 +223,20 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync<ApplicationException>();
+        _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<ApplicationException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -244,18 +252,20 @@ public sealed class ScanEmailDefinitionEndpointsTests
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Failure($"ScanEmailDefinition with id {id} not Found.");
 
-        _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>()).Returns(expectedResult);
+        _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<string>();
@@ -289,18 +299,20 @@ public sealed class ScanEmailDefinitionEndpointsTests
             },
         ]);
 
-        _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>()).Returns(expectedResult);
+        _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<IEnumerable<ScanEmailDefinitionViewModel>>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<ScanEmailDefinitionViewModel>>(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<List<ScanEmailDefinitionViewModel>>();
@@ -317,7 +329,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -331,18 +343,20 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/get_by_user_id/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>()).ThrowsAsync<ArgumentException>();
+        _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<ArgumentException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -356,18 +370,20 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/get_by_user_id/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>()).ThrowsAsync<ApplicationException>();
+        _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<ApplicationException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -384,18 +400,20 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var expectedResult = Result<IEnumerable<ScanEmailDefinitionViewModel>>.
             Failure($"ScanEmailDefinition with user id {id} not Found.");
 
-        _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>()).Returns(expectedResult);
+        _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<string>();
@@ -423,7 +441,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
            }
         );
 
-        _ = _scanEmailDefinitionAppService.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>())
+        _ = _scanEmailDefinitionAppService
+            .GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -431,11 +450,13 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ScanEmailDefinitionViewModel>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ScanEmailDefinitionViewModel>(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1)
+            .GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ScanEmailDefinitionViewModel>();
@@ -452,7 +473,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -467,7 +488,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _scanEmailDefinitionAppService.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>())
+        _ = _scanEmailDefinitionAppService
+            .GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<ApplicationException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -475,11 +497,13 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1)
+            .GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -497,7 +521,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var expectedResult = Result<ScanEmailDefinitionViewModel>.
             Failure($"ScanEmailDefinition with user id {id} not Found.");
 
-        _ = _scanEmailDefinitionAppService.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>())
+        _ = _scanEmailDefinitionAppService
+            .GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -505,11 +530,13 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationToken);
 
         // Assert
-        _ = _scanEmailDefinitionAppService.Received(1).GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>());
+        _ = _scanEmailDefinitionAppService.Received(1)
+            .GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<string>();
@@ -549,9 +576,9 @@ public sealed class ScanEmailDefinitionEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
         var result = await response.Content
-            .ReadFromJsonAsync<ScanEmailDefinitionViewModel>(TestContext.CancellationTokenSource.Token);
+            .ReadFromJsonAsync<ScanEmailDefinitionViewModel>(TestContext.CancellationToken);
 
         // Assert
         _ = _scanEmailDefinitionAppService.Received(1)
@@ -573,7 +600,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -609,8 +636,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
         _ = _scanEmailDefinitionAppService.Received(1)
@@ -655,8 +682,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ScanEmailDefinitionViewModel>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ScanEmailDefinitionViewModel>(TestContext.CancellationToken);
 
         // Assert
         _ = _scanEmailDefinitionAppService.Received(1)
@@ -678,7 +705,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -714,8 +741,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
 
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
         _ = _scanEmailDefinitionAppService.Received(1)
@@ -747,8 +774,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(TestContext.CancellationToken);
 
         // Assert
         _ = _scanEmailDefinitionAppService.Received(1)
@@ -770,7 +797,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -793,8 +820,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
         _ = _scanEmailDefinitionAppService.Received(1)

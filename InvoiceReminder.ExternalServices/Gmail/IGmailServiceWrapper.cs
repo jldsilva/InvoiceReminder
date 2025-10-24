@@ -4,5 +4,5 @@ namespace InvoiceReminder.ExternalServices.Gmail;
 
 public interface IGmailServiceWrapper
 {
-    Task<IDictionary<string, byte[]>> GetAttachmentsAsync(User user);
+    Task<IDictionary<string, byte[]>> GetAttachmentsAsync(User user, CancellationToken cancellationToken = default);
 }

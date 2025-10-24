@@ -18,27 +18,35 @@ public class ScanEmailDefinitionAppService : BaseAppService<ScanEmailDefinition,
         _repository = repository;
     }
 
-    public async Task<Result<ScanEmailDefinitionViewModel>> GetBySenderBeneficiaryAsync(string value, Guid id)
+    public async Task<Result<ScanEmailDefinitionViewModel>> GetBySenderBeneficiaryAsync(
+        string value,
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
-        var entity = await _repository.GetBySenderBeneficiaryAsync(value, id);
+        var entity = await _repository.GetBySenderBeneficiaryAsync(value, id, cancellationToken);
 
         return entity is null
             ? Result<ScanEmailDefinitionViewModel>.Failure("ScanEmailDefinition not Found.")
             : Result<ScanEmailDefinitionViewModel>.Success(entity.Adapt<ScanEmailDefinitionViewModel>());
     }
 
-    public async Task<Result<ScanEmailDefinitionViewModel>> GetBySenderEmailAddressAsync(string value, Guid id)
+    public async Task<Result<ScanEmailDefinitionViewModel>> GetBySenderEmailAddressAsync(
+        string value,
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
-        var entity = await _repository.GetBySenderEmailAddressAsync(value, id);
+        var entity = await _repository.GetBySenderEmailAddressAsync(value, id, cancellationToken);
 
         return entity is null
             ? Result<ScanEmailDefinitionViewModel>.Failure("ScanEmailDefinition not Found.")
             : Result<ScanEmailDefinitionViewModel>.Success(entity.Adapt<ScanEmailDefinitionViewModel>());
     }
 
-    public async Task<Result<IEnumerable<ScanEmailDefinitionViewModel>>> GetByUserIdAsync(Guid userId)
+    public async Task<Result<IEnumerable<ScanEmailDefinitionViewModel>>> GetByUserIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
     {
-        var entities = await _repository.GetByUserIdAsync(userId);
+        var entities = await _repository.GetByUserIdAsync(userId, cancellationToken);
 
         return !entities.Any()
             ? Result<IEnumerable<ScanEmailDefinitionViewModel>>.Failure("Empty Result.")

@@ -17,7 +17,9 @@ public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity
         _unitOfWork = unitOfWork;
     }
 
-    public virtual async Task<Result<TEntityViewModel>> AddAsync(TEntityViewModel viewModel, CancellationToken cancellationToken = default)
+    public virtual async Task<Result<TEntityViewModel>> AddAsync(
+        TEntityViewModel viewModel,
+        CancellationToken cancellationToken = default)
     {
         if (viewModel is null)
         {
@@ -32,7 +34,9 @@ public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity
         return Result<TEntityViewModel>.Success(entity.Adapt<TEntityViewModel>());
     }
 
-    public virtual async Task<Result<int>> BulkInsertAsync(ICollection<TEntityViewModel> viewModels, CancellationToken cancellationToken = default)
+    public virtual async Task<Result<int>> BulkInsertAsync(
+        ICollection<TEntityViewModel> viewModels,
+        CancellationToken cancellationToken = default)
     {
         if (viewModels is null || viewModels.Count == 0)
         {
@@ -53,16 +57,20 @@ public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity
             : Result<IEnumerable<TEntityViewModel>>.Success(entities.Adapt<IEnumerable<TEntityViewModel>>());
     }
 
-    public virtual async Task<Result<TEntityViewModel>> GetByIdAsync(Guid id)
+    public virtual async Task<Result<TEntityViewModel>> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
-        var entity = await _repository.GetByIdAsync(id);
+        var entity = await _repository.GetByIdAsync(id, cancellationToken);
 
         return entity is null
             ? Result<TEntityViewModel>.Failure($"{typeof(TEntityViewModel).Name} with id {id} not Found.")
             : Result<TEntityViewModel>.Success(entity.Adapt<TEntityViewModel>());
     }
 
-    public virtual async Task<Result<TEntityViewModel>> RemoveAsync(TEntityViewModel viewModel, CancellationToken cancellationToken = default)
+    public virtual async Task<Result<TEntityViewModel>> RemoveAsync(
+        TEntityViewModel viewModel,
+        CancellationToken cancellationToken = default)
     {
         if (viewModel is null)
         {
@@ -75,7 +83,9 @@ public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity
         return Result<TEntityViewModel>.Success(null);
     }
 
-    public virtual async Task<Result<TEntityViewModel>> UpdateAsync(TEntityViewModel viewModel, CancellationToken cancellationToken = default)
+    public virtual async Task<Result<TEntityViewModel>> UpdateAsync(
+        TEntityViewModel viewModel,
+        CancellationToken cancellationToken = default)
     {
         if (viewModel is null)
         {

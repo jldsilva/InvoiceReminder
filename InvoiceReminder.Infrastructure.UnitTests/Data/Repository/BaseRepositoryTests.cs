@@ -29,7 +29,7 @@ public class BaseRepositoryTests
     public async Task Setup()
     {
         using var context = new TestDbContext(_contextOptions);
-        _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationTokenSource.Token);
+        _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationToken);
     }
 
     [TestCleanup]
@@ -52,8 +52,8 @@ public class BaseRepositoryTests
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         // Act
-        var addedEntity = await repository.AddAsync(entity, TestContext.CancellationTokenSource.Token);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        var addedEntity = await repository.AddAsync(entity, TestContext.CancellationToken);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
         // Assert
         addedEntity.ShouldBeSameAs(entity);
@@ -74,9 +74,9 @@ public class BaseRepositoryTests
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         // Act
-        var count = await repository.BulkInsertAsync(entities, TestContext.CancellationTokenSource.Token);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
-        var total = await context.TestEntities.CountAsync(TestContext.CancellationTokenSource.Token);
+        var count = await repository.BulkInsertAsync(entities, TestContext.CancellationToken);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
+        var total = await context.TestEntities.CountAsync(TestContext.CancellationToken);
 
         // Assert
         count.ShouldBe(entities.Count);
@@ -96,13 +96,13 @@ public class BaseRepositoryTests
         var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Test" };
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
-        _ = await repository.AddAsync(entity, TestContext.CancellationTokenSource.Token);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        _ = await repository.AddAsync(entity, TestContext.CancellationToken);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
 
         // Act
         repository.Remove(entity);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
         // Assert
         context.TestEntities.ShouldNotContain(entity);
@@ -116,15 +116,15 @@ public class BaseRepositoryTests
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
-        _ = await repository.AddAsync(entity, TestContext.CancellationTokenSource.Token);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        _ = await repository.AddAsync(entity, TestContext.CancellationToken);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
         _ = context.Attach(entity);
         context.Entry(entity).State = EntityState.Detached;
 
         // Act
         repository.Remove(entity);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
         // Assert
         context.TestEntities.ShouldNotContain(entity);
@@ -138,11 +138,11 @@ public class BaseRepositoryTests
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
-        _ = await repository.AddAsync(entity, TestContext.CancellationTokenSource.Token);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        _ = await repository.AddAsync(entity, TestContext.CancellationToken);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
         // Act
-        var retrievedEntity = await repository.GetByIdAsync(entity.Id);
+        var retrievedEntity = await repository.GetByIdAsync(entity.Id, TestContext.CancellationToken);
 
         // Assert
         retrievedEntity.ShouldSatisfyAllConditions(() =>
@@ -162,7 +162,7 @@ public class BaseRepositoryTests
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         // Act
-        var retrievedEntity = await repository.GetByIdAsync(nonExistingId);
+        var retrievedEntity = await repository.GetByIdAsync(nonExistingId, TestContext.CancellationToken);
 
         // Assert
         retrievedEntity.ShouldBeNull();
@@ -181,8 +181,8 @@ public class BaseRepositoryTests
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
-        _ = await repository.BulkInsertAsync(entities, TestContext.CancellationTokenSource.Token);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        _ = await repository.BulkInsertAsync(entities, TestContext.CancellationToken);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
         // Act
         var allEntities = repository.GetAll().ToList();
@@ -204,15 +204,15 @@ public class BaseRepositoryTests
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
-        _ = await repository.AddAsync(entity, TestContext.CancellationTokenSource.Token);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        _ = await repository.AddAsync(entity, TestContext.CancellationToken);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
         entity.Name = "Updated Name";
 
         // Act
         var updatedEntity = repository.Update(entity);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
-        var retrievedEntity = await repository.GetByIdAsync(entity.Id);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
+        var retrievedEntity = await repository.GetByIdAsync(entity.Id, TestContext.CancellationToken);
 
         // Assert
         updatedEntity.ShouldBeSameAs(entity);
@@ -232,8 +232,8 @@ public class BaseRepositoryTests
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
-        _ = await repository.AddAsync(entity, TestContext.CancellationTokenSource.Token);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        _ = await repository.AddAsync(entity, TestContext.CancellationToken);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
         _ = context.Attach(entity);
         context.Entry(entity).State = EntityState.Detached;
@@ -242,8 +242,8 @@ public class BaseRepositoryTests
 
         // Act
         var updatedEntity = repository.Update(entity);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
-        var retrievedEntity = await repository.GetByIdAsync(entity.Id);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
+        var retrievedEntity = await repository.GetByIdAsync(entity.Id, TestContext.CancellationToken);
 
         // Assert
         updatedEntity.ShouldBeSameAs(entity);
@@ -268,7 +268,7 @@ public class BaseRepositoryTests
 
         using var context = CreateContext();
         context.TestEntities.AddRange(entities);
-        _ = await context.SaveChangesAsync(TestContext.CancellationTokenSource.Token);
+        _ = await context.SaveChangesAsync(TestContext.CancellationToken);
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         // Act

@@ -68,11 +68,12 @@ public sealed class JobScheduleEndPointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<IEnumerable<JobScheduleViewModel>>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<JobScheduleViewModel>>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetAll();
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<List<JobScheduleViewModel>>();
@@ -90,7 +91,7 @@ public sealed class JobScheduleEndPointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -112,11 +113,12 @@ public sealed class JobScheduleEndPointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).GetAll();
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -140,18 +142,19 @@ public sealed class JobScheduleEndPointsTests
             UpdatedAt = DateTime.UtcNow
         });
 
-        _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>()).Returns(expectedResult);
+        _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<JobScheduleViewModel>();
@@ -169,7 +172,7 @@ public sealed class JobScheduleEndPointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -183,18 +186,20 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync(new ArgumentException("Service error"));
+        _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new ArgumentException("Service error"));
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -208,18 +213,20 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>()).ThrowsAsync(new ApplicationException("Service error"));
+        _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new ApplicationException("Service error"));
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -235,18 +242,19 @@ public sealed class JobScheduleEndPointsTests
 
         var expectedResult = Result<JobScheduleViewModel>.Failure($"JobSchedule with id {id} not Found.");
 
-        _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>()).Returns(expectedResult);
+        _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.CancellationToken);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>());
+        _ = _jobScheduleAppService.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<string>();
@@ -278,18 +286,20 @@ public sealed class JobScheduleEndPointsTests
             }
         ]);
 
-        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>()).Returns(expectedResult);
+        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<IEnumerable<JobScheduleViewModel>>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<IEnumerable<JobScheduleViewModel>>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
+        _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<List<JobScheduleViewModel>>();
@@ -306,7 +316,7 @@ public sealed class JobScheduleEndPointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -320,18 +330,20 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/get_by_user_id/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>()).ThrowsAsync<ArgumentException>();
+        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<ArgumentException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
+        _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -345,18 +357,20 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/get_by_user_id/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>()).ThrowsAsync<ApplicationException>();
+        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<ApplicationException>();
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
+        _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -372,18 +386,20 @@ public sealed class JobScheduleEndPointsTests
 
         var expectedResult = Result<IEnumerable<JobScheduleViewModel>>.Failure($"JobSchedule with user id {id} not Found.");
 
-        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>()).Returns(expectedResult);
+        _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.CancellationToken);
 
         // Assert
-        _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>());
+        _ = _jobScheduleAppService.Received(1).GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<string>();
@@ -420,11 +436,12 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).AddNewJobAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<JobScheduleViewModel>();
@@ -441,7 +458,7 @@ public sealed class JobScheduleEndPointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -474,11 +491,12 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).AddNewJobAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -516,11 +534,12 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<JobScheduleViewModel>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).UpdateAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<JobScheduleViewModel>();
@@ -537,7 +556,7 @@ public sealed class JobScheduleEndPointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -571,11 +590,12 @@ public sealed class JobScheduleEndPointsTests
 
         // Act
         request.Content = JsonContent.Create(jobScheduleViewModel);
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).UpdateAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();
@@ -602,11 +622,12 @@ public sealed class JobScheduleEndPointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.CancellationToken);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).RemoveAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<string>();
@@ -623,7 +644,7 @@ public sealed class JobScheduleEndPointsTests
             .Returns(Task.FromResult(AuthorizationResult.Failed()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -646,11 +667,12 @@ public sealed class JobScheduleEndPointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationTokenSource.Token);
-        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationTokenSource.Token);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: TestContext.CancellationToken);
 
         // Assert
         _ = _jobScheduleAppService.Received(1).RemoveAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>());
+
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
         _ = result.ShouldNotBeNull();
         _ = result.ShouldBeOfType<ProblemDetails>();

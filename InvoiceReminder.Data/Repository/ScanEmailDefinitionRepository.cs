@@ -19,20 +19,20 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         _logger = logger;
     }
 
-    public async Task<ScanEmailDefinition> GetBySenderBeneficiaryAsync(string value, Guid id)
+    public async Task<ScanEmailDefinition> GetBySenderBeneficiaryAsync(string value, Guid id, CancellationToken cancellationToken = default)
     {
         ScanEmailDefinition scanEmailDefinition = null;
 
         try
         {
-            var @params = new { value, id };
             var query = """
                 select * from invoice_reminder.scan_email_definition s
                 where rtrim(s.beneficiary) = @value
                 and s.user_id = @id
                 """;
+            var command = new CommandDefinition(query, new { value, id }, cancellationToken: cancellationToken);
 
-            scanEmailDefinition = await _dbConnection.QueryFirstOrDefaultAsync<ScanEmailDefinition>(query, param: @params);
+            scanEmailDefinition = await _dbConnection.QueryFirstOrDefaultAsync<ScanEmailDefinition>(command);
         }
         catch (Exception ex)
         {
@@ -42,20 +42,20 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         return scanEmailDefinition;
     }
 
-    public async Task<ScanEmailDefinition> GetBySenderEmailAddressAsync(string value, Guid id)
+    public async Task<ScanEmailDefinition> GetBySenderEmailAddressAsync(string value, Guid id, CancellationToken cancellationToken = default)
     {
         ScanEmailDefinition scanEmailDefinition = null;
 
         try
         {
-            var @params = new { value, id };
             var query = """
                 select * from invoice_reminder.scan_email_definition sed
                 where rtrim(sed.sender_email_address) = @value
                 and sed.user_id = @id
                 """;
+            var command = new CommandDefinition(query, new { value, id }, cancellationToken: cancellationToken);
 
-            scanEmailDefinition = await _dbConnection.QueryFirstOrDefaultAsync<ScanEmailDefinition>(query, param: @params);
+            scanEmailDefinition = await _dbConnection.QueryFirstOrDefaultAsync<ScanEmailDefinition>(command);
         }
         catch (Exception ex)
         {
@@ -65,7 +65,7 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         return scanEmailDefinition;
     }
 
-    public async Task<IEnumerable<ScanEmailDefinition>> GetByUserIdAsync(Guid userId)
+    public async Task<IEnumerable<ScanEmailDefinition>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         IEnumerable<ScanEmailDefinition> scanEmailDefinitions = null;
 
@@ -75,8 +75,9 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
                 select * from invoice_reminder.scan_email_definition s
                 where s.user_id = @userId
                 """;
+            var command = new CommandDefinition(query, new { userId }, cancellationToken: cancellationToken);
 
-            scanEmailDefinitions = await _dbConnection.QueryAsync<ScanEmailDefinition>(query, param: new { userId });
+            scanEmailDefinitions = await _dbConnection.QueryAsync<ScanEmailDefinition>(command);
         }
         catch (Exception ex)
         {
