@@ -1,4 +1,5 @@
 using Dapper;
+using InvoiceReminder.Data.Exceptions;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Domain.Entities;
@@ -25,22 +26,28 @@ public class InvoiceRepository : BaseRepository<CoreDbContext, Invoice>, IInvoic
 
         try
         {
-            var query = @"select * from invoice_reminder.invoice b where rtrim(b.barcode) = @value";
+            var query = @"select * from invoice_reminder.invoice i where i.barcode = btrim(@value)";
             var command = new CommandDefinition(query, new { value }, cancellationToken: cancellationToken);
 
             invoice = await _dbConnection.QueryFirstOrDefaultAsync<Invoice>(command);
         }
         catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
         {
-            var contextualInfo = $"GetByBarCodeAsync cancelado para barcode {value}.";
+            var method = $"{nameof(InvoiceRepository)}.{nameof(GetByBarcodeAsync)}";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
             _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
 
-            throw new InvalidOperationException(contextualInfo, ex);
+            throw new DataLayerException(contextualInfo, ex);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Falha ao consultar invoice por barcode {Barcode}.", value);
+            var method = $"{nameof(InvoiceRepository)}.{nameof(GetByBarcodeAsync)}";
+            var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
+
+            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
         }
 
         return invoice;

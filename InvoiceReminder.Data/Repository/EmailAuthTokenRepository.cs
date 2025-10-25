@@ -1,4 +1,5 @@
 using Dapper;
+using InvoiceReminder.Data.Exceptions;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Domain.Entities;
@@ -35,15 +36,21 @@ public class EmailAuthTokenRepository : BaseRepository<CoreDbContext, EmailAuthT
         }
         catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
         {
-            var contextualInfo = $"GetByUserIdAsync cancelado para userId {id} e provider {tokenProvider}.";
+            var method = $"{nameof(EmailAuthTokenRepository)}.{nameof(GetByUserIdAsync)}";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
             _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
 
-            throw new InvalidOperationException(contextualInfo, ex);
+            throw new DataLayerException(contextualInfo, ex);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Falha ao consultar EmailAuthToken para userId {UserId} e provider {Provider}.", id, tokenProvider);
+            var method = $"{nameof(InvoiceRepository)}.{nameof(GetByUserIdAsync)}";
+            var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
+
+            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
         }
 
         return emailAuthToken;

@@ -175,6 +175,37 @@ public class LoginEndpointTests
     }
 
     [TestMethod]
+    public async Task Login_WithEmptyEmailOrPassword_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
+
+        var loginRequest = new LoginRequest
+        {
+            Email = string.Empty,
+            Password = string.Empty
+        };
+
+        // Act
+        request.Content = JsonContent.Create(loginRequest);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<string>(TestContext.CancellationToken);
+
+        // Assert
+        _ = _userAppService.DidNotReceive().GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserViewModel>());
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+
+        result.ShouldSatisfyAllConditions(result =>
+        {
+            _ = result.ShouldNotBeNull();
+            _ = result.ShouldBeOfType<string>();
+            result.ShouldBe("Email e senha são obrigatórios");
+        });
+    }
+
+    [TestMethod]
     public async Task Login_WhenServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange

@@ -1,4 +1,5 @@
 using Dapper;
+using InvoiceReminder.Data.Exceptions;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Domain.Entities;
@@ -21,7 +22,7 @@ public class JobScheduleRepository : BaseRepository<CoreDbContext, JobSchedule>,
 
     public async Task<IEnumerable<JobSchedule>> GetByUserIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var jobSchedule = Enumerable.Empty<JobSchedule>();
+        IEnumerable<JobSchedule> jobSchedule;
 
         try
         {
@@ -30,9 +31,23 @@ public class JobScheduleRepository : BaseRepository<CoreDbContext, JobSchedule>,
 
             jobSchedule = await _dbConnection.QueryAsync<JobSchedule>(command);
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var method = $"{nameof(JobScheduleRepository)}.{nameof(GetByUserIdAsync)}";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
+
+            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception raised...");
+            var method = $"{nameof(JobScheduleRepository)}.{nameof(GetByUserIdAsync)}";
+            var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
+
+            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
         }
 
         return jobSchedule;

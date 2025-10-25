@@ -35,10 +35,19 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
 
             scanEmailDefinition = await _dbConnection.QueryFirstOrDefaultAsync<ScanEmailDefinition>(command);
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetBySenderBeneficiaryAsync)}";
+            var contextualInfo = $"Method  {method}  execution was interrupted by a CancellationToken Request...";
+
+            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
+        }
         catch (Exception ex)
         {
             var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetBySenderBeneficiaryAsync)}";
-            var contextualInfo = $"Error in {method} (beneficiary={value}, userId={id})";
+            var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
 
             _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
 
@@ -56,17 +65,26 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         {
             var query = """
                 select * from invoice_reminder.scan_email_definition sed
-                where rtrim(sed.sender_email_address) = @value
+                where sed.sender_email_address = btrim(@value)
                 and sed.user_id = @id
                 """;
             var command = new CommandDefinition(query, new { value, id }, cancellationToken: cancellationToken);
 
             scanEmailDefinition = await _dbConnection.QueryFirstOrDefaultAsync<ScanEmailDefinition>(command);
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetBySenderEmailAddressAsync)}";
+            var contextualInfo = $"Method  {method}  execution was interrupted by a CancellationToken Request...";
+
+            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
+        }
         catch (Exception ex)
         {
             var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetBySenderEmailAddressAsync)}";
-            var contextualInfo = $"Error in {method} (email={value}, userId={id})";
+            var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
 
             _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
 
@@ -90,10 +108,19 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
 
             scanEmailDefinitions = await _dbConnection.QueryAsync<ScanEmailDefinition>(command);
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetByUserIdAsync)}";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
+
+            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
+        }
         catch (Exception ex)
         {
             var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetByUserIdAsync)}";
-            var contextualInfo = $"Error in {method} (userId={userId})";
+            var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
 
             _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
 

@@ -64,7 +64,7 @@ public class JobScheduleEndpoints : IEndpointDefinition
                 var result = await jobScheduleAppService.AddNewJobAsync(jobScheduleViewModel, ct);
 
                 return result.IsSuccess
-                    ? Results.Created($"/{basepath}/{result.Value.Id}", result.Value)
+                    ? Results.Created($"{basepath}/{result.Value.Id}", result.Value)
                     : Results.Problem(result.Error);
             })
             .WithName("CreateJobSchedule")
