@@ -20,7 +20,7 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         _logger = logger;
     }
 
-    public async Task<ScanEmailDefinition> GetBySenderBeneficiaryAsync(string value, Guid id, CancellationToken cancellationToken = default)
+    public async Task<ScanEmailDefinition> GetBySenderBeneficiaryAsync(string beneficiary, Guid id, CancellationToken cancellationToken = default)
     {
         ScanEmailDefinition scanEmailDefinition = null;
 
@@ -28,19 +28,21 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         {
             var query = """
                 select * from invoice_reminder.scan_email_definition s
-                where rtrim(s.beneficiary) = @value
+                where s.beneficiary = btrim(@beneficiary)
                 and s.user_id = @id
                 """;
-            var command = new CommandDefinition(query, new { value, id }, cancellationToken: cancellationToken);
+            var command = new CommandDefinition(query, new { beneficiary, id }, cancellationToken: cancellationToken);
 
             scanEmailDefinition = await _dbConnection.QueryFirstOrDefaultAsync<ScanEmailDefinition>(command);
         }
         catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
         {
             var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetBySenderBeneficiaryAsync)}";
-            var contextualInfo = $"Method  {method}  execution was interrupted by a CancellationToken Request...";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
             _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -55,7 +57,7 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         return scanEmailDefinition;
     }
 
-    public async Task<ScanEmailDefinition> GetBySenderEmailAddressAsync(string value, Guid id, CancellationToken cancellationToken = default)
+    public async Task<ScanEmailDefinition> GetBySenderEmailAddressAsync(string email, Guid id, CancellationToken cancellationToken = default)
     {
         ScanEmailDefinition scanEmailDefinition = null;
 
@@ -63,19 +65,21 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         {
             var query = """
                 select * from invoice_reminder.scan_email_definition sed
-                where sed.sender_email_address = btrim(@value)
+                where sed.sender_email_address = btrim(@email)
                 and sed.user_id = @id
                 """;
-            var command = new CommandDefinition(query, new { value, id }, cancellationToken: cancellationToken);
+            var command = new CommandDefinition(query, new { email, id }, cancellationToken: cancellationToken);
 
             scanEmailDefinition = await _dbConnection.QueryFirstOrDefaultAsync<ScanEmailDefinition>(command);
         }
         catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
         {
             var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetBySenderEmailAddressAsync)}";
-            var contextualInfo = $"Method  {method}  execution was interrupted by a CancellationToken Request...";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
             _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -111,7 +115,7 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
 
             _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
 
-            throw new DataLayerException(contextualInfo, ex);
+            throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
         catch (Exception ex)
         {

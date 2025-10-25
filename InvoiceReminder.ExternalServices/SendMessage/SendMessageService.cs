@@ -74,6 +74,15 @@ public class SendMessageService : ISendMessageService
 
             _ = await _invoiceRepository.BulkInsertAsync(invoices, cancellationToken);
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var method = $"{nameof(SendMessageService)}.{nameof(SendMessage)}";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
+
+            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
+        }
         catch (Exception ex)
         {
             var contextualInfo = $"Error occurred while sending messages for userId: {userId}";

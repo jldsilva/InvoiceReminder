@@ -65,6 +65,8 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
             _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -111,6 +113,8 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
             _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
         catch (Exception ex)
         {
