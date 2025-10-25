@@ -16,11 +16,15 @@ public class LoginEndpoints : IEndpointDefinition
                 CancellationToken ct,
                 [FromBody] LoginRequest request) =>
             {
+                if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request?.Password))
+                {
+                    return Results.BadRequest("Email e senha são obrigatórios");
+                }
+
                 var result = await userAppService.GetByEmailAsync(request.Email, ct);
 
                 var isValid = result.IsSuccess
-                    && request.Password.ToSHA256().Equals(result.Value.Password)
-                    && request.Email.Equals(result.Value.Email);
+                    && request.Password.ToSHA256().Equals(result.Value.Password);
 
                 return isValid
                     ? Results.Ok(jwtProvider.Generate(result.Value))
@@ -29,6 +33,7 @@ public class LoginEndpoints : IEndpointDefinition
             .WithName("Login")
             .AllowAnonymous()
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }

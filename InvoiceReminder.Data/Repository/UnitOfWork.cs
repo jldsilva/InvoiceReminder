@@ -40,7 +40,7 @@ public class UnitOfWork : IUnitOfWork
 
             await transaction.RollbackAsync(cancellationToken);
 
-            throw new DataLayerException($"Exception raised while saving changes: {ex.InnerException.Message}", ex);
+            throw new DataLayerException($"Exception raised while saving changes: {ex.Message}", ex);
         }
         finally
         {

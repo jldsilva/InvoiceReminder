@@ -1,4 +1,5 @@
 using Dapper;
+using InvoiceReminder.Data.Exceptions;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Domain.Entities;
@@ -58,9 +59,23 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
                 },
                 splitOn: "id");
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var method = $"{nameof(UserRepository)}.{nameof(GetByEmailAsync)}";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
+
+            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception raised...");
+            var method = $"{nameof(UserRepository)}.{nameof(GetByEmailAsync)}";
+            var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
+
+            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
         }
 
         return result.FirstOrDefault().Value;
@@ -92,9 +107,23 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
                 },
                 splitOn: "id");
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var method = $"{nameof(UserRepository)}.{nameof(GetByIdAsync)}";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
+
+            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception raised...");
+            var method = $"{nameof(UserRepository)}.{nameof(GetByIdAsync)}";
+            var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
+
+            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
         }
 
         return result.FirstOrDefault().Value;

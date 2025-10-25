@@ -43,7 +43,7 @@ public class UserEndpoints : IEndpointDefinition
         _ = endpoint.MapGet("/getby-email/{value}",
             async (IUserAppService userAppService, CancellationToken ct, string value) =>
             {
-                var result = await userAppService.GetByEmailAsync(value);
+                var result = await userAppService.GetByEmailAsync(value, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
