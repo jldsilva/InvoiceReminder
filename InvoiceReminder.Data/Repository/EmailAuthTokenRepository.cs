@@ -33,9 +33,17 @@ public class EmailAuthTokenRepository : BaseRepository<CoreDbContext, EmailAuthT
 
             emailAuthToken = await _dbConnection.QueryFirstOrDefaultAsync<EmailAuthToken>(command);
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var contextualInfo = $"GetByUserIdAsync cancelado para userId {id} e provider {tokenProvider}.";
+
+            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new InvalidOperationException(contextualInfo, ex);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception raised...");
+            _logger.LogError(ex, "Falha ao consultar EmailAuthToken para userId {UserId} e provider {Provider}.", id, tokenProvider);
         }
 
         return emailAuthToken;

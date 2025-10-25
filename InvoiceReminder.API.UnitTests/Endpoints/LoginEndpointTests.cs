@@ -23,6 +23,7 @@ public class LoginEndpointTests
     private readonly HttpClient _client;
     private readonly IJwtProvider _jwtProvider;
     private readonly IUserAppService _userAppService;
+    private const string basepath = "/api/login";
 
     public TestContext TestContext { get; set; }
 
@@ -40,7 +41,7 @@ public class LoginEndpointTests
     public async Task Login_WithValidCredentials_ReturnsOkWithJwtObject()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/login");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
         var loginRequest = new LoginRequest
         {
@@ -87,10 +88,10 @@ public class LoginEndpointTests
     }
 
     [TestMethod]
-    public async Task Login_WithInvalidEmail_ReturnsNotFound()
+    public async Task Login_WithInvalidEmail_ReturnsUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/login");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
         var loginRequest = new LoginRequest
         {
@@ -116,7 +117,7 @@ public class LoginEndpointTests
         _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserViewModel>());
 
-        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
 
         result.ShouldSatisfyAllConditions(result =>
         {
@@ -130,7 +131,7 @@ public class LoginEndpointTests
     public async Task Login_WithInvalidPassword_ReturnsUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/login");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
         var loginRequest = new LoginRequest
         {
@@ -177,7 +178,7 @@ public class LoginEndpointTests
     public async Task Login_WhenServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/login");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
         var loginRequest = new LoginRequest
         {

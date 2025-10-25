@@ -186,7 +186,7 @@ public class QuartzHostedServiceTests
         var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, schedules);
 
         // Act && Assert
-        await service.StartAsync(CancellationToken.None);
+        await service.StartAsync(TestContext.CancellationToken);
 
         _ = _scheduler.DidNotReceive().ScheduleJob(Arg.Any<IJobDetail>(), Arg.Any<ITrigger>(), Arg.Any<CancellationToken>());
 

@@ -79,7 +79,7 @@ public class SendMessageServiceTests
         _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(user));
 
         _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
-            .Returns(attachments);
+            .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
 
         _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(invoice);
@@ -140,7 +140,8 @@ public class SendMessageServiceTests
             ScanEmailDefinitions = []
         };
 
-        _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(user);
+        _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(user));
 
         // Act
         var result = await _sendMessageService.SendMessage(userId, TestContext.CancellationToken);

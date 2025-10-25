@@ -1,4 +1,5 @@
 using Dapper;
+using InvoiceReminder.Data.Exceptions;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Domain.Entities;
@@ -36,7 +37,12 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception raised...");
+            var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetBySenderBeneficiaryAsync)}";
+            var contextualInfo = $"Error in {method} (beneficiary={value}, userId={id})";
+
+            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
         }
 
         return scanEmailDefinition;
@@ -59,7 +65,12 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception raised...");
+            var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetBySenderEmailAddressAsync)}";
+            var contextualInfo = $"Error in {method} (email={value}, userId={id})";
+
+            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
         }
 
         return scanEmailDefinition;
@@ -81,7 +92,12 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception raised...");
+            var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetByUserIdAsync)}";
+            var contextualInfo = $"Error in {method} (userId={userId})";
+
+            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new DataLayerException(contextualInfo, ex);
         }
 
         return scanEmailDefinitions;

@@ -54,7 +54,8 @@ public sealed class UserRepositoryTests
         var email = "user_test@mail.com";
         var user = new User { Id = Guid.NewGuid(), Email = email };
 
-        _ = _repository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(user);
+        _ = _repository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(user));
 
         // Act
         var result = await _repository.GetByEmailAsync(email, TestContext.CancellationToken);
@@ -75,7 +76,8 @@ public sealed class UserRepositoryTests
         var userId = Guid.NewGuid();
         var user = new User { Id = userId };
 
-        _ = _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(user);
+        _ = _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(user));
 
         // Act
         var result = await _repository.GetByIdAsync(userId, TestContext.CancellationToken);

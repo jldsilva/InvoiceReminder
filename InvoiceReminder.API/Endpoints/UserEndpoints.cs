@@ -9,7 +9,8 @@ public class UserEndpoints : IEndpointDefinition
 {
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        var endpoint = endpoints.MapGroup("/api/user").WithName("UserEndpoints");
+        var basepath = "/api/user";
+        var endpoint = endpoints.MapGroup(basepath).WithName("UserEndpoints");
 
         _ = endpoint.MapGet("/", (IUserAppService userAppService) =>
             {
@@ -39,7 +40,7 @@ public class UserEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/get_by_email/{value}",
+        _ = endpoint.MapGet("/getby-email/{value}",
             async (IUserAppService userAppService, CancellationToken ct, string value) =>
             {
                 var result = await userAppService.GetByEmailAsync(value);
@@ -62,7 +63,7 @@ public class UserEndpoints : IEndpointDefinition
                 var result = await userAppService.AddAsync(userViewModel, ct);
 
                 return result.IsSuccess
-                    ? Results.Created($"/api/user/{result.Value.Email}", result.Value)
+                    ? Results.Created($"{basepath}/{result.Value.Email}", result.Value)
                     : Results.Problem(result.Error);
             })
             .WithName("CreateUser")
@@ -71,7 +72,7 @@ public class UserEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapPost("/bulk_insert",
+        _ = endpoint.MapPost("/bulk-insert",
             async (IUserAppService userAppService, CancellationToken ct, [FromBody] ICollection<UserViewModel> usersViewModel) =>
             {
                 foreach (var user in usersViewModel)
@@ -82,7 +83,7 @@ public class UserEndpoints : IEndpointDefinition
                 var result = await userAppService.BulkInsertAsync(usersViewModel, ct);
 
                 return result.IsSuccess
-                    ? Results.Created("/api/user/", result.Value)
+                    ? Results.Created($"{basepath}/", result.Value)
                     : Results.Problem(result.Error);
             })
             .WithName("CreateUsers")

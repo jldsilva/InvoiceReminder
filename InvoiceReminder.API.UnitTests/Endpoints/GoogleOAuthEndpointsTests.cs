@@ -23,6 +23,7 @@ public sealed class GoogleOAuthEndpointsTests
     private readonly HttpClient _client;
     private readonly IAuthorizationService _authorizationService;
     private readonly IGoogleOAuthService _oAuthService;
+    private const string basepath = "/api/google_oauth";
 
     public TestContext TestContext { get; set; }
 
@@ -41,7 +42,7 @@ public sealed class GoogleOAuthEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/google_oauth/get-auth-url/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/get-auth-url/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -69,7 +70,7 @@ public sealed class GoogleOAuthEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/google_oauth/get-auth-url/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/get-auth-url/{id}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -87,7 +88,7 @@ public sealed class GoogleOAuthEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/google_oauth/get-auth-url/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/get-auth-url/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -113,7 +114,7 @@ public sealed class GoogleOAuthEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/google_oauth/get-auth-url/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/get-auth-url/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -150,7 +151,7 @@ public sealed class GoogleOAuthEndpointsTests
             Scopes = [GmailService.Scope.GmailReadonly]
         });
         var userCredential = new UserCredential(flow, "", new Google.Apis.Auth.OAuth2.Responses.TokenResponse());
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/google_oauth/authorize?state={state}&code={code}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/authorize?state={state}&code={code}");
 
         _ = _oAuthService.GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<UserCredential>.Success(userCredential));
@@ -174,7 +175,7 @@ public sealed class GoogleOAuthEndpointsTests
         // Arrange
         var state = Guid.NewGuid();
         var code = "test_code";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/google_oauth/authorize?state={state}&code={code}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/authorize?state={state}&code={code}");
 
         _ = _oAuthService.GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<ArgumentException>();
@@ -198,7 +199,7 @@ public sealed class GoogleOAuthEndpointsTests
         // Arrange
         var state = Guid.NewGuid();
         var code = "test_code";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/google_oauth/authorize?state={state}&code={code}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/authorize?state={state}&code={code}");
 
         _ = _oAuthService.GrantAuthorizationAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<ApplicationException>();
@@ -222,7 +223,7 @@ public sealed class GoogleOAuthEndpointsTests
         // Arrange
         var id = Guid.NewGuid();
         var expectedMessage = "Authorization revoked successfully";
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/google_oauth/revoke?id={id}");
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"{basepath}/revoke?id={id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -242,7 +243,7 @@ public sealed class GoogleOAuthEndpointsTests
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         message.ShouldNotBeNullOrWhiteSpace();
-        message.ShouldBeEquivalentTo(expectedMessage);
+        message.ShouldBe(expectedMessage);
     }
 
     [TestMethod]
@@ -250,7 +251,7 @@ public sealed class GoogleOAuthEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/google_oauth/revoke?id={id}");
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"{basepath}/revoke?id={id}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -268,7 +269,7 @@ public sealed class GoogleOAuthEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/google_oauth/revoke?id={id}");
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"{basepath}/revoke?id={id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -295,7 +296,7 @@ public sealed class GoogleOAuthEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/google_oauth/revoke?id={id}");
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"{basepath}/revoke?id={id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
