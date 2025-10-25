@@ -6,7 +6,8 @@ public class GoogleOAuthEndpoints : IEndpointDefinition
 {
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        var endpoint = endpoints.MapGroup("/api/google_oauth").WithName("GoogleOAuthEndpoints");
+        var basepath = "/api/google_oauth";
+        var endpoint = endpoints.MapGroup(basepath).WithName("GoogleOAuthEndpoints");
 
         _ = endpoint.MapGet("/get-auth-url/{id}", (IGoogleOAuthService oAuthService, Guid id) =>
             {

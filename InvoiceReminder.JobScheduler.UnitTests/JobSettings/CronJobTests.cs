@@ -76,7 +76,7 @@ public class CronJobTests
     }
 
     [TestMethod]
-    public async Task Execute_MissingUserIdInJobDataMap_ShouldThrowKeyNotFoundException()
+    public async Task Execute_MissingUserIdInJobDataMap_ShouldThrowNullReferenceException()
     {
         // Arrange
         var cronJob = new CronJob(_logger, _serviceScopeFactory);

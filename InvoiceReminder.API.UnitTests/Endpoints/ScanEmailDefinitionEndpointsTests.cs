@@ -21,6 +21,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     private readonly HttpClient _client;
     private readonly IAuthorizationService _authorizationService;
     private readonly IScanEmailDefinitionAppService _scanEmailDefinitionAppService;
+    private const string basepath = "/api/scan_email";
 
     public TestContext TestContext { get; set; }
 
@@ -39,7 +40,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task GetScanEmailDefinitions_WhenUserIsAuthenticated_ShouldReturnOk()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/scan_email");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<ScanEmailDefinitionViewModel>>.Success(
@@ -89,7 +90,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task GetScanEmailDefinitions_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/scan_email");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -106,7 +107,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task GetAllScanEmailDefinitions_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/scan_email");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<ScanEmailDefinitionViewModel>>.Failure("Service error");
@@ -134,7 +135,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Success(
@@ -175,7 +176,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -193,7 +194,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -220,7 +221,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -247,7 +248,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Failure($"ScanEmailDefinition with id {id} not Found.");
@@ -276,7 +277,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/get_by_user_id/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<ScanEmailDefinitionViewModel>>.Success(
@@ -322,7 +323,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task GetScanEmailDefinitionByUserId_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/get_by_user_id/{Guid.NewGuid()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{Guid.NewGuid()}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -340,7 +341,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/get_by_user_id/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -367,7 +368,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/get_by_user_id/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -394,7 +395,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/get_by_user_id/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<ScanEmailDefinitionViewModel>>.
@@ -425,7 +426,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
         // Arrange
         var id = Guid.NewGuid();
         var email = "sender_test@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{email}/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Success(
@@ -466,7 +467,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task GetScanEmailDefinitionBySenderEmailAddressAndUserId_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{Guid.NewGuid()}/{Guid.NewGuid()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{Guid.NewGuid()}/{Guid.NewGuid()}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -485,7 +486,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
         // Arrange
         var id = Guid.NewGuid();
         var email = "sender_test@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{email}/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _scanEmailDefinitionAppService
@@ -515,7 +516,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
         // Arrange
         var id = Guid.NewGuid();
         var email = "sender_test@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/scan_email/{email}/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.
@@ -550,7 +551,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task CreateScanEmailDefinition_WhenUserIsAuthenticated_ShouldReturnCreated()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/scan_email");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var jobScheduleViewModel = new ScanEmailDefinitionViewModel
@@ -593,7 +594,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task CreateScanEmailDefinition_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/scan_email");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -610,7 +611,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task CreateScanEmailDefinition_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/scan_email");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var jobScheduleViewModel = new ScanEmailDefinitionViewModel
@@ -656,7 +657,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task UpdateScanEmailDefinition_WhenUserIsAuthenticated_ShouldReturnOk()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/scan_email/");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var jobScheduleViewModel = new ScanEmailDefinitionViewModel
@@ -698,7 +699,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task UpdateScanEmailDefinition_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/scan_email");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -715,7 +716,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task UpdateScanEmailDefinition_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/scan_email");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var jobScheduleViewModel = new ScanEmailDefinitionViewModel
@@ -761,7 +762,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task DeleteScanEmailDefinition_WhenUserIsAuthenticated_ShouldReturnNoContent()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/scan_email/");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Success(null);
@@ -790,7 +791,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task DeleteScanEmailDefinition_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/scan_email");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -807,7 +808,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task DeleteScanEmailDefinition_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/scan_email");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Failure("Service error");

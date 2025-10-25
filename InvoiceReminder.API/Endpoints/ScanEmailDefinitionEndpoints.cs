@@ -8,7 +8,8 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
 {
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        var endpoint = endpoints.MapGroup("/api/scan_email").WithName("ScanEmailDefinitionEndpoints");
+        var basepath = "/api/scan_email";
+        var endpoint = endpoints.MapGroup(basepath).WithName("ScanEmailDefinitionEndpoints");
 
         _ = endpoint.MapGet("/", (IScanEmailDefinitionAppService scanEmailDefinitionAppService) =>
             {
@@ -39,10 +40,10 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/get_by_user_id/{id}",
+        _ = endpoint.MapGet("/getby-userid/{id}",
             async (IScanEmailDefinitionAppService scanEmailDefinitionAppService, CancellationToken ct, Guid id) =>
             {
-                var result = await scanEmailDefinitionAppService.GetByUserIdAsync(id);
+                var result = await scanEmailDefinitionAppService.GetByUserIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -80,7 +81,7 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
                 var result = await scanEmailDefinitionAppService.AddAsync(scanEmailDefinitionViewModel, ct);
 
                 return result.IsSuccess
-                    ? Results.Created($"/api/scan-email-definition/{result.Value.Id}", result.Value)
+                    ? Results.Created($"{basepath}/{result.Value.Id}", result.Value)
                     : Results.Problem(result.Error);
             })
             .WithName("CreateScanEmailDefinition")

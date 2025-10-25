@@ -20,7 +20,7 @@ public class InvoiceAppService : BaseAppService<Invoice, InvoiceViewModel>, IInv
         string value,
         CancellationToken cancellationToken = default)
     {
-        var entity = await _repository.GetByBarCodeAsync(value, cancellationToken);
+        var entity = await _repository.GetByBarcodeAsync(value, cancellationToken);
 
         return entity is null
             ? Result<InvoiceViewModel>.Failure("Invoice not Found.")

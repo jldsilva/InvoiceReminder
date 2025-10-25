@@ -53,13 +53,13 @@ public sealed class InvoiceAppServiceTests
             UpdatedAt = DateTime.UtcNow
         };
 
-        _ = _repository.GetByBarCodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(invoice);
+        _ = _repository.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(invoice);
 
         // Act
         var result = await appService.GetByBarcodeAsync(barcode, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetByBarCodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        _ = _repository.Received(1).GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {
@@ -78,13 +78,13 @@ public sealed class InvoiceAppServiceTests
         var appService = new InvoiceAppService(_repository, _unitOfWork);
         var barcode = "12345678901234567890";
 
-        _ = _repository.GetByBarCodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((Invoice)null);
+        _ = _repository.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((Invoice)null);
 
         // Act
         var result = await appService.GetByBarcodeAsync(barcode, TestContext.CancellationToken);
 
         // Assert
-        _ = _repository.Received(1).GetByBarCodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        _ = _repository.Received(1).GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(() =>
         {

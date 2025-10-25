@@ -22,6 +22,7 @@ public sealed class JobScheduleEndPointsTests
     private readonly HttpClient _client;
     private readonly IAuthorizationService _authorizationService;
     private readonly IJobScheduleAppService _jobScheduleAppService;
+    private const string basepath = "/api/job_schedule";
 
     public TestContext TestContext { get; set; }
 
@@ -40,7 +41,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task GetAllJobSchedules_WhenUserIsAuthenticated_ShouldReturnOk()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/job_schedule");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<JobScheduleViewModel>>.Success(
@@ -84,7 +85,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task GetAllJobSchedules_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/job_schedule");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -101,7 +102,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task GetAllJobSchedules_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/job_schedule");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<JobScheduleViewModel>>.Failure("Service error");
@@ -129,7 +130,7 @@ public sealed class JobScheduleEndPointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<JobScheduleViewModel>.Success(
@@ -165,7 +166,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task GetJobScheduleById_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/{Guid.NewGuid()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{Guid.NewGuid()}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -183,7 +184,7 @@ public sealed class JobScheduleEndPointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -210,7 +211,7 @@ public sealed class JobScheduleEndPointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -237,7 +238,7 @@ public sealed class JobScheduleEndPointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<JobScheduleViewModel>.Failure($"JobSchedule with id {id} not Found.");
@@ -265,7 +266,7 @@ public sealed class JobScheduleEndPointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/get_by_user_id/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<JobScheduleViewModel>>.Success(
@@ -309,7 +310,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task GetJobScheduleByUserId_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/get_by_user_id/{Guid.NewGuid()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{Guid.NewGuid()}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -327,7 +328,7 @@ public sealed class JobScheduleEndPointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/get_by_user_id/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -354,7 +355,7 @@ public sealed class JobScheduleEndPointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/get_by_user_id/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -381,7 +382,7 @@ public sealed class JobScheduleEndPointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/job_schedule/get_by_user_id/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<JobScheduleViewModel>>.Failure($"JobSchedule with user id {id} not Found.");
@@ -413,7 +414,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task CreateJobSchedule_WhenUserIsAuthenticated_ShouldReturnCreated()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/job_schedule");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var jobScheduleViewModel = new JobScheduleViewModel
@@ -451,7 +452,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task CreateJobSchedule_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/job_schedule");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -468,7 +469,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task CreateJobSchedule_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/job_schedule");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var jobScheduleViewModel = new JobScheduleViewModel
@@ -511,7 +512,7 @@ public sealed class JobScheduleEndPointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/job_schedule/");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var jobScheduleViewModel = new JobScheduleViewModel
@@ -549,7 +550,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task UpdateJobSchedule_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/job_schedule");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -567,7 +568,7 @@ public sealed class JobScheduleEndPointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/job_schedule");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var jobScheduleViewModel = new JobScheduleViewModel
@@ -609,8 +610,9 @@ public sealed class JobScheduleEndPointsTests
     public async Task DeleteJobSchedule_WhenUserIsAuthenticated_ShouldReturnNoContent()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/job_schedule/");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+        request.Content = JsonContent.Create(new JobScheduleViewModel { Id = Guid.NewGuid() });
 
         var expectedResult = Result<JobScheduleViewModel>.Success(null);
 
@@ -637,7 +639,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task DeleteJobSchedule_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/job_schedule");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -654,7 +656,7 @@ public sealed class JobScheduleEndPointsTests
     public async Task DeleteJobSchedule_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/job_schedule");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<JobScheduleViewModel>.Failure("Service error");

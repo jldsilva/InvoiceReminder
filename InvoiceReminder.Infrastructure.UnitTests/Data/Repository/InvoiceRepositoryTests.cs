@@ -48,16 +48,17 @@ public sealed class InvoiceRepositoryTests
     }
 
     [TestMethod]
-    public async Task GetByBarCodeAsync_ShouldReturnInvoice_WhenInvoiceExists()
+    public async Task GetByBarcodeAsync_ShouldReturnInvoice_WhenInvoiceExists()
     {
         // Arrange
         var barcode = "12345678901234567890123456789012345678901234";
         var invoice = new Invoice { Barcode = barcode };
 
-        _ = _repository.GetByBarCodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(invoice);
+        _ = _repository.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(invoice));
 
         // Act
-        var result = await _repository.GetByBarCodeAsync(barcode, TestContext.CancellationToken);
+        var result = await _repository.GetByBarcodeAsync(barcode, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>

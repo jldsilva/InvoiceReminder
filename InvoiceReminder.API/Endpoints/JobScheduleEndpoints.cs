@@ -8,7 +8,8 @@ public class JobScheduleEndpoints : IEndpointDefinition
 {
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        var endpoint = endpoints.MapGroup("/api/job_schedule").WithName("JobScheduleEndpoints");
+        var basepath = "/api/job_schedule";
+        var endpoint = endpoints.MapGroup(basepath).WithName("JobScheduleEndpoints");
 
         _ = endpoint.MapGet("/", (IJobScheduleAppService jobScheduleAppService) =>
             {
@@ -39,7 +40,7 @@ public class JobScheduleEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/get_by_user_id/{id}",
+        _ = endpoint.MapGet("/getby-userid/{id}",
             async (IJobScheduleAppService jobScheduleAppService, CancellationToken ct, Guid id) =>
             {
                 var result = await jobScheduleAppService.GetByUserIdAsync(id, ct);
@@ -63,7 +64,7 @@ public class JobScheduleEndpoints : IEndpointDefinition
                 var result = await jobScheduleAppService.AddNewJobAsync(jobScheduleViewModel, ct);
 
                 return result.IsSuccess
-                    ? Results.Created($"/api/invoice/{result.Value.Id}", result.Value)
+                    ? Results.Created($"/{basepath}/{result.Value.Id}", result.Value)
                     : Results.Problem(result.Error);
             })
             .WithName("CreateJobSchedule")

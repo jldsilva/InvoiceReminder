@@ -19,7 +19,7 @@ public class InvoiceRepository : BaseRepository<CoreDbContext, Invoice>, IInvoic
         _logger = logger;
     }
 
-    public async Task<Invoice> GetByBarCodeAsync(string value, CancellationToken cancellationToken = default)
+    public async Task<Invoice> GetByBarcodeAsync(string value, CancellationToken cancellationToken = default)
     {
         Invoice invoice = null;
 
@@ -30,9 +30,17 @@ public class InvoiceRepository : BaseRepository<CoreDbContext, Invoice>, IInvoic
 
             invoice = await _dbConnection.QueryFirstOrDefaultAsync<Invoice>(command);
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var contextualInfo = $"GetByBarCodeAsync cancelado para barcode {value}.";
+
+            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new InvalidOperationException(contextualInfo, ex);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception raised...");
+            _logger.LogError(ex, "Falha ao consultar invoice por barcode {Barcode}.", value);
         }
 
         return invoice;

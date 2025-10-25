@@ -41,8 +41,8 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var filter = "where u.email = @value";
             var command = new CommandDefinition($"{_query} {filter}", new { value }, cancellationToken: cancellationToken);
 
-            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, ScanEmailDefinition, EmailAuthToken, User>
-                (command, (user, invoice, jobschedule, scanEmailDefinition, emailAuthToken) =>
+            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, EmailAuthToken, ScanEmailDefinition, User>
+                (command, (user, invoice, jobschedule, emailAuthToken, scanEmailDefinition) =>
                 {
                     var parameters = new UserParameters
                     {

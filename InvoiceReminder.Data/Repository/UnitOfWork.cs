@@ -14,7 +14,6 @@ public class UnitOfWork : IUnitOfWork
     private readonly CoreDbContext _context;
     private readonly DbConnection _connection;
     private readonly ILogger<UnitOfWork> _logger;
-    private DbTransaction _transaction;
 
     public UnitOfWork(CoreDbContext context, ILogger<UnitOfWork> logger)
     {
@@ -25,27 +24,26 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        await OpenConnection(cancellationToken);
+
+        using var transaction = await _connection.BeginTransactionAsync(cancellationToken);
+
         try
         {
-            await OpenConnection(cancellationToken);
-
-            _transaction = await _connection.BeginTransactionAsync(cancellationToken);
-
             _ = await _context.SaveChangesAsync(cancellationToken);
 
-            await _transaction.CommitAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "{Message}", ex.Message);
 
-            await _transaction.RollbackAsync(cancellationToken);
+            await transaction.RollbackAsync(cancellationToken);
 
             throw new DataLayerException($"Exception raised while saving changes: {ex.InnerException.Message}", ex);
         }
         finally
         {
-            await _transaction.DisposeAsync();
             await CloseConnection();
         }
     }

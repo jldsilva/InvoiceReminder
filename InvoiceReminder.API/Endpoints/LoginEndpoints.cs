@@ -18,11 +18,6 @@ public class LoginEndpoints : IEndpointDefinition
             {
                 var result = await userAppService.GetByEmailAsync(request.Email, ct);
 
-                if (!result.IsSuccess)
-                {
-                    return Results.NotFound();
-                }
-
                 var isValid = result.IsSuccess
                     && request.Password.ToSHA256().Equals(result.Value.Password)
                     && request.Email.Equals(result.Value.Email);

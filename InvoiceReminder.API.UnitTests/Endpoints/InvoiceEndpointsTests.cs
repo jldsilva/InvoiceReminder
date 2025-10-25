@@ -22,6 +22,7 @@ public sealed class InvoiceEndpointsTests
     private readonly HttpClient _client;
     private readonly IAuthorizationService _authorizationService;
     private readonly IInvoiceAppService _invoiceAppService;
+    private const string basepath = "/api/invoice";
 
     public TestContext TestContext { get; set; }
 
@@ -40,7 +41,7 @@ public sealed class InvoiceEndpointsTests
     public async Task GetAllInvoices_WhenUserIsAuthenticated_ShouldReturnOk()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/invoice");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<InvoiceViewModel>>.Success(
@@ -90,7 +91,7 @@ public sealed class InvoiceEndpointsTests
     public async Task GetAllInvoices_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/invoice");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -107,7 +108,7 @@ public sealed class InvoiceEndpointsTests
     public async Task GetAllInvoices_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/invoice");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<InvoiceViewModel>>.Failure("Service error");
@@ -135,7 +136,7 @@ public sealed class InvoiceEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<InvoiceViewModel>.Success(
@@ -174,7 +175,7 @@ public sealed class InvoiceEndpointsTests
     public async Task GetInvoiceById_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/{Guid.NewGuid()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{Guid.NewGuid()}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -192,7 +193,7 @@ public sealed class InvoiceEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _invoiceAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -219,7 +220,7 @@ public sealed class InvoiceEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _invoiceAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -246,7 +247,7 @@ public sealed class InvoiceEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<InvoiceViewModel>.Failure($"Invoice with id {id} not Found.");
@@ -274,7 +275,7 @@ public sealed class InvoiceEndpointsTests
     {
         // Arrange
         var value = "12345678901234567890123456789012345678901234";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/get_by_barcode/{value}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{value}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<InvoiceViewModel>.Success(new()
@@ -313,7 +314,7 @@ public sealed class InvoiceEndpointsTests
     {
         // Arrange
         var value = "12345678901234567890123456789012345678901234";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/get_by_barcode/{value}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{value}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -331,7 +332,7 @@ public sealed class InvoiceEndpointsTests
     {
         // Arrange
         var value = "12345678901234567890123456789012345678901234";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/get_by_barcode/{value}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{value}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _invoiceAppService.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -358,7 +359,7 @@ public sealed class InvoiceEndpointsTests
     {
         // Arrange
         var value = "12345678901234567890123456789012345678901234";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/get_by_barcode/{value}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{value}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _invoiceAppService.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -385,7 +386,7 @@ public sealed class InvoiceEndpointsTests
     {
         // Arrange
         var value = "12345678901234567890123456789012345678901234";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/invoice/get_by_barcode/{value}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{value}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<InvoiceViewModel>.Failure($"Invoice not Found.");
@@ -417,7 +418,7 @@ public sealed class InvoiceEndpointsTests
     public async Task CreateInvoice_WhenUserIsAuthenticated_ShouldReturnCreated()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/invoice");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var invoiceViewModel = new InvoiceViewModel
@@ -458,7 +459,7 @@ public sealed class InvoiceEndpointsTests
     public async Task CreateInvoice_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/invoice");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -475,7 +476,7 @@ public sealed class InvoiceEndpointsTests
     public async Task CreateInvoice_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/invoice");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var invoiceViewModel = new InvoiceViewModel
@@ -520,7 +521,7 @@ public sealed class InvoiceEndpointsTests
     public async Task UpdateInvoice_WhenUserIsAuthenticated_ShouldReturnOk()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/invoice/");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var invoiceViewModel = new InvoiceViewModel
@@ -561,7 +562,7 @@ public sealed class InvoiceEndpointsTests
     public async Task UpdateInvoice_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/invoice");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -578,7 +579,7 @@ public sealed class InvoiceEndpointsTests
     public async Task UpdateInvoice_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/invoice");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var invoiceViewModel = new InvoiceViewModel
@@ -623,7 +624,7 @@ public sealed class InvoiceEndpointsTests
     public async Task DeleteInvoice_WhenUserIsAuthenticated_ShouldReturnNoContent()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/invoice/");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<InvoiceViewModel>.Success(null);
@@ -651,7 +652,7 @@ public sealed class InvoiceEndpointsTests
     public async Task DeleteInvoice_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/invoice");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -668,7 +669,7 @@ public sealed class InvoiceEndpointsTests
     public async Task DeleteInvoice_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/invoice");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<InvoiceViewModel>.Failure("Service error");

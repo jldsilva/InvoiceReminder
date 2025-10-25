@@ -54,7 +54,8 @@ public sealed class JobScheduleRepositoryTests
         var userId = Guid.NewGuid();
         var jobSchedule = new List<JobSchedule> { new() { UserId = userId } };
 
-        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(jobSchedule);
+        _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IEnumerable<JobSchedule>>(jobSchedule));
 
         // Act
         var result = await _repository.GetByUserIdAsync(userId, TestContext.CancellationToken);

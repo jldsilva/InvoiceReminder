@@ -8,7 +8,8 @@ public class InvoiceEndpoints : IEndpointDefinition
 {
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        var endpoint = endpoints.MapGroup("/api/invoice").WithName("InvoiceEndpoints");
+        var basepath = "/api/invoice";
+        var endpoint = endpoints.MapGroup(basepath).WithName("InvoiceEndpoints");
 
         _ = endpoint.MapGet("/", (IInvoiceAppService invoiceAppService) =>
             {
@@ -38,7 +39,7 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
 
-        _ = endpoint.MapGet("/get_by_barcode/{value}",
+        _ = endpoint.MapGet("/getby-barcode/{value}",
             async (IInvoiceAppService invoiceAppService, CancellationToken ct, string value) =>
             {
                 var result = await invoiceAppService.GetByBarcodeAsync(value, ct);
@@ -47,7 +48,7 @@ public class InvoiceEndpoints : IEndpointDefinition
                     ? Results.Ok(result.Value)
                     : Results.NotFound(result.Error);
             })
-            .WithName("GetInvoiceByBarCode")
+            .WithName("GetInvoiceByBarcode")
             .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
@@ -59,7 +60,7 @@ public class InvoiceEndpoints : IEndpointDefinition
                 var result = await invoiceAppService.AddAsync(invoiceViewModel, ct);
 
                 return result.IsSuccess
-                    ? Results.Created($"/api/invoice/{result.Value.Barcode}", result.Value)
+                    ? Results.Created($"{basepath}/{result.Value.Barcode}", result.Value)
                     : Results.Problem(result.Error);
             })
             .WithName("CreateInvoice")

@@ -22,6 +22,7 @@ public sealed class UserEndpointsTests
     private readonly HttpClient _client;
     private readonly IAuthorizationService _authorizationService;
     private readonly IUserAppService _userAppService;
+    private const string basepath = "/api/user";
 
     public TestContext TestContext { get; set; }
 
@@ -40,7 +41,7 @@ public sealed class UserEndpointsTests
     public async Task GetAllUsers_WhenUserIsAuthenticated_ShouldReturnOk()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/user");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<UserViewModel>>.Success(
@@ -88,7 +89,7 @@ public sealed class UserEndpointsTests
     public async Task GetAllUsers_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/user");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -105,7 +106,7 @@ public sealed class UserEndpointsTests
     public async Task GetAllUsers_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/user");
+        var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<IEnumerable<UserViewModel>>.Failure("Service error");
@@ -133,7 +134,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<UserViewModel>.Success(
@@ -171,7 +172,7 @@ public sealed class UserEndpointsTests
     public async Task GetUserById_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/{Guid.NewGuid()}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{Guid.NewGuid()}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -189,7 +190,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _userAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -216,7 +217,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _userAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -243,7 +244,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<UserViewModel>.Failure($"User with id {id} not Found.");
@@ -271,7 +272,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var value = "test_user@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/get_by_email/{value}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{value}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<UserViewModel>.Success(
@@ -310,7 +311,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var value = "test_user@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/get_by_email/{value}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{value}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -328,7 +329,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var value = "test_user@mail_com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/get_by_email/{value}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{value}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -355,7 +356,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var value = "test_user@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/get_by_email/{value}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{value}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -382,7 +383,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var value = "test_user@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/user/get_by_email/{value}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{value}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<UserViewModel>.Failure($"User not found.");
@@ -413,7 +414,7 @@ public sealed class UserEndpointsTests
     public async Task CreateUser_WhenUserIsAuthenticated_ShouldReturnCreated()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/user");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var userViewModel = new UserViewModel
@@ -452,7 +453,7 @@ public sealed class UserEndpointsTests
     public async Task CreateUser_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/user");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -469,7 +470,7 @@ public sealed class UserEndpointsTests
     public async Task CreateUser_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/user");
+        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var userViewModel = new UserViewModel
@@ -508,7 +509,7 @@ public sealed class UserEndpointsTests
     public async Task BulkCreateUser_WhenUserIsAuthenticated_ShouldReturnCreated()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/user/bulk_insert");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{basepath}/bulk-insert");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var usersViewModel = new List<UserViewModel>(
@@ -559,7 +560,7 @@ public sealed class UserEndpointsTests
     public async Task BulkCreateUser_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/user/bulk_insert");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{basepath}/bulk-insert");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -576,7 +577,7 @@ public sealed class UserEndpointsTests
     public async Task BulkCreateUser_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/user/bulk_insert");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{basepath}/bulk-insert");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var usersViewModel = new List<UserViewModel>(
@@ -632,7 +633,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/user/");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var userViewModel = new UserViewModel
@@ -671,7 +672,7 @@ public sealed class UserEndpointsTests
     public async Task UpdateUser_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/user");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -689,7 +690,7 @@ public sealed class UserEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/user");
+        var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var userViewModel = new UserViewModel
@@ -732,7 +733,7 @@ public sealed class UserEndpointsTests
     public async Task DeleteUser_WhenUserIsAuthenticated_ShouldReturnNoContent()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/user/");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<UserViewModel>.Success(null);
@@ -758,7 +759,7 @@ public sealed class UserEndpointsTests
     public async Task DeleteUser_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/user");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -775,7 +776,7 @@ public sealed class UserEndpointsTests
     public async Task DeleteUser_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/user");
+        var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<UserViewModel>.Failure("Service error");
