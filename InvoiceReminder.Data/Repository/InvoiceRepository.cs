@@ -36,9 +36,7 @@ public class InvoiceRepository : BaseRepository<CoreDbContext, Invoice>, IInvoic
             var method = $"{nameof(InvoiceRepository)}.{nameof(GetByBarcodeAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
-
-            throw new DataLayerException(contextualInfo, ex);
+            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
         }
         catch (Exception ex)
         {
