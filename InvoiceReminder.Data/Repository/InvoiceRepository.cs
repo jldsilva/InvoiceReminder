@@ -20,14 +20,14 @@ public class InvoiceRepository : BaseRepository<CoreDbContext, Invoice>, IInvoic
         _logger = logger;
     }
 
-    public async Task<Invoice> GetByBarcodeAsync(string value, CancellationToken cancellationToken = default)
+    public async Task<Invoice> GetByBarcodeAsync(string barcode, CancellationToken cancellationToken = default)
     {
         Invoice invoice = null;
 
         try
         {
-            var query = @"select * from invoice_reminder.invoice i where i.barcode = btrim(@value)";
-            var command = new CommandDefinition(query, new { value }, cancellationToken: cancellationToken);
+            var query = @"select * from invoice_reminder.invoice i where i.barcode = btrim(@barcode)";
+            var command = new CommandDefinition(query, new { barcode }, cancellationToken: cancellationToken);
 
             invoice = await _dbConnection.QueryFirstOrDefaultAsync<Invoice>(command);
         }
@@ -37,6 +37,8 @@ public class InvoiceRepository : BaseRepository<CoreDbContext, Invoice>, IInvoic
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
             _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+
+            throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
         catch (Exception ex)
         {
