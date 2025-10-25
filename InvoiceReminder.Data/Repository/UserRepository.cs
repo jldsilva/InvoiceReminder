@@ -28,7 +28,7 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             on u.id = js.user_id
             left join invoice_reminder.email_auth_token eat
             on u.id = eat.user_id
-            left join scan_email_definition sed
+            left join invoice_reminder.scan_email_definition sed
             on u.id = sed.user_id
             """;
     }
@@ -64,9 +64,7 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var method = $"{nameof(UserRepository)}.{nameof(GetByEmailAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
-
-            throw new DataLayerException(contextualInfo, ex);
+            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
         }
         catch (Exception ex)
         {
@@ -112,9 +110,7 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var method = $"{nameof(UserRepository)}.{nameof(GetByIdAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
-
-            throw new DataLayerException(contextualInfo, ex);
+            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
         }
         catch (Exception ex)
         {

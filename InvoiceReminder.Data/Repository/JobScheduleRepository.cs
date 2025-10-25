@@ -22,7 +22,7 @@ public class JobScheduleRepository : BaseRepository<CoreDbContext, JobSchedule>,
 
     public async Task<IEnumerable<JobSchedule>> GetByUserIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        IEnumerable<JobSchedule> jobSchedule;
+        IEnumerable<JobSchedule> jobSchedule = [];
 
         try
         {
@@ -36,9 +36,7 @@ public class JobScheduleRepository : BaseRepository<CoreDbContext, JobSchedule>,
             var method = $"{nameof(JobScheduleRepository)}.{nameof(GetByUserIdAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
-
-            throw new DataLayerException(contextualInfo, ex);
+            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
         }
         catch (Exception ex)
         {

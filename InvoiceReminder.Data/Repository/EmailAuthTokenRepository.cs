@@ -39,13 +39,11 @@ public class EmailAuthTokenRepository : BaseRepository<CoreDbContext, EmailAuthT
             var method = $"{nameof(EmailAuthTokenRepository)}.{nameof(GetByUserIdAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
-
-            throw new DataLayerException(contextualInfo, ex);
+            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
         }
         catch (Exception ex)
         {
-            var method = $"{nameof(InvoiceRepository)}.{nameof(GetByUserIdAsync)}";
+            var method = $"{nameof(EmailAuthTokenRepository)}.{nameof(GetByUserIdAsync)}";
             var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
 
             _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);

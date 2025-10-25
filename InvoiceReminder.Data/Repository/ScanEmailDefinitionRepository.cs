@@ -40,9 +40,7 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
             var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetBySenderBeneficiaryAsync)}";
             var contextualInfo = $"Method  {method}  execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
-
-            throw new DataLayerException(contextualInfo, ex);
+            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
         }
         catch (Exception ex)
         {
@@ -77,9 +75,7 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
             var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetBySenderEmailAddressAsync)}";
             var contextualInfo = $"Method  {method}  execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
-
-            throw new DataLayerException(contextualInfo, ex);
+            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
         }
         catch (Exception ex)
         {
@@ -113,7 +109,7 @@ public class ScanEmailDefinitionRepository : BaseRepository<CoreDbContext, ScanE
             var method = $"{nameof(ScanEmailDefinitionRepository)}.{nameof(GetByUserIdAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogInformation(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
 
             throw new DataLayerException(contextualInfo, ex);
         }
