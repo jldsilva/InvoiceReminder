@@ -42,6 +42,7 @@ public class CoreDbContext : DbContext
             if (entityEntry.State == EntityState.Modified)
             {
                 ((EntityDefaults)entityEntry.Entity).UpdatedAt = DateTime.UtcNow;
+                entityEntry.Property(nameof(EntityDefaults.UpdatedAt)).IsModified = true;
             }
         }
 
