@@ -49,13 +49,11 @@ internal class UserConfig : IEntityTypeConfiguration<User>
         _ = builder.Property(x => x.CreatedAt)
             .HasColumnName("created_at")
             .HasColumnType("timestamp with time zone")
-            .ValueGeneratedOnAdd()
             .IsRequired();
 
         _ = builder.Property(x => x.UpdatedAt)
             .HasColumnName("updated_at")
             .HasColumnType("timestamp with time zone")
-            .ValueGeneratedOnUpdate()
             .IsRequired();
     }
 }
