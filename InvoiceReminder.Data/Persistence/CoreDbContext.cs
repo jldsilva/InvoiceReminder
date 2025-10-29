@@ -33,15 +33,17 @@ public class CoreDbContext : DbContext
 
         foreach (var entityEntry in entries)
         {
+            var entity = (EntityDefaults)entityEntry.Entity;
+
             if (entityEntry.State == EntityState.Added)
             {
-                ((EntityDefaults)entityEntry.Entity).CreatedAt = DateTime.UtcNow;
-                ((EntityDefaults)entityEntry.Entity).UpdatedAt = DateTime.UtcNow;
+                entity.CreatedAt = DateTime.UtcNow;
+                entity.UpdatedAt = DateTime.UtcNow;
             }
 
             if (entityEntry.State == EntityState.Modified)
             {
-                ((EntityDefaults)entityEntry.Entity).UpdatedAt = DateTime.UtcNow;
+                entity.UpdatedAt = DateTime.UtcNow;
                 entityEntry.Property(nameof(EntityDefaults.UpdatedAt)).IsModified = true;
             }
         }
