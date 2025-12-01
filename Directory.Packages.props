@@ -41,7 +41,7 @@
     <PackageVersion Include="Quartz" Version="3.15.1" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.11.0" />
     <PackageVersion Include="Scrutor" Version="6.1.0" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.15.0.120848" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.16.0.128591" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
     <PackageVersion Include="Telegram.Bot" Version="22.7.5" />
   </ItemGroup>
