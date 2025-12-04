@@ -25,7 +25,11 @@ public class CronJob : IJob
         var service = scope.ServiceProvider.GetRequiredService<ISendMessageService>();
         var message = $"{DateTime.Now:HH:mm:ss} - {context.JobDetail.Description} triggered...";
 
-        _logger.LogInformation("{Message}", message);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("{Message}", message);
+        }
+
         // possível uso de um agendamento de envio de mensagem para lembrete no dia do vencimento?...
         _ = await service.SendMessage(id);
     }

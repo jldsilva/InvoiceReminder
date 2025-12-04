@@ -7,7 +7,7 @@ using Shouldly;
 namespace InvoiceReminder.Application.UnitTests.AppServices;
 
 [TestClass]
-public class BaseAppServiceTests
+public sealed class BaseAppServiceTests
 {
     private readonly BaseAppService<TestEntity, TestEntityViewModel> _appService;
     private readonly IBaseRepository<TestEntity> _repository;

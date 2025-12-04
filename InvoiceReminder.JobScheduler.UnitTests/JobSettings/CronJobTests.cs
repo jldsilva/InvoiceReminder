@@ -9,7 +9,7 @@ using Shouldly;
 namespace InvoiceReminder.JobScheduler.UnitTests.JobSettings;
 
 [TestClass]
-public class CronJobTests
+public sealed class CronJobTests
 {
     private readonly ILogger<CronJob> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
@@ -49,6 +49,8 @@ public class CronJobTests
         // Arrange
         var cronJob = new CronJob(_logger, _serviceScopeFactory);
 
+        _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
         // Act
         await cronJob.Execute(_jobExecutionContext);
 
@@ -57,12 +59,14 @@ public class CronJobTests
 
         _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
-        _logger.ReceivedWithAnyArgs(1).Log(
-            LogLevel.Information,
-            Arg.Any<EventId>(),
-            Arg.Any<object>(),
-            null,
-            Arg.Any<Func<object, Exception, string>>());
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            var eventId = Arg.Any<EventId>();
+            var state = Arg.Any<object>();
+            var formatter = Arg.Any<Func<object, Exception, string>>();
+
+            _logger.ReceivedWithAnyArgs(1).Log(LogLevel.Information, eventId, state, null, formatter);
+        }
     }
 
     [TestMethod]
@@ -95,6 +99,8 @@ public class CronJobTests
         _ = _sendMessageService.SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns("Total messages sent: 0");
 
+        _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
         // Act
         await cronJob.Execute(_jobExecutionContext);
 
@@ -102,11 +108,14 @@ public class CronJobTests
         _ = _serviceScopeFactory.Received(1).CreateScope();
         _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
-        _logger.Received(1).Log(
-            LogLevel.Information,
-            Arg.Any<EventId>(),
-            Arg.Is<object>(o => o.ToString().Contains("Test Job Description triggered...")),
-            null,
-            Arg.Any<Func<object, Exception, string>>());
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            var eventId = Arg.Any<EventId>();
+            var state = Arg.Is<object>(o => o.ToString().Contains("Test Job Description triggered..."));
+            var loggedException = Arg.Is<Exception>(e => e == null);
+            var formatter = Arg.Any<Func<object, Exception, string>>();
+
+            _logger.Received(1).Log(LogLevel.Information, eventId, state, loggedException, formatter);
+        }
     }
 }

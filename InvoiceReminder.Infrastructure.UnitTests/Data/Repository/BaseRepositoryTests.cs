@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository;
 
 [TestClass]
-public class BaseRepositoryTests
+public sealed class BaseRepositoryTests
 {
     private readonly SqliteConnection _connection;
     private readonly DbContextOptions<TestDbContext> _contextOptions;

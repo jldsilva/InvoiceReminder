@@ -24,7 +24,10 @@ public class BarcodeReaderService : IBarcodeReaderService
         {
             var exception = new ArgumentException("Empty document byte stream", nameof(byteStream));
 
-            _logger.LogError(exception, "{Messagem}", exception.Message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(exception, "{Messagem}", exception.Message);
+            }
 
             throw exception;
         }

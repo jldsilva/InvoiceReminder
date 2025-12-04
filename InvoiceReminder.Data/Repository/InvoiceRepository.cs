@@ -13,6 +13,7 @@ public class InvoiceRepository : BaseRepository<CoreDbContext, Invoice>, IInvoic
 {
     private readonly IDbConnection _dbConnection;
     private readonly ILogger<InvoiceRepository> _logger;
+    private const string LogExceptionMessage = "{ContextualInfo} - Exception: {Message}";
 
     public InvoiceRepository(CoreDbContext dbContext, ILogger<InvoiceRepository> logger) : base(dbContext)
     {
@@ -36,7 +37,10 @@ public class InvoiceRepository : BaseRepository<CoreDbContext, Invoice>, IInvoic
             var method = $"{nameof(InvoiceRepository)}.{nameof(GetByBarcodeAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
@@ -45,7 +49,10 @@ public class InvoiceRepository : BaseRepository<CoreDbContext, Invoice>, IInvoic
             var method = $"{nameof(InvoiceRepository)}.{nameof(GetByBarcodeAsync)}";
             var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
 
-            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new DataLayerException(contextualInfo, ex);
         }

@@ -15,6 +15,7 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
     private readonly IDbConnection _dbConnection;
     private readonly ILogger<UserRepository> _logger;
     private readonly string _query;
+    private const string LogExceptionMessage = "{ContextualInfo} - Exception: {Message}";
 
     public UserRepository(CoreDbContext dbContext, ILogger<UserRepository> logger) : base(dbContext)
     {
@@ -64,7 +65,10 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var method = $"{nameof(UserRepository)}.{nameof(GetByEmailAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
@@ -73,7 +77,10 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var method = $"{nameof(UserRepository)}.{nameof(GetByEmailAsync)}";
             var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
 
-            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new DataLayerException(contextualInfo, ex);
         }
@@ -112,7 +119,10 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var method = $"{nameof(UserRepository)}.{nameof(GetByIdAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
@@ -121,7 +131,10 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var method = $"{nameof(UserRepository)}.{nameof(GetByIdAsync)}";
             var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
 
-            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new DataLayerException(contextualInfo, ex);
         }

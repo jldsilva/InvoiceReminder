@@ -12,18 +12,55 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 10.0.x
+
     - name: Restore dependencies
       run: dotnet restore
+
     - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet build --no-restore --configuration Debug
+
+    - name: Run tests (executables)
+      run: |
+        set -e
+        echo "🔍 Localizando projetos de teste..."
+        TEST_PROJECTS=$(find . -name "*.csproj" | grep -E "\.UnitTests|\.Tests" | grep -v "Assets")
+
+        if [ -z "$TEST_PROJECTS" ]; then
+          echo "⚠️ Nenhum projeto de teste encontrado. Abortando."
+          exit 1
+        fi
+
+        FAIL=0
+
+        for PROJ in $TEST_PROJECTS; do
+          echo "▶️ Executando testes do projeto: $PROJ"
+
+          BIN_PATH=$(dirname "$PROJ")/bin/Debug/net10.0
+          EXE_NAME=$(basename "$PROJ" .csproj).exe
+          EXE="$BIN_PATH/$EXE_NAME"
+
+          if [ ! -f "$EXE" ]; then
+            echo "❌ Não encontrei executável de testes: $EXE"
+            FAIL=1
+            continue
+          fi
+
+          echo "🚀 Rodando: $EXE"
+          "$EXE" --report-trx --results-directory "$BIN_PATH/TestResults" || FAIL=1
+        done
+
+        if [ $FAIL -ne 0 ]; then
+          echo "❌ Alguns testes falharam. Pipeline abortado."
+          exit 1
+        fi
+
+        echo "✅ Todos os testes passaram."

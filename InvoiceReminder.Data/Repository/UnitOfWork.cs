@@ -36,7 +36,10 @@ public class UnitOfWork : IUnitOfWork
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{Message}", ex.Message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, "{Message}", ex.Message);
+            }
 
             await transaction.RollbackAsync(cancellationToken);
 

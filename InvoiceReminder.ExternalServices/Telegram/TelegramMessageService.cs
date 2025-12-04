@@ -31,11 +31,17 @@ public class TelegramMessageService : ITelegramMessageService
         }
         catch (ApiRequestException ex)
         {
-            _logger.LogError(ex, "{Message}", $"Telegram API error: {ex.Message}");
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, "{Message}", $"Telegram API error: {ex.Message}");
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{Message}", $"Unexpected error: {ex.Message}");
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, "{Message}", $"Unexpected error: {ex.Message}");
+            }
         }
     }
 }

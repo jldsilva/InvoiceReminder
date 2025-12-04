@@ -43,7 +43,11 @@ public class QuartzHostedService : IHostedService
         {
             if (!CronExpression.IsValidExpression(schedule.CronExpression))
             {
-                _logger.LogError("CronJob inválido: {JobId}", schedule.Id);
+                if (_logger.IsEnabled(LogLevel.Error))
+                {
+                    _logger.LogError("CronJob inválido: {JobId}", schedule.Id);
+                }
+
                 continue;
             }
 

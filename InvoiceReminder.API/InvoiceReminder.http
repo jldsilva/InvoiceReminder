@@ -1,6 +1,363 @@
 @InvoiceReminder_HostAddress = http://localhost:5216
 
-GET {{InvoiceReminder_HostAddress}}/weatherforecast/
+### ============================================
+### LOGIN ENDPOINTS
+### ============================================
+
+### Login
+POST {{InvoiceReminder_HostAddress}}/api/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+### ============================================
+### USER ENDPOINTS
+### ============================================
+
+### Get All Users
+GET {{InvoiceReminder_HostAddress}}/api/user
 Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Get User by ID
+GET {{InvoiceReminder_HostAddress}}/api/user/550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Get User by Email
+GET {{InvoiceReminder_HostAddress}}/api/user/getby-email/user@example.com
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Create User
+POST {{InvoiceReminder_HostAddress}}/api/user
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "João Silva",
+  "email": "joao@example.com",
+  "password": "password123",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### Create Multiple Users
+POST {{InvoiceReminder_HostAddress}}/api/user/bulk-insert
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "João Silva",
+    "email": "joao@example.com",
+    "password": "password123",
+    "createdAt": "2025-11-25T00:00:00Z",
+    "updatedAt": "2025-11-25T00:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "Maria Santos",
+    "email": "maria@example.com",
+    "password": "password123",
+    "createdAt": "2025-11-25T00:00:00Z",
+    "updatedAt": "2025-11-25T00:00:00Z"
+  }
+]
+
+###
+
+### Update User
+PUT {{InvoiceReminder_HostAddress}}/api/user
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "João Silva Updated",
+  "email": "joao.updated@example.com",
+  "password": "newpassword123",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### Delete User
+DELETE {{InvoiceReminder_HostAddress}}/api/user
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "João Silva",
+  "email": "joao@example.com",
+  "password": "password123",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### ============================================
+### INVOICE ENDPOINTS
+### ============================================
+
+### Get All Invoices
+GET {{InvoiceReminder_HostAddress}}/api/invoice
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Get Invoice by ID
+GET {{InvoiceReminder_HostAddress}}/api/invoice/550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Get Invoice by Barcode
+GET {{InvoiceReminder_HostAddress}}/api/invoice/getby-barcode/12345678901234567890123456789012345678901234
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Create Invoice
+POST {{InvoiceReminder_HostAddress}}/api/invoice
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "bank": "Banco do Brasil",
+  "beneficiary": "João da Silva",
+  "amount": 100.00,
+  "barcode": "12345678901234567890123456789012345678901234",
+  "dueDate": "2025-12-25T00:00:00Z",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### Update Invoice
+PUT {{InvoiceReminder_HostAddress}}/api/invoice
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "bank": "Banco do Brasil Updated",
+  "beneficiary": "João da Silva",
+  "amount": 150.00,
+  "barcode": "12345678901234567890123456789012345678901244",
+  "dueDate": "2025-12-25T00:00:00Z",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### Delete Invoice
+DELETE {{InvoiceReminder_HostAddress}}/api/invoice
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "bank": "Banco do Brasil",
+  "beneficiary": "João da Silva",
+  "amount": 100.00,
+  "barcode": "12345678901234567890123456789012345678901244",
+  "dueDate": "2025-12-25T00:00:00Z",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### ============================================
+### JOB SCHEDULE ENDPOINTS
+### ============================================
+
+### Get All Job Schedules
+GET {{InvoiceReminder_HostAddress}}/api/job_schedule
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Get Job Schedule by ID
+GET {{InvoiceReminder_HostAddress}}/api/job_schedule/550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Get Job Schedules by User ID
+GET {{InvoiceReminder_HostAddress}}/api/job_schedule/getby-userid/550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Create Job Schedule
+POST {{InvoiceReminder_HostAddress}}/api/job_schedule
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "cronExpression": "0 0 * * *",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### Update Job Schedule
+PUT {{InvoiceReminder_HostAddress}}/api/job_schedule
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "cronExpression": "0 0 * * 1",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### Delete Job Schedule
+DELETE {{InvoiceReminder_HostAddress}}/api/job_schedule
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "cronExpression": "0 0 * * *",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### ============================================
+### SCAN EMAIL DEFINITION ENDPOINTS
+### ============================================
+
+### Get All Scan Email Definitions
+GET {{InvoiceReminder_HostAddress}}/api/scan_email
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Get Scan Email Definition by ID
+GET {{InvoiceReminder_HostAddress}}/api/scan_email/550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Get Scan Email Definitions by User ID
+GET {{InvoiceReminder_HostAddress}}/api/scan_email/getby-userid/550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Get Scan Email Definition by Sender Email Address
+GET {{InvoiceReminder_HostAddress}}/api/scan_email/sender@example.com/550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Create Scan Email Definition
+POST {{InvoiceReminder_HostAddress}}/api/scan_email
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "senderEmailAddress": "sender@example.com",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### Update Scan Email Definition
+PUT {{InvoiceReminder_HostAddress}}/api/scan_email
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "senderEmailAddress": "newemail@example.com",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### Delete Scan Email Definition
+DELETE {{InvoiceReminder_HostAddress}}/api/scan_email
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "senderEmailAddress": "sender@example.com",
+  "createdAt": "2025-11-25T00:00:00Z",
+  "updatedAt": "2025-11-25T00:00:00Z"
+}
+
+###
+
+### ============================================
+### GOOGLE OAUTH ENDPOINTS
+### ============================================
+
+### Get Authorization URL
+GET {{InvoiceReminder_HostAddress}}/api/google_oauth/get-auth-url/550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
+
+###
+
+### Authorize Google OAuth
+GET {{InvoiceReminder_HostAddress}}/api/google_oauth/authorize?state=550e8400-e29b-41d4-a716-446655440000&code=4/0AY0e-gxxxxxxxxxxxxxxxxxx
+Accept: application/json
+
+###
+
+### Revoke Google OAuth Authorization
+DELETE {{InvoiceReminder_HostAddress}}/api/google_oauth/revoke?id=550e8400-e29b-41d4-a716-446655440000
+Accept: application/json
+Authorization: Bearer your_jwt_token_here
 
 ###

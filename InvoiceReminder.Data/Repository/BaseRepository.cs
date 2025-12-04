@@ -1,4 +1,3 @@
-using EFCore.BulkExtensions;
 using InvoiceReminder.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -34,7 +33,7 @@ public class BaseRepository<TDbContext, TEntity> : IBaseRepository<TEntity>
             entity.GetType().GetProperty("UpdatedAt")?.SetValue(entity, DateTime.UtcNow);
         }
 
-        await _dbContext.BulkInsertAsync(entities, cancellationToken: cancellationToken);
+        await _dbContext.BulkInsertAsync(entities, cancellationToken);
 
         return entities.Count;
     }

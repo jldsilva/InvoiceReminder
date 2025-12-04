@@ -13,6 +13,7 @@ public class EmailAuthTokenRepository : BaseRepository<CoreDbContext, EmailAuthT
 {
     private readonly IDbConnection _dbConnection;
     private readonly ILogger<EmailAuthTokenRepository> _logger;
+    private const string LogExceptionMessage = "{ContextualInfo} - Exception: {Message}";
 
     public EmailAuthTokenRepository(CoreDbContext dbContext, ILogger<EmailAuthTokenRepository> logger) : base(dbContext)
     {
@@ -39,7 +40,10 @@ public class EmailAuthTokenRepository : BaseRepository<CoreDbContext, EmailAuthT
             var method = $"{nameof(EmailAuthTokenRepository)}.{nameof(GetByUserIdAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
@@ -48,7 +52,10 @@ public class EmailAuthTokenRepository : BaseRepository<CoreDbContext, EmailAuthT
             var method = $"{nameof(EmailAuthTokenRepository)}.{nameof(GetByUserIdAsync)}";
             var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
 
-            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new DataLayerException(contextualInfo, ex);
         }

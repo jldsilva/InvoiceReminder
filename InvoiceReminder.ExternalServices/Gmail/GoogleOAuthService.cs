@@ -21,6 +21,7 @@ public class GoogleOAuthService : IGoogleOAuthService
     private readonly GoogleAuthorizationCodeFlow _flow;
     private readonly string _redirectUri;
     private readonly byte[] _key;
+    private const string AppKeysSection = "appKeys";
 
     public GoogleOAuthService(
         IEmailAuthTokenRepository tokenRepository,
@@ -32,17 +33,17 @@ public class GoogleOAuthService : IGoogleOAuthService
         {
             ClientSecrets = new ClientSecrets
             {
-                ClientId = configurationService.GetSecret("appKeys", "googleOauthClientId"),
-                ClientSecret = configurationService.GetSecret("appKeys", "googleOauthClientSecret")
+                ClientId = configurationService.GetSecret(AppKeysSection, "googleOauthClientId"),
+                ClientSecret = configurationService.GetSecret(AppKeysSection, "googleOauthClientSecret")
             },
             Scopes = [GmailService.Scope.GmailModify]
         });
 
-        _key = Convert.FromBase64String(configurationService.GetSecret("appKeys", "tokenEncryptionKey"));
+        _key = Convert.FromBase64String(configurationService.GetSecret(AppKeysSection, "tokenEncryptionKey"));
         _logger = logger;
         _tokenRepository = tokenRepository;
         _unitOfWork = unitOfWork;
-        _redirectUri = configurationService.GetSecret("appKeys", "googleOauthRedirectUri");
+        _redirectUri = configurationService.GetSecret(AppKeysSection, "googleOauthRedirectUri");
     }
 
     public async Task<UserCredential> AuthenticateAsync(
@@ -112,7 +113,10 @@ public class GoogleOAuthService : IGoogleOAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error granting authorization for user {UserId}", userId);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, "Error granting authorization for user {UserId}", userId);
+            }
 
             return Result<UserCredential>.Failure("Error granting authorization for user");
         }
@@ -140,7 +144,10 @@ public class GoogleOAuthService : IGoogleOAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Revoking Authorization Token failed: {Message}", ex.Message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, "Revoking Authorization Token failed: {Message}", ex.Message);
+            }
 
             return Result<string>.Failure("Error revoking Authorization Token.");
         }

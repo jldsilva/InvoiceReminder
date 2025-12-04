@@ -9,7 +9,7 @@ using Shouldly;
 namespace InvoiceReminder.JobScheduler.UnitTests.HostedService;
 
 [TestClass]
-public class QuartzHostedServiceTests
+public sealed class QuartzHostedServiceTests
 {
     private readonly ILogger<QuartzHostedService> _logger;
     private readonly ISchedulerFactory _schedulerFactory;
@@ -185,18 +185,22 @@ public class QuartzHostedServiceTests
 
         var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, schedules);
 
+        _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
         // Act && Assert
         await service.StartAsync(TestContext.CancellationToken);
 
         _ = _scheduler.DidNotReceive().ScheduleJob(Arg.Any<IJobDetail>(), Arg.Any<ITrigger>(), Arg.Any<CancellationToken>());
 
-        _logger.Received(1).Log(
-            LogLevel.Error,
-            Arg.Any<EventId>(),
-            Arg.Is<object>(o => o.ToString().Contains("CronJob inválido:")),
-            Arg.Any<SchedulerException>(),
-            Arg.Any<Func<object, Exception, string>>()
-        );
+        if (_logger.IsEnabled(LogLevel.Error))
+        {
+            var eventId = Arg.Any<EventId>();
+            var state = Arg.Is<object>(o => o.ToString().Contains("CronJob inválido:"));
+            var loggedException = Arg.Is<Exception>(e => e == null);
+            var formatter = Arg.Any<Func<object, Exception, string>>();
+
+            _logger.Received(1).Log(LogLevel.Error, eventId, state, loggedException, formatter);
+        }
 
         _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
     }
