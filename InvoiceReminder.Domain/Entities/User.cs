@@ -10,4 +10,12 @@ public class User : EntityDefaults
     public virtual ICollection<Invoice> Invoices { get; set; }
     public virtual ICollection<JobSchedule> JobSchedules { get; set; }
     public virtual ICollection<ScanEmailDefinition> ScanEmailDefinitions { get; set; }
+
+    public User()
+    {
+        EmailAuthTokens = [];
+        Invoices = [];
+        JobSchedules = [];
+        ScanEmailDefinitions = [];
+    }
 }

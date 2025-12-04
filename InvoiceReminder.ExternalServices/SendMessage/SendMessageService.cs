@@ -15,6 +15,7 @@ public class SendMessageService : ISendMessageService
     private readonly ITelegramMessageService _telegramMessageService;
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly IUserRepository _userRepository;
+    private const string LogExceptionMessage = "{ContextualInfo} - Exception: {Message}";
 
     public SendMessageService(
         IBarcodeReaderService barcodeService,
@@ -79,7 +80,10 @@ public class SendMessageService : ISendMessageService
             var method = $"{nameof(SendMessageService)}.{nameof(SendMessage)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
@@ -87,7 +91,10 @@ public class SendMessageService : ISendMessageService
         {
             var contextualInfo = $"Error occurred while sending messages for userId: {userId}";
 
-            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new InvalidOperationException(contextualInfo, ex);
         }
@@ -103,7 +110,10 @@ public class SendMessageService : ISendMessageService
         {
             message = $"User not found!";
 
-            _logger.LogWarning("{Message}", message);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning("{Message}", message);
+            }
 
             return (false, message);
         }
@@ -112,7 +122,10 @@ public class SendMessageService : ISendMessageService
         {
             message = $"No Authentication Token found for userId: {user.Id}";
 
-            _logger.LogWarning("{Message}", message);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning("{Message}", message);
+            }
 
             return (false, message);
         }

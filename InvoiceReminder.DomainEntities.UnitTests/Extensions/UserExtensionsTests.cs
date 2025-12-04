@@ -5,7 +5,7 @@ using Shouldly;
 namespace InvoiceReminder.DomainEntities.UnitTests.Extensions;
 
 [TestClass]
-public class UserExtensionsTests
+public sealed class UserExtensionsTests
 {
     [TestMethod]
     public void Handle_NewUser_AddsUserToResult()
@@ -435,16 +435,14 @@ public class UserExtensionsTests
     }
 
     [TestMethod]
-    public void Handle_NewUserWithNullCollections_InitializesCollections()
+    public void Handle_NewUserWithEmptyCollections_InitializesCollections()
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Name = "Test User",
-            JobSchedules = null,
-            ScanEmailDefinitions = null
+            Name = "Test User"
         };
         var invoice = new Invoice { Id = Guid.NewGuid() };
         var jobSchedule = new JobSchedule { Id = Guid.NewGuid() };

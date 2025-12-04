@@ -18,7 +18,7 @@ using System.Net.Http.Json;
 namespace InvoiceReminder.API.UnitTests.Endpoints;
 
 [TestClass]
-public class LoginEndpointTests
+public sealed class LoginEndpointTests
 {
     private readonly HttpClient _client;
     private readonly IJwtProvider _jwtProvider;

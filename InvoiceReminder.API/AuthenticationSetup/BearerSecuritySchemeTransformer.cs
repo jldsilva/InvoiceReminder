@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("InvoiceReminder.API.UnitTests")]
@@ -35,7 +35,10 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
             };
 
             document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes = requirements;
+            document.Components.SecuritySchemes = requirements.ToDictionary(
+                kvp => kvp.Key,
+                kvp => (IOpenApiSecurityScheme)kvp.Value
+            );
         }
     }
 }

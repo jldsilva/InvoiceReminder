@@ -13,6 +13,7 @@ public class JobScheduleRepository : BaseRepository<CoreDbContext, JobSchedule>,
 {
     private readonly IDbConnection _dbConnection;
     private readonly ILogger<JobScheduleRepository> _logger;
+    private const string LogExceptionMessage = "{ContextualInfo} - Exception: {Message}";
 
     public JobScheduleRepository(CoreDbContext dbContext, ILogger<JobScheduleRepository> logger) : base(dbContext)
     {
@@ -36,7 +37,10 @@ public class JobScheduleRepository : BaseRepository<CoreDbContext, JobSchedule>,
             var method = $"{nameof(JobScheduleRepository)}.{nameof(GetByUserIdAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
-            _logger.LogWarning(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
@@ -45,7 +49,10 @@ public class JobScheduleRepository : BaseRepository<CoreDbContext, JobSchedule>,
             var method = $"{nameof(JobScheduleRepository)}.{nameof(GetByUserIdAsync)}";
             var contextualInfo = $"Exception raised while querying DB >> {method}(...)";
 
-            _logger.LogError(ex, "{ContextualInfo} - Exception: {Message}", contextualInfo, ex.Message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
 
             throw new DataLayerException(contextualInfo, ex);
         }

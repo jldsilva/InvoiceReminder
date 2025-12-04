@@ -1,12 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>disable</Nullable>
-    <UserSecretsId>cb5b3f1e-1e38-47a5-bcd4-457b0c7f1d0a</UserSecretsId>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\InvoiceReminder.Data\InvoiceReminder.Data.csproj" />
   </ItemGroup>

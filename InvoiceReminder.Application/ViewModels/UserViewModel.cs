@@ -26,5 +26,8 @@ public class UserViewModel : ViewModelDefaults
     public UserViewModel()
     {
         Id = Guid.NewGuid();
+        Invoices = [];
+        JobSchedules = [];
+        ScanEmailDefinitions = [];
     }
 }

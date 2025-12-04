@@ -12,7 +12,7 @@ using Shouldly;
 namespace InvoiceReminder.ExternalServices.UnitTests.SendMessage;
 
 [TestClass]
-public class SendMessageServiceTests
+public sealed class SendMessageServiceTests
 {
     private readonly ILogger<SendMessageService> _logger;
     private readonly IBarcodeReaderService _barcodeReader;
@@ -112,18 +112,22 @@ public class SendMessageServiceTests
         _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException<User>(exception));
 
+        _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
         // Act && Assert
         _ = await Should.ThrowAsync<InvalidOperationException>(async () =>
             await _sendMessageService.SendMessage(userId, TestContext.CancellationToken)
         );
 
-        _logger.Received(1).Log(
-            LogLevel.Error,
-            Arg.Any<EventId>(),
-            Arg.Is<object>(o => o.ToString().Contains("User not found")),
-            exception,
-            Arg.Any<Func<object, Exception, string>>()
-        );
+        if (_logger.IsEnabled(LogLevel.Error))
+        {
+            var eventId = Arg.Any<EventId>();
+            var state = Arg.Is<object>(o => o.ToString().Contains("User not found"));
+            var loggedException = Arg.Any<Exception>();
+            var formatter = Arg.Any<Func<object, Exception, string>>();
+
+            _logger.Received(1).Log(LogLevel.Error, eventId, state, loggedException, formatter);
+        }
     }
 
     [TestMethod]
@@ -143,18 +147,22 @@ public class SendMessageServiceTests
         _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(user));
 
+        _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
         // Act
         var result = await _sendMessageService.SendMessage(userId, TestContext.CancellationToken);
 
         // Assert
         result.ShouldBe($"No Authentication Token found for userId: {userId}");
 
-        _logger.Received(1).Log(
-            LogLevel.Warning,
-            Arg.Any<EventId>(),
-            Arg.Is<object>(o => o.ToString().Contains("No Authentication Token found")),
-            null,
-            Arg.Any<Func<object, Exception, string>>()
-        );
+        if (_logger.IsEnabled(LogLevel.Warning))
+        {
+            var eventId = Arg.Any<EventId>();
+            var state = Arg.Is<object>(o => o.ToString().Contains("No Authentication Token found"));
+            var loggedException = Arg.Is<Exception>(e => e == null);
+            var formatter = Arg.Any<Func<object, Exception, string>>();
+
+            _logger.Received(1).Log(LogLevel.Warning, eventId, state, loggedException, formatter);
+        }
     }
 }

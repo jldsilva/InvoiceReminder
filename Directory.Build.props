@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <TieredPGO>true</TieredPGO>
+    <UserSecretsId>cb5b3f1e-1e38-47a5-bcd4-457b0c7f1d0a</UserSecretsId>
+  </PropertyGroup>
+</Project>

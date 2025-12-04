@@ -11,7 +11,7 @@ using Shouldly;
 namespace InvoiceReminder.ExternalServices.UnitTests.BarcodeReader;
 
 [TestClass]
-public class BarcodeReaderServiceTests
+public sealed class BarcodeReaderServiceTests
 {
     private readonly ILogger<BarcodeReaderService> _logger;
     private readonly IInvoiceBarcodeHandler _barcodeHandler;

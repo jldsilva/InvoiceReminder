@@ -97,16 +97,22 @@ internal sealed class TelegramUpdateHandler : IUpdateHandler
     {
         if (exception is ApiRequestException apiException)
         {
-            _logger.LogError(
-                exception,
-                "Telegram API Error: [{ErrorCode}] {Message}",
-                apiException.ErrorCode,
-                exception.Message
-            );
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(
+                    exception,
+                    "Telegram API Error: [{ErrorCode}] {Message}",
+                    apiException.ErrorCode,
+                    exception.Message
+                );
+            }
         }
         else
         {
-            _logger.LogError(exception, "Unexpected Error: {Message}", exception.Message);
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(exception, "Unexpected Error: {Message}", exception.Message);
+            }
         }
 
         await Task.CompletedTask;

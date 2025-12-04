@@ -12,7 +12,7 @@ using System.Data;
 namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
 {
     [TestClass]
-    public class UnitOfWorkTests
+    public sealed class UnitOfWorkTests
     {
         private readonly SqliteConnection _connection;
         private readonly DbContextOptions<CoreDbContext> _contextOptions;
@@ -67,6 +67,7 @@ namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
             var unitOfWork = CreateUnitOfWork(context);
 
             _ = context.Users.Add(new User { Id = Guid.NewGuid() });
+            _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
             // Act
             var dataLayerException = await Should.ThrowAsync<DataLayerException>(
@@ -76,13 +77,15 @@ namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
             // Assert
             context.Database.GetDbConnection().State.ShouldBe(ConnectionState.Closed);
 
-            _logger.Received(1).Log(
-                LogLevel.Error,
-                Arg.Any<EventId>(),
-                Arg.Any<object>(),
-                Arg.Any<Exception>(),
-                Arg.Any<Func<object, Exception, string>>()
-            );
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                var eventId = Arg.Any<EventId>();
+                var state = Arg.Any<object>();
+                var exception = Arg.Any<Exception>();
+                var formatter = Arg.Any<Func<object, Exception, string>>();
+
+                _logger.Received(1).Log(LogLevel.Error, eventId, state, exception, formatter);
+            }
 
             _ = dataLayerException.ShouldNotBeNull();
             _ = dataLayerException.InnerException.ShouldBeOfType<DbUpdateException>();
