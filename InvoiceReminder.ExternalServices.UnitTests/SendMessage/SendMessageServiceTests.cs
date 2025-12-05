@@ -119,15 +119,12 @@ public sealed class SendMessageServiceTests
             await _sendMessageService.SendMessage(userId, TestContext.CancellationToken)
         );
 
-        if (_logger.IsEnabled(LogLevel.Error))
-        {
-            var eventId = Arg.Any<EventId>();
-            var state = Arg.Is<object>(o => o.ToString().Contains("User not found"));
-            var loggedException = Arg.Any<Exception>();
-            var formatter = Arg.Any<Func<object, Exception, string>>();
+        var eventId = Arg.Any<EventId>();
+        var state = Arg.Is<object>(o => o.ToString().Contains("User not found"));
+        var loggedException = Arg.Any<Exception>();
+        var formatter = Arg.Any<Func<object, Exception, string>>();
 
-            _logger.Received(1).Log(LogLevel.Error, eventId, state, loggedException, formatter);
-        }
+        _logger.Received(1).Log(LogLevel.Error, eventId, state, loggedException, formatter);
     }
 
     [TestMethod]
@@ -155,14 +152,11 @@ public sealed class SendMessageServiceTests
         // Assert
         result.ShouldBe($"No Authentication Token found for userId: {userId}");
 
-        if (_logger.IsEnabled(LogLevel.Warning))
-        {
-            var eventId = Arg.Any<EventId>();
-            var state = Arg.Is<object>(o => o.ToString().Contains("No Authentication Token found"));
-            var loggedException = Arg.Is<Exception>(e => e == null);
-            var formatter = Arg.Any<Func<object, Exception, string>>();
+        var eventId = Arg.Any<EventId>();
+        var state = Arg.Is<object>(o => o.ToString().Contains("No Authentication Token found"));
+        var loggedException = Arg.Is<Exception>(e => e == null);
+        var formatter = Arg.Any<Func<object, Exception, string>>();
 
-            _logger.Received(1).Log(LogLevel.Warning, eventId, state, loggedException, formatter);
-        }
+        _logger.Received(1).Log(LogLevel.Warning, eventId, state, loggedException, formatter);
     }
 }

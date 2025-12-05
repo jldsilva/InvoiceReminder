@@ -182,7 +182,6 @@ public sealed class QuartzHostedServiceTests
         // Arrange
         var schedule = new JobSchedule { Id = Guid.NewGuid(), CronExpression = "invalid cron", UserId = Guid.NewGuid() };
         var schedules = new List<JobSchedule> { schedule };
-
         var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, schedules);
 
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
@@ -192,17 +191,14 @@ public sealed class QuartzHostedServiceTests
 
         _ = _scheduler.DidNotReceive().ScheduleJob(Arg.Any<IJobDetail>(), Arg.Any<ITrigger>(), Arg.Any<CancellationToken>());
 
-        if (_logger.IsEnabled(LogLevel.Error))
-        {
-            var eventId = Arg.Any<EventId>();
-            var state = Arg.Is<object>(o => o.ToString().Contains("CronJob inválido:"));
-            var loggedException = Arg.Is<Exception>(e => e == null);
-            var formatter = Arg.Any<Func<object, Exception, string>>();
-
-            _logger.Received(1).Log(LogLevel.Error, eventId, state, loggedException, formatter);
-        }
-
         _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
+
+        var eventId = Arg.Any<EventId>();
+        var state = Arg.Is<object>(o => o.ToString().Contains("CronJob inválido:"));
+        var loggedException = Arg.Is<Exception>(e => e == null);
+        var formatter = Arg.Any<Func<object, Exception, string>>();
+
+        _logger.Received(1).Log(LogLevel.Error, eventId, state, loggedException, formatter);
     }
 
     [TestMethod]

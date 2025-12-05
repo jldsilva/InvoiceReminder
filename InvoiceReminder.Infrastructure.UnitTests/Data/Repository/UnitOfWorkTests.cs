@@ -77,19 +77,16 @@ namespace InvoiceReminder.Infrastructure.UnitTests.Data.Repository
             // Assert
             context.Database.GetDbConnection().State.ShouldBe(ConnectionState.Closed);
 
-            if (_logger.IsEnabled(LogLevel.Error))
-            {
-                var eventId = Arg.Any<EventId>();
-                var state = Arg.Any<object>();
-                var exception = Arg.Any<Exception>();
-                var formatter = Arg.Any<Func<object, Exception, string>>();
-
-                _logger.Received(1).Log(LogLevel.Error, eventId, state, exception, formatter);
-            }
-
             _ = dataLayerException.ShouldNotBeNull();
             _ = dataLayerException.InnerException.ShouldBeOfType<DbUpdateException>();
             dataLayerException.Message.ShouldContain("Exception raised while saving changes");
+
+            var eventId = Arg.Any<EventId>();
+            var state = Arg.Any<object>();
+            var exception = Arg.Any<Exception>();
+            var formatter = Arg.Any<Func<object, Exception, string>>();
+
+            _logger.Received(1).Log(LogLevel.Error, eventId, state, exception, formatter);
         }
 
         [TestMethod]

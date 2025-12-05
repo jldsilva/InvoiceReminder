@@ -9,14 +9,42 @@ public static class EntityExtensions
             return;
         }
 
-        if (collection.FirstOrDefault(e => GetId(e).Equals(GetId(entity))) is null)
+        if (collection is HashSet<T> hashSet)
+        {
+            _ = hashSet.Add(entity);
+
+            return;
+        }
+
+        if (collection.FirstOrDefault(e => EntityIdComparer<T>.GetId(e).Equals(EntityIdComparer<T>.GetId(entity))) is null)
         {
             collection.Add(entity);
         }
     }
+}
 
-    private static Guid GetId<T>(T entity) where T : class
+internal sealed class EntityIdComparer<T> : IEqualityComparer<T> where T : class
+{
+    public bool Equals(T x, T y)
     {
-        return (Guid)typeof(T).GetProperty("Id")!.GetValue(entity)!;
+        return !(x == null || y == null) && GetId(x).Equals(GetId(y));
+    }
+
+    public int GetHashCode(T obj)
+    {
+        return obj == null ? 0 : GetId(obj).GetHashCode();
+    }
+
+    public static Guid GetId(T entity)
+    {
+        var property = typeof(T).GetProperty("Id")
+            ?? throw new InvalidOperationException($"Type {typeof(T).Name} does not have an 'Id' property.");
+
+        var value = property.GetValue(entity)
+            ?? throw new InvalidOperationException($"The 'Id' property of {typeof(T).Name} is null.");
+
+        return value is not Guid guidValue
+            ? throw new InvalidOperationException($"The 'Id' property of {typeof(T).Name} is not of type Guid.")
+            : guidValue;
     }
 }
