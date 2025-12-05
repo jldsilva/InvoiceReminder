@@ -11,12 +11,15 @@ public static class EntityExtensions
 
         if (collection is HashSet<T> hashSet)
         {
-            _ = hashSet.Add(entity);
+            if (!hashSet.Any(e => EntityIdComparer<T>.GetId(e).Equals(EntityIdComparer<T>.GetId(entity))))
+            {
+                _ = hashSet.Add(entity);
+            }
 
             return;
         }
 
-        if (collection.FirstOrDefault(e => EntityIdComparer<T>.GetId(e).Equals(EntityIdComparer<T>.GetId(entity))) is null)
+        if (!collection.Any(e => EntityIdComparer<T>.GetId(e).Equals(EntityIdComparer<T>.GetId(entity))))
         {
             collection.Add(entity);
         }
