@@ -1,7 +1,9 @@
+using Bogus;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Data.Repository;
 using InvoiceReminder.Domain.Entities;
+using InvoiceReminder.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -15,6 +17,7 @@ public sealed class ScanEmailDefinitionRepositoryTests
     private readonly CoreDbContext _dbContext;
     private readonly ILogger<ScanEmailDefinitionRepository> _logger;
     private readonly IScanEmailDefinitionRepository _repository;
+    private Faker<ScanEmailDefinition> _scanEmailDefinitionFaker;
 
     public TestContext TestContext { get; set; }
 
@@ -27,6 +30,24 @@ public sealed class ScanEmailDefinitionRepositoryTests
         _dbContext = Substitute.ForPartsOf<CoreDbContext>(options);
         _logger = Substitute.For<ILogger<ScanEmailDefinitionRepository>>();
         _repository = Substitute.For<IScanEmailDefinitionRepository>();
+    }
+
+    [TestInitialize]
+    public void Setup()
+    {
+        InitializeFaker();
+    }
+
+    private void InitializeFaker()
+    {
+        _scanEmailDefinitionFaker = new Faker<ScanEmailDefinition>()
+            .RuleFor(s => s.Id, _ => Guid.NewGuid())
+            .RuleFor(s => s.UserId, _ => Guid.NewGuid())
+            .RuleFor(s => s.InvoiceType, f => f.PickRandom<InvoiceType>())
+            .RuleFor(s => s.Beneficiary, f => f.Company.CompanyName())
+            .RuleFor(s => s.Description, f => f.Lorem.Sentence())
+            .RuleFor(s => s.SenderEmailAddress, f => f.Internet.Email())
+            .RuleFor(s => s.AttachmentFileName, f => f.System.FileName());
     }
 
     [TestMethod]
@@ -52,13 +73,17 @@ public sealed class ScanEmailDefinitionRepositoryTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var scanEmailDefinition = new ScanEmailDefinition { UserId = userId, Beneficiary = "test" };
+        var beneficiary = new Faker().Company.CompanyName();
+        var scanEmailDefinition = _scanEmailDefinitionFaker
+            .RuleFor(s => s.UserId, _ => userId)
+            .RuleFor(s => s.Beneficiary, _ => beneficiary)
+            .Generate();
 
         _ = _repository.GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(scanEmailDefinition));
 
         // Act
-        var result = await _repository.GetBySenderBeneficiaryAsync("test", userId, TestContext.CancellationToken);
+        var result = await _repository.GetBySenderBeneficiaryAsync(beneficiary, userId, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>
@@ -66,6 +91,7 @@ public sealed class ScanEmailDefinitionRepositoryTests
             _ = result.ShouldNotBeNull();
             _ = result.ShouldBeOfType<ScanEmailDefinition>();
             result.UserId.ShouldBe(userId);
+            result.Beneficiary.ShouldBe(beneficiary);
         });
     }
 
@@ -74,13 +100,17 @@ public sealed class ScanEmailDefinitionRepositoryTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var scanEmailDefinition = new ScanEmailDefinition { UserId = userId, SenderEmailAddress = "test@mail.com" };
+        var senderEmail = new Faker().Internet.Email();
+        var scanEmailDefinition = _scanEmailDefinitionFaker
+            .RuleFor(s => s.UserId, _ => userId)
+            .RuleFor(s => s.SenderEmailAddress, _ => senderEmail)
+            .Generate();
 
         _ = _repository.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(scanEmailDefinition));
 
         // Act
-        var result = await _repository.GetBySenderEmailAddressAsync("test@mail.com", userId, TestContext.CancellationToken);
+        var result = await _repository.GetBySenderEmailAddressAsync(senderEmail, userId, TestContext.CancellationToken);
 
         // Assert
         result.ShouldSatisfyAllConditions(() =>
@@ -88,6 +118,7 @@ public sealed class ScanEmailDefinitionRepositoryTests
             _ = result.ShouldNotBeNull();
             _ = result.ShouldBeOfType<ScanEmailDefinition>();
             result.UserId.ShouldBe(userId);
+            result.SenderEmailAddress.ShouldBe(senderEmail);
         });
     }
 
@@ -96,11 +127,9 @@ public sealed class ScanEmailDefinitionRepositoryTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var collection = new List<ScanEmailDefinition>
-        {
-            new() { Id = Guid.NewGuid(), UserId = userId, Beneficiary = "test_A" },
-            new() { Id = Guid.NewGuid(), UserId = userId, Beneficiary = "test_B" }
-        };
+        var collection = _scanEmailDefinitionFaker
+            .RuleFor(s => s.UserId, _ => userId)
+            .Generate(2);
 
         _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IEnumerable<ScanEmailDefinition>>(collection));
@@ -115,6 +144,7 @@ public sealed class ScanEmailDefinitionRepositoryTests
             _ = result.ShouldBeOfType<List<ScanEmailDefinition>>();
             result.ShouldNotBeEmpty();
             result.ShouldContain(x => x.UserId == userId);
+            result.Count().ShouldBe(2);
         });
     }
 }

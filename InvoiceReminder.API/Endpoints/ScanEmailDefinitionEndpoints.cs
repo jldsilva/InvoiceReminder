@@ -6,11 +6,23 @@ namespace InvoiceReminder.API.Endpoints;
 
 public class ScanEmailDefinitionEndpoints : IEndpointDefinition
 {
+    private const string basepath = "/api/scan_email";
+
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        var basepath = "/api/scan_email";
         var endpoint = endpoints.MapGroup(basepath).WithName("ScanEmailDefinitionEndpoints");
 
+        MapGetScanEmailDefinitions(endpoint);
+        MapGetScanEmailDefinition(endpoint);
+        MapGetByUserId(endpoint);
+        MapGetBySenderEmailAddress(endpoint);
+        MapCreateScanEmailDefinition(endpoint);
+        MapUpdateScanEmailDefinition(endpoint);
+        MapDeleteScanEmailDefinition(endpoint);
+    }
+
+    private static void MapGetScanEmailDefinitions(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapGet("/", (IScanEmailDefinitionAppService scanEmailDefinitionAppService) =>
             {
                 var result = scanEmailDefinitionAppService.GetAll();
@@ -24,7 +36,10 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapGetScanEmailDefinition(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapGet("/{id}",
             async (IScanEmailDefinitionAppService scanEmailDefinitionAppService, CancellationToken ct, Guid id) =>
             {
@@ -39,7 +54,10 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapGetByUserId(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapGet("/getby-userid/{id}",
             async (IScanEmailDefinitionAppService scanEmailDefinitionAppService, CancellationToken ct, Guid id) =>
             {
@@ -54,7 +72,10 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapGetBySenderEmailAddress(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapGet("/{email}/{id}",
             async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
                 CancellationToken ct,
@@ -72,7 +93,10 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapCreateScanEmailDefinition(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapPost("/",
             async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
                 CancellationToken ct,
@@ -89,7 +113,10 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapUpdateScanEmailDefinition(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapPut("/",
             async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
                 CancellationToken ct,
@@ -106,10 +133,12 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapDeleteScanEmailDefinition(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapDelete("/",
-            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
-                CancellationToken ct,
+            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService, CancellationToken ct,
                 [FromBody] ScanEmailDefinitionViewModel scanEmailDefinitionViewModel) =>
             {
                 var result = await scanEmailDefinitionAppService.RemoveAsync(scanEmailDefinitionViewModel, ct);

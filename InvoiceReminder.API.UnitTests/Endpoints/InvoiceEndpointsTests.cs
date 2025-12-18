@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.API.UnitTests.Factories;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
@@ -22,6 +23,8 @@ public sealed class InvoiceEndpointsTests
     private readonly HttpClient _client;
     private readonly IAuthorizationService _authorizationService;
     private readonly IInvoiceAppService _invoiceAppService;
+    private readonly Faker<InvoiceViewModel> _invoiceViewModelFaker;
+    private readonly Faker _faker;
     private const string basepath = "/api/invoice";
 
     public TestContext TestContext { get; set; }
@@ -34,6 +37,26 @@ public sealed class InvoiceEndpointsTests
         _client = factory.CreateClient();
         _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
         _invoiceAppService = serviceProvider.GetRequiredService<IInvoiceAppService>();
+        _faker = new Faker();
+
+        _invoiceViewModelFaker = new Faker<InvoiceViewModel>()
+            .RuleFor(i => i.Id, faker => faker.Random.Guid())
+            .RuleFor(i => i.UserId, faker => faker.Random.Guid())
+            .RuleFor(i => i.Bank, faker => faker.PickRandom(
+                "Banco do Brasil",
+                "Bradesco",
+                "Itaú",
+                "Caixa Econômica Federal",
+                "Santander",
+                "Safra",
+                "Citibank",
+                "BTG Pactual"))
+            .RuleFor(i => i.Beneficiary, faker => faker.Person.FullName)
+            .RuleFor(i => i.Amount, faker => faker.Finance.Amount(10, 10000))
+            .RuleFor(i => i.Barcode, faker => faker.Random.AlphaNumeric(44))
+            .RuleFor(i => i.DueDate, faker => faker.Date.Future().ToUniversalTime())
+            .RuleFor(i => i.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(i => i.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
 
     #region MapGet Tests
@@ -44,29 +67,8 @@ public sealed class InvoiceEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var expectedResult = Result<IEnumerable<InvoiceViewModel>>.Success(
-        [
-            new() {
-                Id = Guid.NewGuid(),
-                Bank = "Banco do Brasil",
-                Beneficiary = "João da Silva",
-                Amount = 100.00m,
-                Barcode = "12345678901234567890123456789012345678901234",
-                DueDate = DateTime.UtcNow.AddDays(30),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new() {
-                Id = Guid.NewGuid(),
-                Bank = "Banco do Brasil",
-                Beneficiary = "José da Silva",
-                Amount = 100.00m,
-                Barcode = "12345678901234567890123456789012345678901234",
-                DueDate = DateTime.UtcNow.AddDays(30),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }
-        ]);
+        var invoices = _invoiceViewModelFaker.Generate(2);
+        var expectedResult = Result<IEnumerable<InvoiceViewModel>>.Success(invoices);
 
         _ = _invoiceAppService.GetAll().Returns(expectedResult);
 
@@ -140,17 +142,7 @@ public sealed class InvoiceEndpointsTests
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<InvoiceViewModel>.Success(
-        new()
-        {
-            Id = id,
-            Bank = "Banco do Brasil",
-            Beneficiary = "João da Silva",
-            Amount = 100.00m,
-            Barcode = "12345678901234567890123456789012345678901234",
-            DueDate = DateTime.UtcNow.AddDays(30),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        });
+            _invoiceViewModelFaker.RuleFor(i => i.Id, id).Generate());
 
         _ = _invoiceAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
@@ -274,21 +266,12 @@ public sealed class InvoiceEndpointsTests
     public async Task GetInvoiceByBarcode_WhenUserIsAuthenticated_ShouldReturnOk()
     {
         // Arrange
-        var value = "12345678901234567890123456789012345678901234";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{value}");
+        var barcode = _faker.Random.AlphaNumeric(44);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{barcode}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var expectedResult = Result<InvoiceViewModel>.Success(new()
-        {
-            Id = Guid.NewGuid(),
-            Bank = "Banco do Brasil",
-            Beneficiary = "João da Silva",
-            Amount = 100.00m,
-            Barcode = "12345678901234567890123456789012345678901234",
-            DueDate = DateTime.UtcNow.AddDays(30),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        });
+        var expectedResult = Result<InvoiceViewModel>.Success(
+            _invoiceViewModelFaker.RuleFor(i => i.Barcode, barcode).Generate());
 
         _ = _invoiceAppService.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
@@ -313,8 +296,8 @@ public sealed class InvoiceEndpointsTests
     public async Task GetInvoiceByBarcode_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var value = "12345678901234567890123456789012345678901234";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{value}");
+        var barcode = _faker.Random.AlphaNumeric(44);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{barcode}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -331,8 +314,8 @@ public sealed class InvoiceEndpointsTests
     public async Task GetInvoiceByBarcode_WhenUserIsAuthenticatedButServiceFails_ShouldReturnBadRequest()
     {
         // Arrange
-        var value = "12345678901234567890123456789012345678901234";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{value}");
+        var barcode = _faker.Random.AlphaNumeric(44);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{barcode}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _invoiceAppService.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -358,8 +341,8 @@ public sealed class InvoiceEndpointsTests
     public async Task GetInvoiceByBarcode_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var value = "12345678901234567890123456789012345678901234";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{value}");
+        var barcode = _faker.Random.AlphaNumeric(44);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{barcode}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _invoiceAppService.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -385,8 +368,8 @@ public sealed class InvoiceEndpointsTests
     public async Task GetInvoiceByBarcode_WhenUserIsAuthenticatedButNotExists_ShouldReturnNotFound()
     {
         // Arrange
-        var value = "12345678901234567890123456789012345678901234";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{value}");
+        var barcode = _faker.Random.AlphaNumeric(44);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-barcode/{barcode}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<InvoiceViewModel>.Failure($"Invoice not Found.");
@@ -421,18 +404,7 @@ public sealed class InvoiceEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var invoiceViewModel = new InvoiceViewModel
-        {
-            Id = Guid.NewGuid(),
-            Bank = "Banco do Brasil",
-            Beneficiary = "João da Silva",
-            Amount = 100.00m,
-            Barcode = "12345678901234567890123456789012345678901234",
-            DueDate = DateTime.UtcNow.AddDays(30),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var invoiceViewModel = _invoiceViewModelFaker.Generate();
         var expectedResult = Result<InvoiceViewModel>.Success(invoiceViewModel);
 
         _ = _invoiceAppService.AddAsync(Arg.Any<InvoiceViewModel>(), Arg.Any<CancellationToken>())
@@ -479,18 +451,7 @@ public sealed class InvoiceEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var invoiceViewModel = new InvoiceViewModel
-        {
-            Id = Guid.NewGuid(),
-            Bank = "Banco do Brasil",
-            Beneficiary = "João da Silva",
-            Amount = 100.00m,
-            Barcode = "12345678901234567890123456789012345678901234",
-            DueDate = DateTime.UtcNow.AddDays(30),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var invoiceViewModel = _invoiceViewModelFaker.Generate();
         var expectedResult = Result<InvoiceViewModel>.Failure("Service error");
 
         _ = _invoiceAppService.AddAsync(Arg.Any<InvoiceViewModel>(), Arg.Any<CancellationToken>())
@@ -524,18 +485,7 @@ public sealed class InvoiceEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var invoiceViewModel = new InvoiceViewModel
-        {
-            Id = Guid.NewGuid(),
-            Bank = "Banco do Brasil",
-            Beneficiary = "João da Silva",
-            Amount = 100.00m,
-            Barcode = "12345678901234567890123456789012345678901234",
-            DueDate = DateTime.UtcNow.AddDays(30),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var invoiceViewModel = _invoiceViewModelFaker.Generate();
         var expectedResult = Result<InvoiceViewModel>.Success(invoiceViewModel);
 
         _ = _invoiceAppService.UpdateAsync(Arg.Any<InvoiceViewModel>(), Arg.Any<CancellationToken>())
@@ -582,18 +532,7 @@ public sealed class InvoiceEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var invoiceViewModel = new InvoiceViewModel
-        {
-            Id = Guid.NewGuid(),
-            Bank = "Banco do Brasil",
-            Beneficiary = "João da Silva",
-            Amount = 100.00m,
-            Barcode = "12345678901234567890123456789012345678901234",
-            DueDate = DateTime.UtcNow.AddDays(30),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var invoiceViewModel = _invoiceViewModelFaker.Generate();
         var expectedResult = Result<InvoiceViewModel>.Failure("Service error");
 
         _ = _invoiceAppService.UpdateAsync(Arg.Any<InvoiceViewModel>(), Arg.Any<CancellationToken>())

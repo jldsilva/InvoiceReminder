@@ -16,7 +16,10 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "An Exception occurred: {Message}", exception.Message);
+        if (_logger.IsEnabled(LogLevel.Error))
+        {
+            _logger.LogError(exception, "An Exception occurred: {Message}", exception.Message);
+        }
 
         httpContext.Response.StatusCode = exception switch
         {

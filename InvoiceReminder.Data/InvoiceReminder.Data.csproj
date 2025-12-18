@@ -6,7 +6,8 @@
     
   <ItemGroup>
     <PackageReference Include="Dapper" />
-    <PackageReference Include="Z.EntityFramework.Extensions.EFCore" />
+    <PackageReference Include="EFCore.BulkExtensions.Dotnet10" />
+    <PackageReference Include="EFCore.BulkExtensions.Dotnet10.PostgreSql" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all">

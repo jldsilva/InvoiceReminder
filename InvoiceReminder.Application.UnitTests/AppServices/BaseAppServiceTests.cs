@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.Application.AppServices;
 using InvoiceReminder.Data.Interfaces;
 using Mapster;
@@ -13,6 +14,9 @@ public sealed class BaseAppServiceTests
     private readonly IBaseRepository<TestEntity> _repository;
     private readonly IUnitOfWork _unitOfWork;
 
+    private readonly Faker<TestEntity> _entityFaker;
+    private readonly Faker<TestEntityViewModel> _entityViewModelFaker;
+
     public TestContext TestContext { get; set; }
 
     public BaseAppServiceTests()
@@ -20,13 +24,19 @@ public sealed class BaseAppServiceTests
         _repository = Substitute.For<IBaseRepository<TestEntity>>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _appService = new BaseAppService<TestEntity, TestEntityViewModel>(_repository, _unitOfWork);
+
+        _entityFaker = new Faker<TestEntity>()
+            .RuleFor(e => e.Name, faker => faker.Person.FullName);
+
+        _entityViewModelFaker = new Faker<TestEntityViewModel>()
+            .RuleFor(e => e.Name, faker => faker.Person.FullName);
     }
 
     [TestMethod]
     public async Task AddAsync_Should_Return_Success_When_Entity_Is_Valid()
     {
         // Arrange
-        var viewModel = new TestEntityViewModel { Name = "Test" };
+        var viewModel = _entityViewModelFaker.Generate();
 
         _ = _repository.AddAsync(Arg.Any<TestEntity>(), Arg.Any<CancellationToken>())
             .Returns(viewModel.Adapt<TestEntity>());
@@ -82,11 +92,7 @@ public sealed class BaseAppServiceTests
     public async Task BulkInsertAsync_Should_Return_Success_When_ViewModels_Are_Valid()
     {
         // Arrange
-        var viewModels = new List<TestEntityViewModel>
-        {
-            new() { Name = "Test1" },
-            new() { Name = "Test2" }
-        };
+        var viewModels = _entityViewModelFaker.Generate(2);
 
         _ = _repository.BulkInsertAsync(Arg.Any<ICollection<TestEntity>>(), Arg.Any<CancellationToken>())
             .Returns(viewModels.Count);
@@ -131,11 +137,7 @@ public sealed class BaseAppServiceTests
     public void GetAll_Should_Return_Success_When_Entities_Exist()
     {
         // Arrange
-        var entities = new List<TestEntity>
-        {
-            new() { Name = "Entity1" },
-            new() { Name = "Entity2" }
-        };
+        var entities = _entityFaker.Generate(2);
 
         _ = _repository.GetAll().Returns(entities);
 
@@ -157,13 +159,12 @@ public sealed class BaseAppServiceTests
     public async Task GetByIdAsync_Should_Return_Success_When_Entity_Exists()
     {
         // Arrange
-        var id = Guid.Parse("42ab20e5-0742-4d32-a76e-7c45fd74dac3");
-        var entity = new TestEntity { Name = "Test" };
+        var entity = _entityFaker.Generate();
 
         _ = _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(entity);
 
         // Act
-        var result = await _appService.GetByIdAsync(id, TestContext.CancellationToken);
+        var result = await _appService.GetByIdAsync(Guid.NewGuid(), TestContext.CancellationToken);
 
         // Assert
         _ = _repository.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
@@ -180,7 +181,8 @@ public sealed class BaseAppServiceTests
     public async Task GetByIdAsync_Should_Return_Failure_When_Entity_Does_Not_Exist()
     {
         // Arrange
-        var id = Guid.Parse("42ab20e5-0742-4d32-a76e-7c45fd74dac3");
+        var id = Guid.NewGuid();
+
         _ = _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<TestEntity>(null));
 
@@ -202,7 +204,7 @@ public sealed class BaseAppServiceTests
     public async Task RemoveAsync_Should_Return_Success_When_Entity_Exists()
     {
         // Arrange
-        var entity = new TestEntityViewModel { Name = "Test" };
+        var entity = _entityViewModelFaker.Generate();
 
         _repository.Remove(Arg.Any<TestEntity>());
         _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
@@ -239,7 +241,7 @@ public sealed class BaseAppServiceTests
     public async Task UpdateAsync_Should_Return_Success_When_ViewModel_Is_Valid()
     {
         // Arrange
-        var viewModel = new TestEntityViewModel { Name = "Updated" };
+        var viewModel = _entityViewModelFaker.Generate();
 
         _ = _repository.Update(Arg.Any<TestEntity>()).Returns(viewModel.Adapt<TestEntity>());
         _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
@@ -274,12 +276,12 @@ public sealed class BaseAppServiceTests
     }
 }
 
-public class TestEntity
+public sealed class TestEntity
 {
     public string Name { get; set; }
 }
 
-public class TestEntityViewModel
+public sealed class TestEntityViewModel
 {
     public string Name { get; set; }
 }

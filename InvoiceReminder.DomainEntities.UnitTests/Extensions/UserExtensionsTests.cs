@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.Domain.Extensions;
 using Shouldly;
@@ -7,12 +8,47 @@ namespace InvoiceReminder.DomainEntities.UnitTests.Extensions;
 [TestClass]
 public sealed class UserExtensionsTests
 {
+    private readonly Faker<Invoice> _invoiceFaker;
+    private readonly Faker<JobSchedule> _jobScheduleFaker;
+    private readonly Faker<EmailAuthToken> _emailAuthTokenFaker;
+    private readonly Faker<ScanEmailDefinition> _scanEmailDefinitionFaker;
+
+    public UserExtensionsTests()
+    {
+        _invoiceFaker = new Faker<Invoice>()
+            .RuleFor(e => e.Id, faker => faker.Random.Guid());
+
+        _jobScheduleFaker = new Faker<JobSchedule>()
+            .RuleFor(e => e.Id, faker => faker.Random.Guid());
+
+        _emailAuthTokenFaker = new Faker<EmailAuthToken>()
+            .RuleFor(e => e.Id, faker => faker.Random.Guid());
+
+        _scanEmailDefinitionFaker = new Faker<ScanEmailDefinition>()
+            .RuleFor(e => e.Id, faker => faker.Random.Guid());
+    }
+
+    private static Faker<User> UserFaker(
+        ICollection<Invoice> invoices = default,
+        ICollection<JobSchedule> jobSchedules = default,
+        ICollection<EmailAuthToken> emailAuthTokens = default,
+        ICollection<ScanEmailDefinition> scanEmailDefinitions = default)
+    {
+        return new Faker<User>()
+            .RuleFor(e => e.Id, faker => faker.Random.Guid())
+            .RuleFor(e => e.Name, faker => faker.Person.FullName)
+            .RuleFor(u => u.Invoices, faker => invoices ?? new HashSet<Invoice>())
+            .RuleFor(u => u.JobSchedules, faker => jobSchedules ?? new HashSet<JobSchedule>())
+            .RuleFor(u => u.EmailAuthTokens, faker => emailAuthTokens ?? new HashSet<EmailAuthToken>())
+            .RuleFor(u => u.ScanEmailDefinitions, faker => scanEmailDefinitions ?? new HashSet<ScanEmailDefinition>());
+    }
+
     [TestMethod]
     public void Handle_NewUser_AddsUserToResult()
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = new User { Id = Guid.NewGuid(), Name = "Test User" };
+        var user = UserFaker().Generate();
         var parameters = new UserParameters();
 
         // Act
@@ -39,8 +75,8 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = new User { Id = Guid.NewGuid(), Name = "Test User" };
-        var invoice = new Invoice { Id = Guid.NewGuid() };
+        var user = UserFaker().Generate();
+        var invoice = _invoiceFaker.Generate();
         var parameters = new UserParameters { Invoice = invoice };
 
         // Act
@@ -67,8 +103,8 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = new User { Id = Guid.NewGuid(), Name = "Test User" };
-        var jobSchedule = new JobSchedule { Id = Guid.NewGuid() };
+        var user = UserFaker().Generate();
+        var jobSchedule = _jobScheduleFaker.Generate();
         var parameters = new UserParameters { JobSchedule = jobSchedule };
 
         // Act
@@ -95,8 +131,8 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = new User { Id = Guid.NewGuid(), Name = "Test User" };
-        var emailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
+        var user = UserFaker().Generate();
+        var emailAuthToken = _emailAuthTokenFaker.Generate();
         var parameters = new UserParameters { EmailAuthToken = emailAuthToken };
 
         // Act
@@ -123,8 +159,8 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = new User { Id = Guid.NewGuid(), Name = "Test User" };
-        var scanEmailDefinition = new ScanEmailDefinition { Id = Guid.NewGuid() };
+        var user = UserFaker().Generate();
+        var scanEmailDefinition = _scanEmailDefinitionFaker.Generate();
         var parameters = new UserParameters { ScanEmailDefinition = scanEmailDefinition };
 
         // Act
@@ -149,20 +185,11 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithNewInvoice_AddsInvoiceToExistingUserInResult()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var existingInvoice = new Invoice { Id = Guid.NewGuid() };
-        var existingUser = new User
-        {
-            Id = userId,
-            Name = "Existing User",
-            Invoices = [existingInvoice],
-            JobSchedules = [],
-            EmailAuthTokens = [],
-            ScanEmailDefinitions = []
-        };
-        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var existingInvoice = _invoiceFaker.Generate();
+        var existingUser = UserFaker(invoices: [existingInvoice]).Generate();
+        var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
-        var newInvoice = new Invoice { Id = Guid.NewGuid() };
+        var newInvoice = _invoiceFaker.Generate();
         var parameters = new UserParameters { Invoice = newInvoice };
 
         // Act
@@ -171,9 +198,9 @@ public sealed class UserExtensionsTests
         // Assert
         result.ShouldSatisfyAllConditions(result =>
         {
-            result.ShouldContainKey(userId);
-            result[userId].Invoices.ShouldContain(existingInvoice);
-            result[userId].Invoices.ShouldContain(newInvoice);
+            result.ShouldContainKey(existingUser.Id);
+            result[existingUser.Id].Invoices.ShouldContain(existingInvoice);
+            result[existingUser.Id].Invoices.ShouldContain(newInvoice);
         });
 
         newUserReference.ShouldSatisfyAllConditions(newUserReference =>
@@ -191,20 +218,11 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithNewJobSchedule_AddsJobScheduleToExistingUserInResult()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var existingJobSchedule = new JobSchedule { Id = Guid.NewGuid() };
-        var existingUser = new User
-        {
-            Id = userId,
-            Name = "Existing User",
-            Invoices = [],
-            JobSchedules = [existingJobSchedule],
-            EmailAuthTokens = [],
-            ScanEmailDefinitions = []
-        };
-        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var existingJobSchedule = _jobScheduleFaker.Generate();
+        var existingUser = UserFaker(jobSchedules: [existingJobSchedule]).Generate();
+        var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
-        var newJobSchedule = new JobSchedule { Id = Guid.NewGuid() };
+        var newJobSchedule = _jobScheduleFaker.Generate();
         var parameters = new UserParameters { JobSchedule = newJobSchedule };
 
         // Act
@@ -213,9 +231,9 @@ public sealed class UserExtensionsTests
         // Assert
         result.ShouldSatisfyAllConditions(result =>
         {
-            result.ShouldContainKey(userId);
-            result[userId].JobSchedules.ShouldContain(existingJobSchedule);
-            result[userId].JobSchedules.ShouldContain(newJobSchedule);
+            result.ShouldContainKey(existingUser.Id);
+            result[existingUser.Id].JobSchedules.ShouldContain(existingJobSchedule);
+            result[existingUser.Id].JobSchedules.ShouldContain(newJobSchedule);
         });
 
         newUserReference.ShouldSatisfyAllConditions(newUserReference =>
@@ -233,20 +251,11 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithNewEmailAuthToken_AddsEmailAuthTokenToExistingUserInResult()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var existingEmailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
-        var existingUser = new User
-        {
-            Id = userId,
-            Name = "Existing User",
-            Invoices = [],
-            JobSchedules = [],
-            EmailAuthTokens = [existingEmailAuthToken],
-            ScanEmailDefinitions = []
-        };
-        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var existingEmailAuthToken = _emailAuthTokenFaker.Generate();
+        var existingUser = UserFaker(emailAuthTokens: [existingEmailAuthToken]).Generate();
+        var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
-        var newEmailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
+        var newEmailAuthToken = _emailAuthTokenFaker.Generate();
         var parameters = new UserParameters { EmailAuthToken = newEmailAuthToken };
 
         // Act
@@ -255,9 +264,9 @@ public sealed class UserExtensionsTests
         // Assert
         result.ShouldSatisfyAllConditions(result =>
         {
-            result.ShouldContainKey(userId);
-            result[userId].EmailAuthTokens.ShouldContain(existingEmailAuthToken);
-            result[userId].EmailAuthTokens.ShouldContain(newEmailAuthToken);
+            result.ShouldContainKey(existingUser.Id);
+            result[existingUser.Id].EmailAuthTokens.ShouldContain(existingEmailAuthToken);
+            result[existingUser.Id].EmailAuthTokens.ShouldContain(newEmailAuthToken);
         });
 
         newUserReference.ShouldSatisfyAllConditions(newUserReference =>
@@ -275,20 +284,11 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithNewScanEmailDefinition_AddsScanEmailDefinitionToExistingUserInResult()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var existingScanEmailDefinition = new ScanEmailDefinition { Id = Guid.NewGuid() };
-        var existingUser = new User
-        {
-            Id = userId,
-            Name = "Existing User",
-            Invoices = [],
-            JobSchedules = [],
-            EmailAuthTokens = [],
-            ScanEmailDefinitions = [existingScanEmailDefinition]
-        };
-        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var existingScanEmailDefinition = _scanEmailDefinitionFaker.Generate();
+        var existingUser = UserFaker(scanEmailDefinitions: [existingScanEmailDefinition]).Generate();
+        var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
-        var newScanEmailDefinition = new ScanEmailDefinition { Id = Guid.NewGuid() };
+        var newScanEmailDefinition = _scanEmailDefinitionFaker.Generate();
         var parameters = new UserParameters { ScanEmailDefinition = newScanEmailDefinition };
 
         // Act
@@ -297,9 +297,9 @@ public sealed class UserExtensionsTests
         // Assert
         result.ShouldSatisfyAllConditions(result =>
         {
-            result.ShouldContainKey(userId);
-            result[userId].ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
-            result[userId].ScanEmailDefinitions.ShouldContain(newScanEmailDefinition);
+            result.ShouldContainKey(existingUser.Id);
+            result[existingUser.Id].ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
+            result[existingUser.Id].ScanEmailDefinitions.ShouldContain(newScanEmailDefinition);
         });
 
         newUserReference.ShouldSatisfyAllConditions(newUserReference =>
@@ -317,10 +317,9 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithSameInvoice_DoesNotAddDuplicate()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var existingInvoice = new Invoice { Id = Guid.NewGuid() };
-        var existingUser = new User { Id = userId, Name = "Existing User", Invoices = [existingInvoice] };
-        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var existingInvoice = _invoiceFaker.Generate();
+        var existingUser = UserFaker(invoices: [existingInvoice]).Generate();
+        var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var parameters = new UserParameters { Invoice = existingInvoice };
 
@@ -330,9 +329,9 @@ public sealed class UserExtensionsTests
         // Assert
         result.ShouldSatisfyAllConditions(result =>
         {
-            result.ShouldContainKey(userId);
-            result[userId].Invoices.Count.ShouldBe(1);
-            result[userId].Invoices.ShouldContain(existingInvoice);
+            result.ShouldContainKey(existingUser.Id);
+            result[existingUser.Id].Invoices.Count.ShouldBe(1);
+            result[existingUser.Id].Invoices.ShouldContain(existingInvoice);
         });
 
         newUserReference.ShouldSatisfyAllConditions(newUserReference =>
@@ -346,10 +345,9 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithSameJobSchedule_DoesNotAddDuplicate()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var existingJobSchedule = new JobSchedule { Id = Guid.NewGuid() };
-        var existingUser = new User { Id = userId, Name = "Existing User", JobSchedules = [existingJobSchedule] };
-        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var existingJobSchedule = _jobScheduleFaker.Generate();
+        var existingUser = UserFaker(jobSchedules: [existingJobSchedule]).Generate();
+        var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var parameters = new UserParameters { JobSchedule = existingJobSchedule };
 
@@ -359,9 +357,9 @@ public sealed class UserExtensionsTests
         // Assert
         result.ShouldSatisfyAllConditions(result =>
         {
-            result.ShouldContainKey(userId);
-            result[userId].JobSchedules.Count.ShouldBe(1);
-            result[userId].JobSchedules.ShouldContain(existingJobSchedule);
+            result.ShouldContainKey(existingUser.Id);
+            result[existingUser.Id].JobSchedules.Count.ShouldBe(1);
+            result[existingUser.Id].JobSchedules.ShouldContain(existingJobSchedule);
         });
 
         newUserReference.ShouldSatisfyAllConditions(newUserReference =>
@@ -375,10 +373,9 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithSameEmailAuthToken_DoesNotAddDuplicate()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var existingEmailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
-        var existingUser = new User { Id = userId, Name = "Existing User", EmailAuthTokens = [existingEmailAuthToken] };
-        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var existingEmailAuthToken = _emailAuthTokenFaker.Generate();
+        var existingUser = UserFaker(emailAuthTokens: [existingEmailAuthToken]).Generate();
+        var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var parameters = new UserParameters { EmailAuthToken = existingEmailAuthToken };
 
@@ -388,9 +385,9 @@ public sealed class UserExtensionsTests
         // Assert
         result.ShouldSatisfyAllConditions(result =>
         {
-            result.ShouldContainKey(userId);
-            result[userId].EmailAuthTokens.Count.ShouldBe(1);
-            result[userId].EmailAuthTokens.ShouldContain(existingEmailAuthToken);
+            result.ShouldContainKey(existingUser.Id);
+            result[existingUser.Id].EmailAuthTokens.Count.ShouldBe(1);
+            result[existingUser.Id].EmailAuthTokens.ShouldContain(existingEmailAuthToken);
         });
 
         newUserReference.ShouldSatisfyAllConditions(newUserReference =>
@@ -404,15 +401,9 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithSameScanEmailDefinition_DoesNotAddDuplicate()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var existingScanEmailDefinition = new ScanEmailDefinition { Id = Guid.NewGuid() };
-        var existingUser = new User
-        {
-            Id = userId,
-            Name = "Existing User",
-            ScanEmailDefinitions = [existingScanEmailDefinition]
-        };
-        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var existingScanEmailDefinition = _scanEmailDefinitionFaker.Generate();
+        var existingUser = UserFaker(scanEmailDefinitions: [existingScanEmailDefinition]).Generate();
+        var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var parameters = new UserParameters { ScanEmailDefinition = existingScanEmailDefinition };
 
@@ -422,9 +413,9 @@ public sealed class UserExtensionsTests
         // Assert
         result.ShouldSatisfyAllConditions(result =>
         {
-            result.ShouldContainKey(userId);
-            result[userId].ScanEmailDefinitions.Count.ShouldBe(1);
-            result[userId].ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
+            result.ShouldContainKey(existingUser.Id);
+            result[existingUser.Id].ScanEmailDefinitions.Count.ShouldBe(1);
+            result[existingUser.Id].ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
         });
 
         newUserReference.ShouldSatisfyAllConditions(newUserReference =>
@@ -439,15 +430,11 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test User"
-        };
-        var invoice = new Invoice { Id = Guid.NewGuid() };
-        var jobSchedule = new JobSchedule { Id = Guid.NewGuid() };
-        var scanEmailDefinition = new ScanEmailDefinition { Id = Guid.NewGuid() };
-        var emailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
+        var user = UserFaker().Generate();
+        var invoice = _invoiceFaker.Generate();
+        var jobSchedule = _jobScheduleFaker.Generate();
+        var scanEmailDefinition = _scanEmailDefinitionFaker.Generate();
+        var emailAuthToken = _emailAuthTokenFaker.Generate();
         var parameters = new UserParameters
         {
             Invoice = invoice,
@@ -486,22 +473,13 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithNullCollections_AddsNewItems()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var existingUser = new User
-        {
-            Id = userId,
-            Name = "Existing User",
-            Invoices = [],
-            JobSchedules = [],
-            EmailAuthTokens = [],
-            ScanEmailDefinitions = []
-        };
-        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var existingUser = UserFaker().Generate();
+        var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
-        var invoice = new Invoice { Id = Guid.NewGuid() };
-        var jobSchedule = new JobSchedule { Id = Guid.NewGuid() };
-        var emailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
-        var scanEmailDefinition = new ScanEmailDefinition { Id = Guid.NewGuid() };
+        var invoice = _invoiceFaker.Generate();
+        var jobSchedule = _jobScheduleFaker.Generate();
+        var scanEmailDefinition = _scanEmailDefinitionFaker.Generate();
+        var emailAuthToken = _emailAuthTokenFaker.Generate();
         var parameters = new UserParameters
         {
             Invoice = invoice,
@@ -516,15 +494,15 @@ public sealed class UserExtensionsTests
         // Assert
         result.ShouldSatisfyAllConditions(result =>
         {
-            result.ShouldContainKey(userId);
-            result[userId].Invoices.Count.ShouldBe(1);
-            result[userId].JobSchedules.Count.ShouldBe(1);
-            result[userId].EmailAuthTokens.Count.ShouldBe(1);
-            result[userId].ScanEmailDefinitions.Count.ShouldBe(1);
-            result[userId].Invoices.ShouldContain(invoice);
-            result[userId].JobSchedules.ShouldContain(jobSchedule);
-            result[userId].EmailAuthTokens.ShouldContain(emailAuthToken);
-            result[userId].ScanEmailDefinitions.ShouldContain(scanEmailDefinition);
+            result.ShouldContainKey(existingUser.Id);
+            result[existingUser.Id].Invoices.Count.ShouldBe(1);
+            result[existingUser.Id].JobSchedules.Count.ShouldBe(1);
+            result[existingUser.Id].EmailAuthTokens.Count.ShouldBe(1);
+            result[existingUser.Id].ScanEmailDefinitions.Count.ShouldBe(1);
+            result[existingUser.Id].Invoices.ShouldContain(invoice);
+            result[existingUser.Id].JobSchedules.ShouldContain(jobSchedule);
+            result[existingUser.Id].EmailAuthTokens.ShouldContain(emailAuthToken);
+            result[existingUser.Id].ScanEmailDefinitions.ShouldContain(scanEmailDefinition);
         });
 
         newUserReference.ShouldSatisfyAllConditions(newUserReference =>
@@ -544,21 +522,17 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithNullParameters_DoesNotModifyUser()
     {
         // Arrange
-        var userId = Guid.NewGuid();
-        var existingInvoice = new Invoice { Id = Guid.NewGuid() };
-        var existingJobSchedule = new JobSchedule { Id = Guid.NewGuid() };
-        var exitingEmailAuthToken = new EmailAuthToken { Id = Guid.NewGuid() };
-        var existingScanEmailDefinition = new ScanEmailDefinition { Id = Guid.NewGuid() };
-        var existingUser = new User
-        {
-            Id = userId,
-            Name = "Existing User",
-            Invoices = [existingInvoice],
-            JobSchedules = [existingJobSchedule],
-            EmailAuthTokens = [exitingEmailAuthToken],
-            ScanEmailDefinitions = [existingScanEmailDefinition]
-        };
-        var result = new Dictionary<Guid, User> { { userId, existingUser } };
+        var existingInvoice = _invoiceFaker.Generate();
+        var existingJobSchedule = _jobScheduleFaker.Generate();
+        var exitingEmailAuthToken = _emailAuthTokenFaker.Generate();
+        var existingScanEmailDefinition = _scanEmailDefinitionFaker.Generate();
+        var existingUser = UserFaker(
+            invoices: [existingInvoice],
+            jobSchedules: [existingJobSchedule],
+            emailAuthTokens: [exitingEmailAuthToken],
+            scanEmailDefinitions: [existingScanEmailDefinition])
+            .Generate();
+        var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var parameters = new UserParameters
         {
@@ -574,15 +548,15 @@ public sealed class UserExtensionsTests
         // Assert
         result.ShouldSatisfyAllConditions(result =>
         {
-            result.ShouldContainKey(userId);
-            result[userId].Invoices.ShouldContain(existingInvoice);
-            result[userId].JobSchedules.ShouldContain(existingJobSchedule);
-            result[userId].EmailAuthTokens.ShouldContain(exitingEmailAuthToken);
-            result[userId].ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
-            result[userId].Invoices.Count.ShouldBe(1);
-            result[userId].JobSchedules.Count.ShouldBe(1);
-            result[userId].EmailAuthTokens.Count.ShouldBe(1);
-            result[userId].ScanEmailDefinitions.Count.ShouldBe(1);
+            result.ShouldContainKey(existingUser.Id);
+            result[existingUser.Id].Invoices.ShouldContain(existingInvoice);
+            result[existingUser.Id].JobSchedules.ShouldContain(existingJobSchedule);
+            result[existingUser.Id].EmailAuthTokens.ShouldContain(exitingEmailAuthToken);
+            result[existingUser.Id].ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
+            result[existingUser.Id].Invoices.Count.ShouldBe(1);
+            result[existingUser.Id].JobSchedules.Count.ShouldBe(1);
+            result[existingUser.Id].EmailAuthTokens.Count.ShouldBe(1);
+            result[existingUser.Id].ScanEmailDefinitions.Count.ShouldBe(1);
         });
 
         newUserReference.ShouldSatisfyAllConditions(newUserReference =>
@@ -603,7 +577,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = new User { Id = Guid.NewGuid(), Name = "Test User" };
+        var user = UserFaker().Generate();
         var parameters = new UserParameters
         {
             Invoice = null,

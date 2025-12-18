@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Data.Repository;
@@ -15,6 +16,7 @@ public sealed class UserRepositoryTests
     private readonly CoreDbContext _dbContext;
     private readonly ILogger<UserRepository> _logger;
     private readonly IUserRepository _repository;
+    private Faker<User> _userFaker;
 
     public TestContext TestContext { get; set; }
 
@@ -27,6 +29,22 @@ public sealed class UserRepositoryTests
         _dbContext = Substitute.ForPartsOf<CoreDbContext>(options);
         _logger = Substitute.For<ILogger<UserRepository>>();
         _repository = Substitute.For<IUserRepository>();
+    }
+
+    [TestInitialize]
+    public void Setup()
+    {
+        InitializeFaker();
+    }
+
+    private void InitializeFaker()
+    {
+        _userFaker = new Faker<User>()
+            .RuleFor(u => u.Id, _ => Guid.NewGuid())
+            .RuleFor(u => u.TelegramChatId, f => f.Random.Long(100000000, long.MaxValue))
+            .RuleFor(u => u.Name, f => f.Person.FullName)
+            .RuleFor(u => u.Email, f => f.Internet.Email())
+            .RuleFor(u => u.Password, f => f.Internet.Password(length: 16, memorable: false));
     }
 
     [TestMethod]
@@ -51,8 +69,10 @@ public sealed class UserRepositoryTests
     public async Task GetByEmailAsync_ShouldReturnUser_WhenUserExists()
     {
         // Arrange
-        var email = "user_test@mail.com";
-        var user = new User { Id = Guid.NewGuid(), Email = email };
+        var email = new Faker().Internet.Email();
+        var user = _userFaker
+            .RuleFor(u => u.Email, _ => email)
+            .Generate();
 
         _ = _repository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(user));
@@ -66,6 +86,7 @@ public sealed class UserRepositoryTests
             _ = result.ShouldNotBeNull();
             _ = result.ShouldBeOfType<User>();
             result.Email.ShouldBe(email);
+            result.Id.ShouldNotBe(Guid.Empty);
         });
     }
 
@@ -74,7 +95,9 @@ public sealed class UserRepositoryTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = new User { Id = userId };
+        var user = _userFaker
+            .RuleFor(u => u.Id, _ => userId)
+            .Generate();
 
         _ = _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(user));

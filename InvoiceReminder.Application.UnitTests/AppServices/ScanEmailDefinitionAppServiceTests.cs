@@ -1,8 +1,10 @@
+using Bogus;
 using InvoiceReminder.Application.AppServices;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Domain.Entities;
+using InvoiceReminder.Domain.Enums;
 using Mapster;
 using NSubstitute;
 using Shouldly;
@@ -14,6 +16,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
 {
     private readonly IScanEmailDefinitionRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly Faker _faker;
 
     public TestContext TestContext { get; set; }
 
@@ -21,6 +24,21 @@ public sealed class ScanEmailDefinitionAppServiceTests
     {
         _repository = Substitute.For<IScanEmailDefinitionRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
+        _faker = new Faker();
+    }
+
+    private static Faker<ScanEmailDefinition> CreateScanEmailDefinitionFaker()
+    {
+        return new Faker<ScanEmailDefinition>()
+            .RuleFor(s => s.Id, faker => faker.Random.Guid())
+            .RuleFor(s => s.UserId, faker => faker.Random.Guid())
+            .RuleFor(s => s.InvoiceType, faker => faker.PickRandom<InvoiceType>())
+            .RuleFor(s => s.Beneficiary, faker => faker.Person.FullName)
+            .RuleFor(s => s.Description, faker => faker.Lorem.Sentence())
+            .RuleFor(s => s.SenderEmailAddress, faker => faker.Internet.Email())
+            .RuleFor(s => s.AttachmentFileName, faker => faker.System.FileName("pdf"))
+            .RuleFor(s => s.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(s => s.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
 
     [TestMethod]
@@ -43,19 +61,12 @@ public sealed class ScanEmailDefinitionAppServiceTests
     {
         // Arrange
         var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
-        var beneficiary = "Test Beneficiary";
-        var userId = Guid.NewGuid();
-        var scanEmailDefinition = new ScanEmailDefinition
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            AttachmentFileName = "test.pdf",
-            Beneficiary = beneficiary,
-            Description = "Test Description",
-            SenderEmailAddress = "test@mail.com",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+        var userId = _faker.Random.Guid();
+        var beneficiary = _faker.Person.FullName;
+        var scanEmailDefinition = CreateScanEmailDefinitionFaker()
+            .RuleFor(s => s.UserId, userId)
+            .RuleFor(s => s.Beneficiary, beneficiary)
+            .Generate();
 
         _ = _repository.GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(scanEmailDefinition);
@@ -82,8 +93,8 @@ public sealed class ScanEmailDefinitionAppServiceTests
     {
         // Arrange
         var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
-        var beneficiary = "Test Beneficiary";
-        var userId = Guid.NewGuid();
+        var beneficiary = _faker.Person.FullName;
+        var userId = _faker.Random.Guid();
 
         _ = _repository.GetBySenderBeneficiaryAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((ScanEmailDefinition)null);
@@ -109,25 +120,18 @@ public sealed class ScanEmailDefinitionAppServiceTests
     {
         // Arrange
         var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
-        var beneficiary = "test@email.com";
-        var userId = Guid.NewGuid();
-        var scanEmailDefinition = new ScanEmailDefinition
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            AttachmentFileName = "test.pdf",
-            Beneficiary = beneficiary,
-            Description = "Test Description",
-            SenderEmailAddress = "test@mail.com",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+        var userId = _faker.Random.Guid();
+        var senderEmail = _faker.Internet.Email();
+        var scanEmailDefinition = CreateScanEmailDefinitionFaker()
+            .RuleFor(s => s.UserId, userId)
+            .RuleFor(s => s.SenderEmailAddress, senderEmail)
+            .Generate();
 
         _ = _repository.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(scanEmailDefinition);
 
         // Act
-        var result = await appService.GetBySenderEmailAddressAsync(beneficiary, userId, TestContext.CancellationToken);
+        var result = await appService.GetBySenderEmailAddressAsync(senderEmail, userId, TestContext.CancellationToken);
 
         // Assert
         _ = _repository.Received(1)
@@ -148,14 +152,14 @@ public sealed class ScanEmailDefinitionAppServiceTests
     {
         // Arrange
         var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
-        var beneficiary = "not_existing@email.com";
-        var userId = Guid.NewGuid();
+        var senderEmail = _faker.Internet.Email();
+        var userId = _faker.Random.Guid();
 
         _ = _repository.GetBySenderEmailAddressAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((ScanEmailDefinition)null);
 
         // Act
-        var result = await appService.GetBySenderEmailAddressAsync(beneficiary, userId, TestContext.CancellationToken);
+        var result = await appService.GetBySenderEmailAddressAsync(senderEmail, userId, TestContext.CancellationToken);
 
         // Assert
         _ = _repository.Received(1)
@@ -175,21 +179,11 @@ public sealed class ScanEmailDefinitionAppServiceTests
     {
         // Arrange
         var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
-        var userId = Guid.NewGuid();
-        var scanEmailDefinitions = new List<ScanEmailDefinition>
-        {
-            new()
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                AttachmentFileName = "test.pdf",
-                Beneficiary = "Test Beneficiary",
-                Description = "Test Description",
-                SenderEmailAddress = "test@mail.com",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }
-        };
+        var userId = _faker.Random.Guid();
+        var scanEmailDefinitions = CreateScanEmailDefinitionFaker()
+            .RuleFor(s => s.UserId, userId)
+            .Generate(3)
+            .ToList();
 
         _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(scanEmailDefinitions);
 
@@ -214,7 +208,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
     {
         // Arrange
         var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
-        var userId = Guid.NewGuid();
+        var userId = _faker.Random.Guid();
         _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
 
         // Act
