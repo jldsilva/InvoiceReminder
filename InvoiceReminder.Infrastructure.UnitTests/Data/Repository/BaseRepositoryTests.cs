@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.Data.Repository;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ public sealed class BaseRepositoryTests
 {
     private readonly SqliteConnection _connection;
     private readonly DbContextOptions<TestDbContext> _contextOptions;
+    private Faker<TestEntity> _testEntityFaker;
 
     public TestContext TestContext { get; set; }
 
@@ -28,6 +30,7 @@ public sealed class BaseRepositoryTests
     [TestInitialize]
     public async Task Setup()
     {
+        InitializeFaker();
         using var context = new TestDbContext(_contextOptions);
         _ = await context.Database.EnsureCreatedAsync(TestContext.CancellationToken);
     }
@@ -36,6 +39,13 @@ public sealed class BaseRepositoryTests
     public void TearDown()
     {
         _connection.Dispose();
+    }
+
+    private void InitializeFaker()
+    {
+        _testEntityFaker = new Faker<TestEntity>()
+            .RuleFor(e => e.Id, _ => Guid.NewGuid())
+            .RuleFor(e => e.Name, f => f.Lorem.Word());
     }
 
     private TestDbContext CreateContext()
@@ -47,7 +57,7 @@ public sealed class BaseRepositoryTests
     public async Task AddAsync_Should_AddEntityToDatabase()
     {
         // Arrange
-        var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Test" };
+        var entity = _testEntityFaker.Generate();
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
@@ -64,11 +74,7 @@ public sealed class BaseRepositoryTests
     public async Task BulkInsertAsync_Should_AddMultipleEntitiesToDatabaseWithTimestamps()
     {
         // Arrange
-        var entities = new List<TestEntity>
-        {
-            new() { Id = Guid.NewGuid(), Name = "Test1" },
-            new() { Id = Guid.NewGuid(), Name = "Test2" }
-        };
+        var entities = _testEntityFaker.Generate(2);
 
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
@@ -86,19 +92,17 @@ public sealed class BaseRepositoryTests
             total.ShouldBe(entities.Count);
             context.TestEntities.ShouldAllBe(e => e.CreatedAt.HasValue && e.UpdatedAt.HasValue);
         });
-
     }
 
     [TestMethod]
     public async Task Remove_Should_RemoveExistingEntityFromDatabase()
     {
         // Arrange
-        var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Test" };
+        var entity = _testEntityFaker.Generate();
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
         _ = await repository.AddAsync(entity, TestContext.CancellationToken);
         _ = await context.SaveChangesAsync(TestContext.CancellationToken);
-
 
         // Act
         repository.Remove(entity);
@@ -112,7 +116,7 @@ public sealed class BaseRepositoryTests
     public async Task Remove_Should_AttachAndRemoveDetachedEntity()
     {
         // Arrange
-        var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Test" };
+        var entity = _testEntityFaker.Generate();
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
@@ -134,7 +138,7 @@ public sealed class BaseRepositoryTests
     public async Task GetByIdAsync_Should_ReturnEntityById()
     {
         // Arrange
-        var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Test" };
+        var entity = _testEntityFaker.Generate();
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
@@ -172,11 +176,7 @@ public sealed class BaseRepositoryTests
     public async Task GetAll_Should_ReturnAllEntities()
     {
         // Arrange
-        var entities = new List<TestEntity>
-    {
-        new() { Id = Guid.NewGuid(), Name = "Test1" },
-        new() { Id = Guid.NewGuid(), Name = "Test2" }
-    };
+        var entities = _testEntityFaker.Generate(2);
 
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
@@ -200,14 +200,15 @@ public sealed class BaseRepositoryTests
     public async Task Update_Should_UpdateExistingEntity()
     {
         // Arrange
-        var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Original Name" };
+        var entity = _testEntityFaker.Generate();
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
         _ = await repository.AddAsync(entity, TestContext.CancellationToken);
         _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
-        entity.Name = "Updated Name";
+        var updatedName = new Faker().Lorem.Word();
+        entity.Name = updatedName;
 
         // Act
         var updatedEntity = repository.Update(entity);
@@ -220,7 +221,7 @@ public sealed class BaseRepositoryTests
         retrievedEntity.ShouldSatisfyAllConditions(() =>
         {
             _ = retrievedEntity.ShouldNotBeNull();
-            retrievedEntity.Name.ShouldBe("Updated Name");
+            retrievedEntity.Name.ShouldBe(updatedName);
         });
     }
 
@@ -228,7 +229,7 @@ public sealed class BaseRepositoryTests
     public async Task Update_Should_AttachAndUpdateDetachedEntity()
     {
         // Arrange
-        var entity = new TestEntity { Id = Guid.NewGuid(), Name = "Original Name" };
+        var entity = _testEntityFaker.Generate();
         using var context = CreateContext();
         var repository = new BaseRepository<TestDbContext, TestEntity>(context);
 
@@ -238,7 +239,8 @@ public sealed class BaseRepositoryTests
         _ = context.Attach(entity);
         context.Entry(entity).State = EntityState.Detached;
 
-        entity.Name = "Updated Name";
+        var updatedName = new Faker().Lorem.Word();
+        entity.Name = updatedName;
 
         // Act
         var updatedEntity = repository.Update(entity);
@@ -251,7 +253,7 @@ public sealed class BaseRepositoryTests
         retrievedEntity.ShouldSatisfyAllConditions(() =>
         {
             _ = retrievedEntity.ShouldNotBeNull();
-            retrievedEntity.Name.ShouldBe("Updated Name");
+            retrievedEntity.Name.ShouldBe(updatedName);
         });
     }
 
@@ -261,9 +263,9 @@ public sealed class BaseRepositoryTests
         // Arrange
         var entities = new List<TestEntity>
         {
-            new() { Id = Guid.NewGuid(), Name = "Test1" },
-            new() { Id = Guid.NewGuid(), Name = "AnotherTest" },
-            new() { Id = Guid.NewGuid(), Name = "Test2" }
+            _testEntityFaker.RuleFor(e => e.Name, _ => "Test1").Generate(),
+            _testEntityFaker.RuleFor(e => e.Name, _ => "AnotherTest").Generate(),
+            _testEntityFaker.RuleFor(e => e.Name, _ => "Test2").Generate()
         };
 
         using var context = CreateContext();

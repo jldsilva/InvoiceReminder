@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.API.UnitTests.Factories;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
@@ -22,6 +23,7 @@ public sealed class JobScheduleEndPointsTests
     private readonly HttpClient _client;
     private readonly IAuthorizationService _authorizationService;
     private readonly IJobScheduleAppService _jobScheduleAppService;
+    private readonly Faker<JobScheduleViewModel> _jobScheduleViewModelFaker;
     private const string basepath = "/api/job_schedule";
 
     public TestContext TestContext { get; set; }
@@ -34,6 +36,20 @@ public sealed class JobScheduleEndPointsTests
         _client = factory.CreateClient();
         _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
         _jobScheduleAppService = serviceProvider.GetRequiredService<IJobScheduleAppService>();
+
+        _jobScheduleViewModelFaker = new Faker<JobScheduleViewModel>()
+            .RuleFor(j => j.Id, faker => faker.Random.Guid())
+            .RuleFor(j => j.UserId, faker => faker.Random.Guid())
+            .RuleFor(j => j.CronExpression, faker => faker.PickRandom(
+                "0 0/5 * * * ?",      // Every 5 minutes
+                "0 0 * * * ?",        // Every hour
+                "0 0 0 * * ?",        // Every day at midnight
+                "0 0 0 ? * MON",      // Every Monday
+                "0 0 0 1 * ?",        // First day of month
+                "0 0 0 1 1 ?",        // Every January 1st
+                "0 0 12 * * ?"))      // Every noon
+            .RuleFor(j => j.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(j => j.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
 
     #region MapGet Tests
@@ -44,23 +60,8 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var expectedResult = Result<IEnumerable<JobScheduleViewModel>>.Success(
-        [
-            new() {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                CronExpression = "0 0 * * *",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new() {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                CronExpression = "0 0 * 1 1",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }
-        ]);
+        var jobSchedules = _jobScheduleViewModelFaker.Generate(2);
+        var expectedResult = Result<IEnumerable<JobScheduleViewModel>>.Success(jobSchedules);
 
         _ = _jobScheduleAppService.GetAll().Returns(expectedResult);
 
@@ -134,14 +135,7 @@ public sealed class JobScheduleEndPointsTests
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<JobScheduleViewModel>.Success(
-        new()
-        {
-            Id = id,
-            UserId = Guid.NewGuid(),
-            CronExpression = "0 0 * 1 2",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        });
+            _jobScheduleViewModelFaker.RuleFor(j => j.Id, id).Generate());
 
         _ = _jobScheduleAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
@@ -269,23 +263,11 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var expectedResult = Result<IEnumerable<JobScheduleViewModel>>.Success(
-        [
-            new() {
-                Id = Guid.NewGuid(),
-                UserId = id,
-                CronExpression = "0 0 * * *",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new() {
-                Id = Guid.NewGuid(),
-                UserId = id,
-                CronExpression = "0 0 * 1 1",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }
-        ]);
+        var jobSchedules = _jobScheduleViewModelFaker
+            .RuleFor(j => j.UserId, id)
+            .Generate(2);
+
+        var expectedResult = Result<IEnumerable<JobScheduleViewModel>>.Success(jobSchedules);
 
         _ = _jobScheduleAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
@@ -417,15 +399,7 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var jobScheduleViewModel = new JobScheduleViewModel
-        {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            CronExpression = "0 0 * * *",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var jobScheduleViewModel = _jobScheduleViewModelFaker.Generate();
         var expectedResult = Result<JobScheduleViewModel>.Success(jobScheduleViewModel);
 
         _ = _jobScheduleAppService.AddNewJobAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>())
@@ -472,15 +446,7 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var jobScheduleViewModel = new JobScheduleViewModel
-        {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            CronExpression = "0 0 * * *",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var jobScheduleViewModel = _jobScheduleViewModelFaker.Generate();
         var expectedResult = Result<JobScheduleViewModel>.Failure("Service error");
 
         _ = _jobScheduleAppService.AddNewJobAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>())
@@ -515,15 +481,7 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var jobScheduleViewModel = new JobScheduleViewModel
-        {
-            Id = id,
-            UserId = Guid.NewGuid(),
-            CronExpression = "0 0 * * *",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var jobScheduleViewModel = _jobScheduleViewModelFaker.RuleFor(j => j.Id, id).Generate();
         var expectedResult = Result<JobScheduleViewModel>.Success(jobScheduleViewModel);
 
         _ = _jobScheduleAppService.UpdateAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>())
@@ -571,15 +529,7 @@ public sealed class JobScheduleEndPointsTests
         var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var jobScheduleViewModel = new JobScheduleViewModel
-        {
-            Id = id,
-            UserId = Guid.NewGuid(),
-            CronExpression = "0 0 * * *",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var jobScheduleViewModel = _jobScheduleViewModelFaker.RuleFor(j => j.Id, id).Generate();
         var expectedResult = Result<JobScheduleViewModel>.Failure("Service error");
 
         _ = _jobScheduleAppService.UpdateAsync(Arg.Any<JobScheduleViewModel>(), Arg.Any<CancellationToken>())
@@ -612,7 +562,9 @@ public sealed class JobScheduleEndPointsTests
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Delete, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
-        request.Content = JsonContent.Create(new JobScheduleViewModel { Id = Guid.NewGuid() });
+
+        var jobScheduleViewModel = _jobScheduleViewModelFaker.Generate();
+        request.Content = JsonContent.Create(jobScheduleViewModel);
 
         var expectedResult = Result<JobScheduleViewModel>.Success(null);
 

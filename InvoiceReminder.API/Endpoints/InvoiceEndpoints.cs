@@ -6,11 +6,22 @@ namespace InvoiceReminder.API.Endpoints;
 
 public class InvoiceEndpoints : IEndpointDefinition
 {
+    private const string basepath = "/api/invoice";
+
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        var basepath = "/api/invoice";
         var endpoint = endpoints.MapGroup(basepath).WithName("InvoiceEndpoints");
 
+        MapGetInvoices(endpoint);
+        MapGetInvoice(endpoint);
+        MapGetInvoiceByBarcode(endpoint);
+        MapCreateInvoice(endpoint);
+        MapUpdateInvoice(endpoint);
+        MapDeleteInvoice(endpoint);
+    }
+
+    private static void MapGetInvoices(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapGet("/", (IInvoiceAppService invoiceAppService) =>
             {
                 var result = invoiceAppService.GetAll();
@@ -24,7 +35,10 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapGetInvoice(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapGet("/{id}", async (IInvoiceAppService invoiceAppService, CancellationToken ct, Guid id) =>
             {
                 var result = await invoiceAppService.GetByIdAsync(id, ct);
@@ -38,7 +52,10 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapGetInvoiceByBarcode(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapGet("/getby-barcode/{value}",
             async (IInvoiceAppService invoiceAppService, CancellationToken ct, string value) =>
             {
@@ -53,7 +70,10 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapCreateInvoice(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapPost("/",
             async (IInvoiceAppService invoiceAppService, CancellationToken ct, [FromBody] InvoiceViewModel invoiceViewModel) =>
             {
@@ -68,7 +88,10 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapUpdateInvoice(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapPut("/",
             async (IInvoiceAppService invoiceAppService, CancellationToken ct, [FromBody] InvoiceViewModel invoiceViewModel) =>
             {
@@ -83,7 +106,10 @@ public class InvoiceEndpoints : IEndpointDefinition
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
+    }
 
+    private static void MapDeleteInvoice(RouteGroupBuilder endpoint)
+    {
         _ = endpoint.MapDelete("/",
             async (IInvoiceAppService invoiceAppService, CancellationToken ct, [FromBody] InvoiceViewModel invoiceViewModel) =>
             {

@@ -8,9 +8,18 @@ namespace InvoiceReminder.API.Endpoints;
 
 public class LoginEndpoints : IEndpointDefinition
 {
+    private const string basepath = "/api/login";
+
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        _ = endpoints.MapPost("/api/login",
+        var endpoint = endpoints.MapGroup(basepath).WithName("LoginEndpoints");
+
+        MapLogin(endpoint);
+    }
+
+    private static void MapLogin(IEndpointRouteBuilder endpoints)
+    {
+        _ = endpoints.MapPost("/",
             async (IJwtProvider jwtProvider,
                 IUserAppService userAppService,
                 CancellationToken ct,

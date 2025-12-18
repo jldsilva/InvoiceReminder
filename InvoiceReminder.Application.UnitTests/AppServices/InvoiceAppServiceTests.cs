@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.Application.AppServices;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
@@ -13,6 +14,7 @@ public sealed class InvoiceAppServiceTests
 {
     private readonly IInvoiceRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly Faker _faker;
 
     public TestContext TestContext { get; set; }
 
@@ -20,6 +22,29 @@ public sealed class InvoiceAppServiceTests
     {
         _repository = Substitute.For<IInvoiceRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
+        _faker = new Faker();
+    }
+
+    private static Faker<Invoice> CreateInvoiceFaker()
+    {
+        return new Faker<Invoice>()
+            .RuleFor(i => i.Id, faker => faker.Random.Guid())
+            .RuleFor(i => i.UserId, faker => faker.Random.Guid())
+            .RuleFor(i => i.Bank, faker => faker.PickRandom(
+                "Banco do Brasil",
+                "Bradesco",
+                "Itaú",
+                "Caixa Econômica Federal",
+                "Santander",
+                "Safra",
+                "Citibank",
+                "BTG Pactual"))
+            .RuleFor(i => i.Beneficiary, faker => faker.Person.FullName)
+            .RuleFor(i => i.Amount, faker => faker.Finance.Amount(10, 10000))
+            .RuleFor(i => i.Barcode, faker => faker.Random.AlphaNumeric(44))
+            .RuleFor(i => i.DueDate, faker => faker.Date.Future().ToUniversalTime())
+            .RuleFor(i => i.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(i => i.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
 
     [TestMethod]
@@ -42,16 +67,10 @@ public sealed class InvoiceAppServiceTests
     {
         // Arrange
         var appService = new InvoiceAppService(_repository, _unitOfWork);
-        var barcode = "12345678901234567890";
-        var invoice = new Invoice
-        {
-            Id = Guid.NewGuid(),
-            Barcode = barcode,
-            Amount = 100.00m,
-            DueDate = DateTime.UtcNow.AddDays(30),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+        var barcode = _faker.Random.AlphaNumeric(44);
+        var invoice = CreateInvoiceFaker()
+            .RuleFor(i => i.Barcode, barcode)
+            .Generate();
 
         _ = _repository.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(invoice);
 
@@ -76,7 +95,7 @@ public sealed class InvoiceAppServiceTests
     {
         // Arrange
         var appService = new InvoiceAppService(_repository, _unitOfWork);
-        var barcode = "12345678901234567890";
+        var barcode = _faker.Random.AlphaNumeric(44);
 
         _ = _repository.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((Invoice)null);
 

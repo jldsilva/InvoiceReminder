@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.Application.AppServices;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
@@ -17,6 +18,7 @@ public sealed class JobScheduleAppServiceTests
     private readonly IUnitOfWork _unitOfWork;
     private readonly IJobFactory _jobFactory;
     private readonly ISchedulerFactory _schedulerFactory;
+    private readonly Faker _faker;
 
     public TestContext TestContext { get; set; }
 
@@ -26,6 +28,41 @@ public sealed class JobScheduleAppServiceTests
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _jobFactory = Substitute.For<IJobFactory>();
         _schedulerFactory = Substitute.For<ISchedulerFactory>();
+        _faker = new Faker();
+    }
+
+    private static Faker<JobSchedule> CreateJobScheduleFaker()
+    {
+        return new Faker<JobSchedule>()
+            .RuleFor(j => j.Id, faker => faker.Random.Guid())
+            .RuleFor(j => j.UserId, faker => faker.Random.Guid())
+            .RuleFor(j => j.CronExpression, faker => faker.PickRandom(
+                "0 0/5 * * * ?",      // Every 5 minutes
+                "0 0 * * * ?",        // Every hour
+                "0 0 0 * * ?",        // Every day at midnight
+                "0 0 0 ? * MON",      // Every Monday
+                "0 0 0 1 * ?",        // First day of month
+                "0 0 0 1 1 ?",        // Every January 1st
+                "0 0 12 * * ?"))      // Every noon
+            .RuleFor(j => j.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(j => j.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+    }
+
+    private static Faker<JobScheduleViewModel> CreateJobScheduleViewModelFaker()
+    {
+        return new Faker<JobScheduleViewModel>()
+            .RuleFor(j => j.Id, faker => faker.Random.Guid())
+            .RuleFor(j => j.UserId, faker => faker.Random.Guid())
+            .RuleFor(j => j.CronExpression, faker => faker.PickRandom(
+                "0 0/5 * * * ?",
+                "0 0 * * * ?",
+                "0 0 0 * * ?",
+                "0 0 0 ? * MON",
+                "0 0 0 1 * ?",
+                "0 0 0 1 1 ?",
+                "0 0 12 * * ?"))
+            .RuleFor(j => j.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(j => j.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
 
     [TestMethod]
@@ -70,14 +107,7 @@ public sealed class JobScheduleAppServiceTests
     {
         // Arrange
         var appService = new JobScheduleAppService(_repository, _schedulerFactory, _jobFactory, _unitOfWork);
-        var viewModel = new JobScheduleViewModel
-        {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            CronExpression = "0 0/5 * * * ?",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+        var viewModel = CreateJobScheduleViewModelFaker().Generate();
 
         // Act
         var result = await appService.AddNewJobAsync(viewModel, TestContext.CancellationToken);
@@ -103,17 +133,11 @@ public sealed class JobScheduleAppServiceTests
     {
         // Arrange
         var appService = new JobScheduleAppService(_repository, _schedulerFactory, _jobFactory, _unitOfWork);
-        var userId = Guid.NewGuid();
-        var jobSchedules = new List<JobSchedule>
-        {
-            new() {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                CronExpression = "0 0/5 * * * ?",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }
-        };
+        var userId = _faker.Random.Guid();
+        var jobSchedules = CreateJobScheduleFaker()
+            .RuleFor(j => j.UserId, userId)
+            .Generate(3)
+            .ToList();
 
         _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(jobSchedules);
 
@@ -138,7 +162,7 @@ public sealed class JobScheduleAppServiceTests
     {
         // Arrange
         var appService = new JobScheduleAppService(_repository, _schedulerFactory, _jobFactory, _unitOfWork);
-        var userId = Guid.NewGuid();
+        var userId = _faker.Random.Guid();
 
         _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
 

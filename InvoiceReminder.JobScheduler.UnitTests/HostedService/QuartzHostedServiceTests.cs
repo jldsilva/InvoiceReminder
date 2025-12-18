@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.JobScheduler.HostedService;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ public sealed class QuartzHostedServiceTests
     private readonly IScheduler _scheduler;
     private readonly List<JobSchedule> _schedules;
     private readonly QuartzHostedService _service;
+    private Faker<JobSchedule> _jobScheduleFaker;
 
     public TestContext TestContext { get; set; }
 
@@ -26,24 +28,33 @@ public sealed class QuartzHostedServiceTests
         _schedulerFactory = Substitute.For<ISchedulerFactory>();
         _jobFactory = Substitute.For<IJobFactory>();
         _scheduler = Substitute.For<IScheduler>();
-        _schedules =
-        [
-            new() {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                CronExpression = "0/5 * * * * ?"
-            }
-        ];
+        _schedules = [];
         _service = Substitute.For<QuartzHostedService>(_logger, _schedulerFactory, _jobFactory, _schedules);
 
         _ = _schedulerFactory.GetScheduler(Arg.Any<CancellationToken>()).Returns(Task.FromResult(_scheduler));
+    }
+
+    [TestInitialize]
+    public void Setup()
+    {
+        InitializeFaker();
+        _schedules.Clear();
+    }
+
+    private void InitializeFaker()
+    {
+        _jobScheduleFaker = new Faker<JobSchedule>()
+            .RuleFor(j => j.Id, _ => Guid.NewGuid())
+            .RuleFor(j => j.UserId, _ => Guid.NewGuid())
+            .RuleFor(j => j.CronExpression, _ => "0/5 * * * * ?");
     }
 
     [TestMethod]
     public async Task ScheduleJobAsync_ShouldScheduleJobAndStartScheduler()
     {
         // Arrange
-        var schedule = _schedules[0];
+        var schedule = _jobScheduleFaker.Generate();
+        _schedules.Add(schedule);
 
         // Act
         await _service.ScheduleJobAsync(schedule, TestContext.CancellationToken);
@@ -73,7 +84,8 @@ public sealed class QuartzHostedServiceTests
     public async Task DeleteJobAsync_ShouldDeleteJobIfExists()
     {
         // Arrange
-        var schedule = _schedules[0];
+        var schedule = _jobScheduleFaker.Generate();
+        _schedules.Add(schedule);
         var jobKey = new JobKey($"{schedule.Id}.job");
 
         _ = _scheduler.CheckExists(jobKey, Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken))
@@ -103,7 +115,8 @@ public sealed class QuartzHostedServiceTests
     public async Task PauseJobAsync_ShouldPauseTriggerAndJob()
     {
         // Arrange
-        var schedule = _schedules[0];
+        var schedule = _jobScheduleFaker.Generate();
+        _schedules.Add(schedule);
 
         // Act
         await _service.PauseJobAsync(schedule, TestContext.CancellationToken);
@@ -131,7 +144,8 @@ public sealed class QuartzHostedServiceTests
     public async Task ResumeJobAsync_ShouldResumeTriggerAndJob()
     {
         // Arrange
-        var schedule = new JobSchedule { Id = Guid.NewGuid() };
+        var schedule = _jobScheduleFaker.Generate();
+        _schedules.Add(schedule);
         var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
 
         // Act
@@ -162,7 +176,10 @@ public sealed class QuartzHostedServiceTests
     [TestMethod]
     public async Task StartAsync_ShouldScheduleAndStartAllSchedules()
     {
-        // Arrange & Act
+        // Arrange
+        _schedules.Add(_jobScheduleFaker.Generate());
+
+        // Act
         await _service.StartAsync(TestContext.CancellationToken);
 
         // Assert
@@ -180,9 +197,12 @@ public sealed class QuartzHostedServiceTests
     public async Task StartAsync_InvalidCronExpression_ShouldLogError()
     {
         // Arrange
-        var schedule = new JobSchedule { Id = Guid.NewGuid(), CronExpression = "invalid cron", UserId = Guid.NewGuid() };
-        var schedules = new List<JobSchedule> { schedule };
-        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, schedules);
+        var schedule = _jobScheduleFaker
+            .RuleFor(j => j.CronExpression, _ => "invalid cron")
+            .Generate();
+
+        _schedules.Add(schedule);
+        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
 
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
@@ -204,7 +224,10 @@ public sealed class QuartzHostedServiceTests
     [TestMethod]
     public async Task StopAsync_ShouldShutdownScheduler()
     {
-        // Arrange & Act
+        // Arrange
+        _schedules.Add(_jobScheduleFaker.Generate());
+
+        // Act
         await _service.StartAsync(TestContext.CancellationToken);
         await _service.StopAsync(TestContext.CancellationToken);
 

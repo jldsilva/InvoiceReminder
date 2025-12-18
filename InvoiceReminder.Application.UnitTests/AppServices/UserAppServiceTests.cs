@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.Application.AppServices;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
@@ -14,6 +15,7 @@ public sealed class UserAppServiceTests
 {
     private readonly IUserRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly Faker _faker;
 
     public TestContext TestContext { get; set; }
 
@@ -21,6 +23,19 @@ public sealed class UserAppServiceTests
     {
         _repository = Substitute.For<IUserRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
+        _faker = new Faker();
+    }
+
+    private static Faker<User> CreateUserFaker()
+    {
+        return new Faker<User>()
+            .RuleFor(u => u.Id, faker => faker.Random.Guid())
+            .RuleFor(u => u.Name, faker => faker.Person.FullName)
+            .RuleFor(u => u.Email, faker => faker.Internet.Email())
+            .RuleFor(u => u.Password, faker => faker.Random.AlphaNumeric(32))
+            .RuleFor(u => u.TelegramChatId, faker => faker.Random.Long(1000000, 9999999999))
+            .RuleFor(u => u.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(u => u.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
 
     [TestMethod]
@@ -43,18 +58,10 @@ public sealed class UserAppServiceTests
     {
         // Arrange
         var appService = new UserAppService(_repository, _unitOfWork);
-        var email = "user@test.com";
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = email,
-            Name = "Test User",
-            Password = "password",
-            JobSchedules = [],
-            ScanEmailDefinitions = [],
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+        var email = _faker.Internet.Email();
+        var user = CreateUserFaker()
+            .RuleFor(u => u.Email, email)
+            .Generate();
 
         _ = _repository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(user);
 
@@ -79,7 +86,7 @@ public sealed class UserAppServiceTests
     {
         // Arrange
         var appService = new UserAppService(_repository, _unitOfWork);
-        var email = "not_existing@test.com";
+        var email = _faker.Internet.Email();
 
         _ = _repository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((User)null);
 

@@ -4,9 +4,18 @@ namespace InvoiceReminder.API.Endpoints;
 
 public class SendMessageEndpoints : IEndpointDefinition
 {
+    private const string basepath = "/api/send_message";
+
     public void RegisterEndpoints(IEndpointRouteBuilder endpoints)
     {
-        _ = endpoints.MapGet("/api/send_message/{id}",
+        var endpoint = endpoints.MapGroup(basepath).WithName("SendMessageEndpoints");
+
+        MapSendMessage(endpoint);
+    }
+
+    private static void MapSendMessage(RouteGroupBuilder endpoint)
+    {
+        _ = endpoint.MapGet("/{id}",
             async (ISendMessageService messageService, CancellationToken ct, Guid id) =>
             {
                 var result = await messageService.SendMessage(id, ct);

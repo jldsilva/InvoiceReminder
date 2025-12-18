@@ -16,6 +16,7 @@
   </ItemGroup>
     
   <ItemGroup>
+    <PackageReference Include="Bogus" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="NSubstitute.Analyzers.CSharp">
       <PrivateAssets>all</PrivateAssets>
