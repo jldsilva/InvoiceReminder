@@ -22,13 +22,13 @@ public sealed class UserExtensionsTests
             .RuleFor(e => e.Bank, faker => faker.Company.CompanyName())
             .RuleFor(e => e.Beneficiary, faker => faker.Company.CompanyName())
             .RuleFor(e => e.Amount, faker => faker.Finance.Amount(100, 10000))
-            .RuleFor(e => e.Barcode, faker => faker.Random.AlphaNumeric(44))
+            .RuleFor(e => e.Barcode, faker => faker.Random.Replace("############################################"))
             .RuleFor(e => e.DueDate, faker => faker.Date.Future().ToUniversalTime());
 
         _jobScheduleFaker = new Faker<JobSchedule>()
             .RuleFor(e => e.Id, faker => faker.Random.Guid())
             .RuleFor(e => e.UserId, faker => faker.Random.Guid())
-            .RuleFor(e => e.CronExpression, faker => "0 9 * * *");
+            .RuleFor(e => e.CronExpression, faker => $"0 {faker.Random.Int(0, 23)} * * *");
 
         _emailAuthTokenFaker = new Faker<EmailAuthToken>()
             .RuleFor(e => e.Id, faker => faker.Random.Guid())

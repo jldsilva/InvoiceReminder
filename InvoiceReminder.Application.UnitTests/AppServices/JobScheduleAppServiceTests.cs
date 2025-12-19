@@ -47,8 +47,8 @@ public sealed class JobScheduleAppServiceTests
             .RuleFor(j => j.Id, faker => faker.Random.Guid())
             .RuleFor(j => j.UserId, faker => faker.Random.Guid())
             .RuleFor(j => j.CronExpression, faker => faker.PickRandom(_validCronExpressions))
-            .RuleFor(j => j.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(j => j.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+            .RuleFor(j => j.CreatedAt, faker => faker.Date.Past(refDate: DateTime.UtcNow).ToUniversalTime())
+            .RuleFor(j => j.UpdatedAt, (faker, j) => faker.Date.Between(j.CreatedAt, DateTime.UtcNow).ToUniversalTime());
     }
 
     private Faker<JobScheduleViewModel> CreateJobScheduleViewModelFaker()
@@ -57,8 +57,8 @@ public sealed class JobScheduleAppServiceTests
             .RuleFor(j => j.Id, faker => faker.Random.Guid())
             .RuleFor(j => j.UserId, faker => faker.Random.Guid())
             .RuleFor(j => j.CronExpression, faker => faker.PickRandom(_validCronExpressions))
-            .RuleFor(j => j.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(j => j.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+            .RuleFor(j => j.CreatedAt, faker => faker.Date.Past(refDate: DateTime.UtcNow).ToUniversalTime())
+            .RuleFor(j => j.UpdatedAt, (faker, j) => faker.Date.Between(j.CreatedAt, DateTime.UtcNow).ToUniversalTime());
     }
 
     [TestMethod]
