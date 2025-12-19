@@ -26,10 +26,16 @@ public sealed class BaseAppServiceTests
         _appService = new BaseAppService<TestEntity, TestEntityViewModel>(_repository, _unitOfWork);
 
         _entityFaker = new Faker<TestEntity>()
-            .RuleFor(e => e.Name, faker => faker.Person.FullName);
+            .RuleFor(e => e.Id, faker => faker.Random.Guid())
+            .RuleFor(e => e.Name, faker => faker.Person.FullName)
+            .RuleFor(e => e.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(e => e.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
 
         _entityViewModelFaker = new Faker<TestEntityViewModel>()
-            .RuleFor(e => e.Name, faker => faker.Person.FullName);
+            .RuleFor(e => e.Id, faker => faker.Random.Guid())
+            .RuleFor(e => e.Name, faker => faker.Person.FullName)
+            .RuleFor(e => e.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(e => e.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
 
     [TestMethod]
@@ -278,10 +284,16 @@ public sealed class BaseAppServiceTests
 
 public sealed class TestEntity
 {
+    public Guid Id { get; set; }
     public string Name { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }
 
 public sealed class TestEntityViewModel
 {
+    public Guid Id { get; set; }
     public string Name { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }

@@ -26,7 +26,7 @@ public sealed class UserAppServiceTests
         _faker = new Faker();
     }
 
-    private static Faker<User> CreateUserFaker()
+    private static Faker<User> CreateFaker()
     {
         return new Faker<User>()
             .RuleFor(u => u.Id, faker => faker.Random.Guid())
@@ -35,7 +35,12 @@ public sealed class UserAppServiceTests
             .RuleFor(u => u.Password, faker => faker.Random.AlphaNumeric(32))
             .RuleFor(u => u.TelegramChatId, faker => faker.Random.Long(1000000, 9999999999))
             .RuleFor(u => u.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(u => u.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+            .RuleFor(u => u.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime())
+            .RuleFor(u => u.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime())
+            .RuleFor(u => u.Invoices, _ => [])
+            .RuleFor(u => u.JobSchedules, _ => [])
+            .RuleFor(u => u.EmailAuthTokens, _ => [])
+            .RuleFor(u => u.ScanEmailDefinitions, _ => []);
     }
 
     [TestMethod]
@@ -58,10 +63,8 @@ public sealed class UserAppServiceTests
     {
         // Arrange
         var appService = new UserAppService(_repository, _unitOfWork);
-        var email = _faker.Internet.Email();
-        var user = CreateUserFaker()
-            .RuleFor(u => u.Email, email)
-            .Generate();
+        var user = CreateFaker().Generate();
+        var email = user.Email;
 
         _ = _repository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(user);
 

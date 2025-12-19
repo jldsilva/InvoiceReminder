@@ -17,7 +17,6 @@ public sealed class ScanEmailDefinitionRepositoryTests
     private readonly CoreDbContext _dbContext;
     private readonly ILogger<ScanEmailDefinitionRepository> _logger;
     private readonly IScanEmailDefinitionRepository _repository;
-    private Faker<ScanEmailDefinition> _scanEmailDefinitionFaker;
 
     public TestContext TestContext { get; set; }
 
@@ -32,15 +31,9 @@ public sealed class ScanEmailDefinitionRepositoryTests
         _repository = Substitute.For<IScanEmailDefinitionRepository>();
     }
 
-    [TestInitialize]
-    public void Setup()
+    private static Faker<ScanEmailDefinition> CreateFaker(Action<Faker<ScanEmailDefinition>> configure = null)
     {
-        InitializeFaker();
-    }
-
-    private void InitializeFaker()
-    {
-        _scanEmailDefinitionFaker = new Faker<ScanEmailDefinition>()
+        var faker = new Faker<ScanEmailDefinition>()
             .RuleFor(s => s.Id, _ => Guid.NewGuid())
             .RuleFor(s => s.UserId, _ => Guid.NewGuid())
             .RuleFor(s => s.InvoiceType, f => f.PickRandom<InvoiceType>())
@@ -48,6 +41,10 @@ public sealed class ScanEmailDefinitionRepositoryTests
             .RuleFor(s => s.Description, f => f.Lorem.Sentence())
             .RuleFor(s => s.SenderEmailAddress, f => f.Internet.Email())
             .RuleFor(s => s.AttachmentFileName, f => f.System.FileName());
+
+        configure?.Invoke(faker);
+
+        return faker;
     }
 
     [TestMethod]
@@ -74,7 +71,7 @@ public sealed class ScanEmailDefinitionRepositoryTests
         // Arrange
         var userId = Guid.NewGuid();
         var beneficiary = new Faker().Company.CompanyName();
-        var scanEmailDefinition = _scanEmailDefinitionFaker
+        var scanEmailDefinition = CreateFaker()
             .RuleFor(s => s.UserId, _ => userId)
             .RuleFor(s => s.Beneficiary, _ => beneficiary)
             .Generate();
@@ -101,7 +98,7 @@ public sealed class ScanEmailDefinitionRepositoryTests
         // Arrange
         var userId = Guid.NewGuid();
         var senderEmail = new Faker().Internet.Email();
-        var scanEmailDefinition = _scanEmailDefinitionFaker
+        var scanEmailDefinition = CreateFaker()
             .RuleFor(s => s.UserId, _ => userId)
             .RuleFor(s => s.SenderEmailAddress, _ => senderEmail)
             .Generate();
@@ -127,7 +124,7 @@ public sealed class ScanEmailDefinitionRepositoryTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var collection = _scanEmailDefinitionFaker
+        var collection = CreateFaker()
             .RuleFor(s => s.UserId, _ => userId)
             .Generate(2);
 

@@ -84,7 +84,7 @@ public class UserEndpoints : IEndpointDefinition
                 var result = await userAppService.AddAsync(userViewModel, ct);
 
                 return result.IsSuccess
-                    ? Results.Created($"{basepath}/{result.Value.Email}", result.Value)
+                    ? Results.Created($"{basepath}/{result.Value.Id}", result.Value)
                     : Results.Problem(result.Error);
             })
             .WithName("CreateUser")
@@ -107,7 +107,7 @@ public class UserEndpoints : IEndpointDefinition
                 var result = await userAppService.BulkInsertAsync(usersViewModel, ct);
 
                 return result.IsSuccess
-                    ? Results.Created($"{basepath}/", result.Value)
+                    ? Results.Created($"{basepath}", result.Value)
                     : Results.Problem(result.Error);
             })
             .WithName("CreateUsers")

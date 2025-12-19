@@ -19,6 +19,7 @@ public sealed class JobScheduleAppServiceTests
     private readonly IJobFactory _jobFactory;
     private readonly ISchedulerFactory _schedulerFactory;
     private readonly Faker _faker;
+    private readonly string[] _validCronExpressions;
 
     public TestContext TestContext { get; set; }
 
@@ -29,38 +30,33 @@ public sealed class JobScheduleAppServiceTests
         _jobFactory = Substitute.For<IJobFactory>();
         _schedulerFactory = Substitute.For<ISchedulerFactory>();
         _faker = new Faker();
+        _validCronExpressions = [
+            "0 0/5 * * * ?",// Every 5 minutes
+            "0 0 * * * ?",  // Every hour
+            "0 0 0 * * ?",  // Every day at midnight
+            "0 0 0 ? * MON",// Every Monday
+            "0 0 0 1 * ?",  // First day of month
+            "0 0 0 1 1 ?",  // Every January 1st
+            "0 0 12 * * ?"  // Every noon
+        ];
     }
 
-    private static Faker<JobSchedule> CreateJobScheduleFaker()
+    private Faker<JobSchedule> CreateJobScheduleFaker()
     {
         return new Faker<JobSchedule>()
             .RuleFor(j => j.Id, faker => faker.Random.Guid())
             .RuleFor(j => j.UserId, faker => faker.Random.Guid())
-            .RuleFor(j => j.CronExpression, faker => faker.PickRandom(
-                "0 0/5 * * * ?",      // Every 5 minutes
-                "0 0 * * * ?",        // Every hour
-                "0 0 0 * * ?",        // Every day at midnight
-                "0 0 0 ? * MON",      // Every Monday
-                "0 0 0 1 * ?",        // First day of month
-                "0 0 0 1 1 ?",        // Every January 1st
-                "0 0 12 * * ?"))      // Every noon
+            .RuleFor(j => j.CronExpression, faker => faker.PickRandom(_validCronExpressions))
             .RuleFor(j => j.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
             .RuleFor(j => j.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
 
-    private static Faker<JobScheduleViewModel> CreateJobScheduleViewModelFaker()
+    private Faker<JobScheduleViewModel> CreateJobScheduleViewModelFaker()
     {
         return new Faker<JobScheduleViewModel>()
             .RuleFor(j => j.Id, faker => faker.Random.Guid())
             .RuleFor(j => j.UserId, faker => faker.Random.Guid())
-            .RuleFor(j => j.CronExpression, faker => faker.PickRandom(
-                "0 0/5 * * * ?",
-                "0 0 * * * ?",
-                "0 0 0 * * ?",
-                "0 0 0 ? * MON",
-                "0 0 0 1 * ?",
-                "0 0 0 1 1 ?",
-                "0 0 12 * * ?"))
+            .RuleFor(j => j.CronExpression, faker => faker.PickRandom(_validCronExpressions))
             .RuleFor(j => j.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
             .RuleFor(j => j.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
