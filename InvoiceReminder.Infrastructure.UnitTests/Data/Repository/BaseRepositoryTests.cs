@@ -207,7 +207,7 @@ public sealed class BaseRepositoryTests
         _ = await repository.AddAsync(entity, TestContext.CancellationToken);
         _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
-        entity.Name = new Faker().Name.FullName();
+        entity.Name = _testEntityFaker.Generate().Name;
 
         // Act
         var updatedEntity = repository.Update(entity);
@@ -238,7 +238,7 @@ public sealed class BaseRepositoryTests
         _ = context.Attach(entity);
         context.Entry(entity).State = EntityState.Detached;
 
-        entity.Name = new Faker().Name.FullName();
+        entity.Name = _testEntityFaker.Generate().Name;
 
         // Act
         var updatedEntity = repository.Update(entity);
