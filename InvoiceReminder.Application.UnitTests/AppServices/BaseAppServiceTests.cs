@@ -172,7 +172,7 @@ public sealed class BaseAppServiceTests
         _ = _repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(entity);
 
         // Act
-        var result = await _appService.GetByIdAsync(Guid.NewGuid(), TestContext.CancellationToken);
+        var result = await _appService.GetByIdAsync(entity.Id, TestContext.CancellationToken);
 
         // Assert
         _ = _repository.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());

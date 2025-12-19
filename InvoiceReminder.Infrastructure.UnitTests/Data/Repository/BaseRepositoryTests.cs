@@ -207,8 +207,7 @@ public sealed class BaseRepositoryTests
         _ = await repository.AddAsync(entity, TestContext.CancellationToken);
         _ = await context.SaveChangesAsync(TestContext.CancellationToken);
 
-        var updatedName = _testEntityFaker.Generate().Name;
-        entity.Name = updatedName;
+        entity.Name = new Faker().Name.FullName();
 
         // Act
         var updatedEntity = repository.Update(entity);
@@ -221,7 +220,7 @@ public sealed class BaseRepositoryTests
         retrievedEntity.ShouldSatisfyAllConditions(() =>
         {
             _ = retrievedEntity.ShouldNotBeNull();
-            retrievedEntity.Name.ShouldBe(updatedName);
+            retrievedEntity.Name.ShouldBe(entity.Name);
         });
     }
 
@@ -239,8 +238,7 @@ public sealed class BaseRepositoryTests
         _ = context.Attach(entity);
         context.Entry(entity).State = EntityState.Detached;
 
-        var updatedName = _testEntityFaker.Generate().Name;
-        entity.Name = updatedName;
+        entity.Name = new Faker().Name.FullName();
 
         // Act
         var updatedEntity = repository.Update(entity);
@@ -253,7 +251,7 @@ public sealed class BaseRepositoryTests
         retrievedEntity.ShouldSatisfyAllConditions(() =>
         {
             _ = retrievedEntity.ShouldNotBeNull();
-            retrievedEntity.Name.ShouldBe(updatedName);
+            retrievedEntity.Name.ShouldBe(entity.Name);
         });
     }
 
