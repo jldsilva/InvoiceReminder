@@ -261,12 +261,16 @@ public sealed class BaseRepositoryTests
     public async Task Where_Should_ReturnEntitiesMatchingPredicate()
     {
         // Arrange
-        var entities = new List<TestEntity>
-        {
-            _testEntityFaker.RuleFor(e => e.Name, _ => "Test1").Generate(),
-            _testEntityFaker.RuleFor(e => e.Name, _ => "AnotherTest").Generate(),
-            _testEntityFaker.RuleFor(e => e.Name, _ => "Test2").Generate()
-        };
+        var entity1 = _testEntityFaker.Generate();
+        entity1.Name = "Test1";
+
+        var entity2 = _testEntityFaker.Generate();
+        entity2.Name = "AnotherTest";
+
+        var entity3 = _testEntityFaker.Generate();
+        entity3.Name = "Test2";
+
+        var entities = new List<TestEntity> { entity1, entity2, entity3 };
 
         using var context = CreateContext();
         context.TestEntities.AddRange(entities);
