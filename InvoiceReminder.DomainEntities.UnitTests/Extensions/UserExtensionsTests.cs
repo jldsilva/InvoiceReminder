@@ -1,5 +1,6 @@
 using Bogus;
 using InvoiceReminder.Domain.Entities;
+using InvoiceReminder.Domain.Enums;
 using InvoiceReminder.Domain.Extensions;
 using Shouldly;
 
@@ -16,19 +17,39 @@ public sealed class UserExtensionsTests
     public UserExtensionsTests()
     {
         _invoiceFaker = new Faker<Invoice>()
-            .RuleFor(e => e.Id, faker => faker.Random.Guid());
+            .RuleFor(e => e.Id, faker => faker.Random.Guid())
+            .RuleFor(e => e.UserId, faker => faker.Random.Guid())
+            .RuleFor(e => e.Bank, faker => faker.Company.CompanyName())
+            .RuleFor(e => e.Beneficiary, faker => faker.Company.CompanyName())
+            .RuleFor(e => e.Amount, faker => faker.Finance.Amount(100, 10000))
+            .RuleFor(e => e.Barcode, faker => faker.Random.AlphaNumeric(44))
+            .RuleFor(e => e.DueDate, faker => faker.Date.Future().ToUniversalTime());
 
         _jobScheduleFaker = new Faker<JobSchedule>()
-            .RuleFor(e => e.Id, faker => faker.Random.Guid());
+            .RuleFor(e => e.Id, faker => faker.Random.Guid())
+            .RuleFor(e => e.UserId, faker => faker.Random.Guid())
+            .RuleFor(e => e.CronExpression, faker => "0 9 * * *");
 
         _emailAuthTokenFaker = new Faker<EmailAuthToken>()
-            .RuleFor(e => e.Id, faker => faker.Random.Guid());
+            .RuleFor(e => e.Id, faker => faker.Random.Guid())
+            .RuleFor(e => e.UserId, faker => faker.Random.Guid())
+            .RuleFor(e => e.AccessToken, faker => faker.Random.AlphaNumeric(256))
+            .RuleFor(e => e.RefreshToken, faker => faker.Random.AlphaNumeric(256))
+            .RuleFor(e => e.NonceValue, faker => faker.Random.AlphaNumeric(32))
+            .RuleFor(e => e.TokenProvider, faker => faker.PickRandom("Google", "Microsoft", "Yahoo"))
+            .RuleFor(e => e.AccessTokenExpiry, faker => faker.Date.Future().ToUniversalTime());
 
         _scanEmailDefinitionFaker = new Faker<ScanEmailDefinition>()
-            .RuleFor(e => e.Id, faker => faker.Random.Guid());
+            .RuleFor(e => e.Id, faker => faker.Random.Guid())
+            .RuleFor(e => e.UserId, faker => faker.Random.Guid())
+            .RuleFor(e => e.InvoiceType, faker => faker.PickRandom(InvoiceType.AccountInvoice, InvoiceType.BankInvoice))
+            .RuleFor(e => e.Beneficiary, faker => faker.Company.CompanyName())
+            .RuleFor(e => e.Description, faker => faker.Lorem.Sentence())
+            .RuleFor(e => e.SenderEmailAddress, faker => faker.Internet.Email())
+            .RuleFor(e => e.AttachmentFileName, faker => faker.System.FileName());
     }
 
-    private static Faker<User> UserFaker(
+    private static Faker<User> CreateFaker(
         ICollection<Invoice> invoices = default,
         ICollection<JobSchedule> jobSchedules = default,
         ICollection<EmailAuthToken> emailAuthTokens = default,
@@ -37,10 +58,13 @@ public sealed class UserExtensionsTests
         return new Faker<User>()
             .RuleFor(e => e.Id, faker => faker.Random.Guid())
             .RuleFor(e => e.Name, faker => faker.Person.FullName)
-            .RuleFor(u => u.Invoices, faker => invoices ?? new HashSet<Invoice>())
-            .RuleFor(u => u.JobSchedules, faker => jobSchedules ?? new HashSet<JobSchedule>())
-            .RuleFor(u => u.EmailAuthTokens, faker => emailAuthTokens ?? new HashSet<EmailAuthToken>())
-            .RuleFor(u => u.ScanEmailDefinitions, faker => scanEmailDefinitions ?? new HashSet<ScanEmailDefinition>());
+            .RuleFor(e => e.Email, faker => faker.Internet.Email())
+            .RuleFor(e => e.Password, faker => faker.Internet.Password())
+            .RuleFor(e => e.TelegramChatId, faker => faker.Random.Long(1))
+            .RuleFor(u => u.Invoices, _ => invoices ?? [])
+            .RuleFor(u => u.JobSchedules, _ => jobSchedules ?? [])
+            .RuleFor(u => u.EmailAuthTokens, _ => emailAuthTokens ?? [])
+            .RuleFor(u => u.ScanEmailDefinitions, _ => scanEmailDefinitions ?? []);
     }
 
     [TestMethod]
@@ -48,7 +72,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = UserFaker().Generate();
+        var user = CreateFaker().Generate();
         var parameters = new UserParameters();
 
         // Act
@@ -75,7 +99,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = UserFaker().Generate();
+        var user = CreateFaker().Generate();
         var invoice = _invoiceFaker.Generate();
         var parameters = new UserParameters { Invoice = invoice };
 
@@ -103,7 +127,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = UserFaker().Generate();
+        var user = CreateFaker().Generate();
         var jobSchedule = _jobScheduleFaker.Generate();
         var parameters = new UserParameters { JobSchedule = jobSchedule };
 
@@ -131,7 +155,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = UserFaker().Generate();
+        var user = CreateFaker().Generate();
         var emailAuthToken = _emailAuthTokenFaker.Generate();
         var parameters = new UserParameters { EmailAuthToken = emailAuthToken };
 
@@ -159,7 +183,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = UserFaker().Generate();
+        var user = CreateFaker().Generate();
         var scanEmailDefinition = _scanEmailDefinitionFaker.Generate();
         var parameters = new UserParameters { ScanEmailDefinition = scanEmailDefinition };
 
@@ -186,7 +210,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var existingInvoice = _invoiceFaker.Generate();
-        var existingUser = UserFaker(invoices: [existingInvoice]).Generate();
+        var existingUser = CreateFaker(invoices: [existingInvoice]).Generate();
         var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var newInvoice = _invoiceFaker.Generate();
@@ -219,7 +243,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var existingJobSchedule = _jobScheduleFaker.Generate();
-        var existingUser = UserFaker(jobSchedules: [existingJobSchedule]).Generate();
+        var existingUser = CreateFaker(jobSchedules: [existingJobSchedule]).Generate();
         var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var newJobSchedule = _jobScheduleFaker.Generate();
@@ -252,7 +276,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var existingEmailAuthToken = _emailAuthTokenFaker.Generate();
-        var existingUser = UserFaker(emailAuthTokens: [existingEmailAuthToken]).Generate();
+        var existingUser = CreateFaker(emailAuthTokens: [existingEmailAuthToken]).Generate();
         var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var newEmailAuthToken = _emailAuthTokenFaker.Generate();
@@ -285,7 +309,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var existingScanEmailDefinition = _scanEmailDefinitionFaker.Generate();
-        var existingUser = UserFaker(scanEmailDefinitions: [existingScanEmailDefinition]).Generate();
+        var existingUser = CreateFaker(scanEmailDefinitions: [existingScanEmailDefinition]).Generate();
         var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var newScanEmailDefinition = _scanEmailDefinitionFaker.Generate();
@@ -318,7 +342,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var existingInvoice = _invoiceFaker.Generate();
-        var existingUser = UserFaker(invoices: [existingInvoice]).Generate();
+        var existingUser = CreateFaker(invoices: [existingInvoice]).Generate();
         var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var parameters = new UserParameters { Invoice = existingInvoice };
@@ -346,7 +370,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var existingJobSchedule = _jobScheduleFaker.Generate();
-        var existingUser = UserFaker(jobSchedules: [existingJobSchedule]).Generate();
+        var existingUser = CreateFaker(jobSchedules: [existingJobSchedule]).Generate();
         var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var parameters = new UserParameters { JobSchedule = existingJobSchedule };
@@ -374,7 +398,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var existingEmailAuthToken = _emailAuthTokenFaker.Generate();
-        var existingUser = UserFaker(emailAuthTokens: [existingEmailAuthToken]).Generate();
+        var existingUser = CreateFaker(emailAuthTokens: [existingEmailAuthToken]).Generate();
         var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var parameters = new UserParameters { EmailAuthToken = existingEmailAuthToken };
@@ -402,7 +426,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var existingScanEmailDefinition = _scanEmailDefinitionFaker.Generate();
-        var existingUser = UserFaker(scanEmailDefinitions: [existingScanEmailDefinition]).Generate();
+        var existingUser = CreateFaker(scanEmailDefinitions: [existingScanEmailDefinition]).Generate();
         var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var parameters = new UserParameters { ScanEmailDefinition = existingScanEmailDefinition };
@@ -430,7 +454,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = UserFaker().Generate();
+        var user = CreateFaker().Generate();
         var invoice = _invoiceFaker.Generate();
         var jobSchedule = _jobScheduleFaker.Generate();
         var scanEmailDefinition = _scanEmailDefinitionFaker.Generate();
@@ -473,7 +497,7 @@ public sealed class UserExtensionsTests
     public void Handle_ExistingUserWithNullCollections_AddsNewItems()
     {
         // Arrange
-        var existingUser = UserFaker().Generate();
+        var existingUser = CreateFaker().Generate();
         var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
         var newUserReference = existingUser;
         var invoice = _invoiceFaker.Generate();
@@ -524,12 +548,12 @@ public sealed class UserExtensionsTests
         // Arrange
         var existingInvoice = _invoiceFaker.Generate();
         var existingJobSchedule = _jobScheduleFaker.Generate();
-        var exitingEmailAuthToken = _emailAuthTokenFaker.Generate();
+        var existingEmailAuthToken = _emailAuthTokenFaker.Generate();
         var existingScanEmailDefinition = _scanEmailDefinitionFaker.Generate();
-        var existingUser = UserFaker(
+        var existingUser = CreateFaker(
             invoices: [existingInvoice],
             jobSchedules: [existingJobSchedule],
-            emailAuthTokens: [exitingEmailAuthToken],
+            emailAuthTokens: [existingEmailAuthToken],
             scanEmailDefinitions: [existingScanEmailDefinition])
             .Generate();
         var result = new Dictionary<Guid, User> { { existingUser.Id, existingUser } };
@@ -551,7 +575,7 @@ public sealed class UserExtensionsTests
             result.ShouldContainKey(existingUser.Id);
             result[existingUser.Id].Invoices.ShouldContain(existingInvoice);
             result[existingUser.Id].JobSchedules.ShouldContain(existingJobSchedule);
-            result[existingUser.Id].EmailAuthTokens.ShouldContain(exitingEmailAuthToken);
+            result[existingUser.Id].EmailAuthTokens.ShouldContain(existingEmailAuthToken);
             result[existingUser.Id].ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
             result[existingUser.Id].Invoices.Count.ShouldBe(1);
             result[existingUser.Id].JobSchedules.Count.ShouldBe(1);
@@ -567,7 +591,7 @@ public sealed class UserExtensionsTests
             newUserReference.ScanEmailDefinitions.Count.ShouldBe(1);
             newUserReference.Invoices.ShouldContain(existingInvoice);
             newUserReference.JobSchedules.ShouldContain(existingJobSchedule);
-            newUserReference.EmailAuthTokens.ShouldContain(exitingEmailAuthToken);
+            newUserReference.EmailAuthTokens.ShouldContain(existingEmailAuthToken);
             newUserReference.ScanEmailDefinitions.ShouldContain(existingScanEmailDefinition);
         });
     }
@@ -577,7 +601,7 @@ public sealed class UserExtensionsTests
     {
         // Arrange
         var result = new Dictionary<Guid, User>();
-        var user = UserFaker().Generate();
+        var user = CreateFaker().Generate();
         var parameters = new UserParameters
         {
             Invoice = null,

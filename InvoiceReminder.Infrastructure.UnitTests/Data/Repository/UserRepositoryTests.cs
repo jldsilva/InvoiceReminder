@@ -16,7 +16,6 @@ public sealed class UserRepositoryTests
     private readonly CoreDbContext _dbContext;
     private readonly ILogger<UserRepository> _logger;
     private readonly IUserRepository _repository;
-    private Faker<User> _userFaker;
 
     public TestContext TestContext { get; set; }
 
@@ -31,15 +30,9 @@ public sealed class UserRepositoryTests
         _repository = Substitute.For<IUserRepository>();
     }
 
-    [TestInitialize]
-    public void Setup()
+    private static Faker<User> CreateFaker()
     {
-        InitializeFaker();
-    }
-
-    private void InitializeFaker()
-    {
-        _userFaker = new Faker<User>()
+        return new Faker<User>()
             .RuleFor(u => u.Id, _ => Guid.NewGuid())
             .RuleFor(u => u.TelegramChatId, f => f.Random.Long(100000000, long.MaxValue))
             .RuleFor(u => u.Name, f => f.Person.FullName)
@@ -70,7 +63,7 @@ public sealed class UserRepositoryTests
     {
         // Arrange
         var email = new Faker().Internet.Email();
-        var user = _userFaker
+        var user = CreateFaker()
             .RuleFor(u => u.Email, _ => email)
             .Generate();
 
@@ -95,7 +88,7 @@ public sealed class UserRepositoryTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var user = _userFaker
+        var user = CreateFaker()
             .RuleFor(u => u.Id, _ => userId)
             .Generate();
 

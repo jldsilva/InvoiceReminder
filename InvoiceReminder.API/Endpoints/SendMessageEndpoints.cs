@@ -22,7 +22,11 @@ public class SendMessageEndpoints : IEndpointDefinition
 
                 return !string.IsNullOrEmpty(result)
                     ? Results.Ok(result)
-                    : Results.Problem(result);
+                    : Results.Problem(
+                        statusCode: StatusCodes.Status500InternalServerError,
+                        title: "Erro ao enviar mensagem",
+                        detail: "O serviço não retornou um resultado válido."
+                    );
             })
             .WithName("SendMessage")
             .RequireAuthorization()

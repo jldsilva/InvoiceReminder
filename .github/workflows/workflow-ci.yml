@@ -22,6 +22,14 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
+    - name: Set UTF-8 locale
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y locales
+        sudo locale-gen en_US.UTF-8
+        export LANG=en_US.UTF-8
+        export LC_ALL=en_US.UTF-8
+
     - name: Restore dependencies
       run: dotnet restore
 

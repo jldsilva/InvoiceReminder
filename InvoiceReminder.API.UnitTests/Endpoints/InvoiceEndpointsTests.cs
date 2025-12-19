@@ -142,7 +142,7 @@ public sealed class InvoiceEndpointsTests
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<InvoiceViewModel>.Success(
-            _invoiceViewModelFaker.RuleFor(i => i.Id, id).Generate());
+            _invoiceViewModelFaker.Clone().RuleFor(i => i.Id, id).Generate());
 
         _ = _invoiceAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
@@ -271,7 +271,7 @@ public sealed class InvoiceEndpointsTests
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<InvoiceViewModel>.Success(
-            _invoiceViewModelFaker.RuleFor(i => i.Barcode, barcode).Generate());
+            _invoiceViewModelFaker.Clone().RuleFor(i => i.Barcode, barcode).Generate());
 
         _ = _invoiceAppService.GetByBarcodeAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
