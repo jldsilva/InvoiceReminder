@@ -53,7 +53,7 @@ jobs:
 
         for PROJ in $TEST_PROJECTS; do
           echo "▶️ Executando testes do projeto: $PROJ"
-          dotnet test "$PROJ" --no-build --configuration Debug \
+          dotnet test --project "$PROJ" --no-build --configuration Debug \
             --logger "trx;LogFileName=$(basename "$PROJ" .csproj).trx" \
             --results-directory "$(dirname "$PROJ")/TestResults" || FAIL=1
         done
