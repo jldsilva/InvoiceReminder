@@ -43,7 +43,7 @@ public sealed class BarcodeReaderServiceTests
                 "BTG Pactual"))
             .RuleFor(i => i.Beneficiary, faker => faker.Company.CompanyName())
             .RuleFor(i => i.Amount, faker => faker.Finance.Amount(10, 10000))
-            .RuleFor(i => i.Barcode, faker => faker.Random.AlphaNumeric(44))
+            .RuleFor(i => i.Barcode, faker => faker.Random.AlphaNumeric(47))
             .RuleFor(i => i.DueDate, faker => faker.Date.Future().ToUniversalTime())
             .RuleFor(i => i.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
             .RuleFor(i => i.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
