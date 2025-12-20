@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.API.UnitTests.Factories;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
@@ -22,6 +23,8 @@ public sealed class UserEndpointsTests
     private readonly HttpClient _client;
     private readonly IAuthorizationService _authorizationService;
     private readonly IUserAppService _userAppService;
+    private readonly Faker<UserViewModel> _userViewModelFaker;
+    private readonly Faker _faker;
     private const string basepath = "/api/user";
 
     public TestContext TestContext { get; set; }
@@ -34,6 +37,16 @@ public sealed class UserEndpointsTests
         _client = factory.CreateClient();
         _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
         _userAppService = serviceProvider.GetRequiredService<IUserAppService>();
+        _faker = new Faker();
+
+        _userViewModelFaker = new Faker<UserViewModel>()
+            .RuleFor(u => u.Id, faker => faker.Random.Guid())
+            .RuleFor(u => u.Name, faker => faker.Person.FullName)
+            .RuleFor(u => u.Email, faker => faker.Internet.Email())
+            .RuleFor(u => u.Password, faker => faker.Internet.Password())
+            .RuleFor(u => u.TelegramChatId, faker => faker.Random.Long(1))
+            .RuleFor(u => u.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(u => u.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
 
     #region MapGet Tests
@@ -44,27 +57,8 @@ public sealed class UserEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var expectedResult = Result<IEnumerable<UserViewModel>>.Success(
-        [
-            new() {
-                Id = Guid.NewGuid(),
-                Name = "Test User_A",
-                Email = "test_user_a@mail.com",
-                Password = "test_password",
-                TelegramChatId = 123456789,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new() {
-                Id = Guid.NewGuid(),
-                Name = "Test User_B",
-                Email = "test_user_b@mail.com",
-                Password = "test_password",
-                TelegramChatId = 987654321,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }
-        ]);
+        var users = _userViewModelFaker.Generate(2);
+        var expectedResult = Result<IEnumerable<UserViewModel>>.Success(users);
 
         _ = _userAppService.GetAll().Returns(expectedResult);
 
@@ -138,16 +132,7 @@ public sealed class UserEndpointsTests
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<UserViewModel>.Success(
-        new()
-        {
-            Id = id,
-            Name = "Test User_A",
-            Email = "test_user_a@mail.com",
-            Password = "test_password",
-            TelegramChatId = 123456789,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        });
+            _userViewModelFaker.Clone().RuleFor(u => u.Id, id).Generate());
 
         _ = _userAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
@@ -271,21 +256,12 @@ public sealed class UserEndpointsTests
     public async Task GetUserByEmail_WhenUserIsAuthenticated_ShouldReturnOk()
     {
         // Arrange
-        var value = "test_user@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{value}");
+        var email = _faker.Internet.Email();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{email}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<UserViewModel>.Success(
-        new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test User_A",
-            Email = "test_user_a@mail.com",
-            Password = "test_password",
-            TelegramChatId = 123456789,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        });
+            _userViewModelFaker.Clone().RuleFor(u => u.Email, email).Generate());
 
         _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
@@ -310,8 +286,8 @@ public sealed class UserEndpointsTests
     public async Task GetUserByEmail_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var value = "test_user@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{value}");
+        var email = _faker.Internet.Email();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{email}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -328,8 +304,8 @@ public sealed class UserEndpointsTests
     public async Task GetUserByEmail_WhenUserIsAuthenticatedButServiceFails_ShouldReturnBadRequest()
     {
         // Arrange
-        var value = "test_user@mail_com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{value}");
+        var email = _faker.Internet.Email();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{email}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -355,8 +331,8 @@ public sealed class UserEndpointsTests
     public async Task GetUserByEmail_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var value = "test_user@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{value}");
+        var email = _faker.Internet.Email();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{email}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -382,11 +358,11 @@ public sealed class UserEndpointsTests
     public async Task GetUserByEmail_WhenUserIsAuthenticatedButNotExists_ShouldReturnNotFound()
     {
         // Arrange
-        var value = "test_user@mail.com";
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{value}");
+        var email = _faker.Internet.Email();
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-email/{email}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var expectedResult = Result<UserViewModel>.Failure($"User not found.");
+        var expectedResult = Result<UserViewModel>.Failure("User not found.");
 
         _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
 
@@ -417,20 +393,11 @@ public sealed class UserEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var userViewModel = new UserViewModel
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test User_A",
-            Email = "test_user_a@mail.com",
-            Password = "test_password",
-            TelegramChatId = 123456789,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var userViewModel = _userViewModelFaker.Generate();
         var expectedResult = Result<UserViewModel>.Success(userViewModel);
 
-        _ = _userAppService.AddAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
+        _ = _userAppService.AddAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -473,20 +440,11 @@ public sealed class UserEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var userViewModel = new UserViewModel
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test User_A",
-            Email = "test_user_a@mail.com",
-            Password = "test_password",
-            TelegramChatId = 123456789,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var userViewModel = _userViewModelFaker.Generate();
         var expectedResult = Result<UserViewModel>.Failure("Service error");
 
-        _ = _userAppService.AddAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
+        _ = _userAppService.AddAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -512,28 +470,7 @@ public sealed class UserEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Post, $"{basepath}/bulk-insert");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var usersViewModel = new List<UserViewModel>(
-        [
-            new() {
-                Id = Guid.NewGuid(),
-                Name = "Test User_A",
-                Email = "test_user_a@mail.com",
-                Password = "test_password",
-                TelegramChatId = 123456789,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new() {
-                Id = Guid.NewGuid(),
-                Name = "Test User_B",
-                Email = "test_user_b@mail.com",
-                Password = "test_password",
-                TelegramChatId = 987654321,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }
-        ]);
-
+        var usersViewModel = _userViewModelFaker.Generate(2);
         var expectedResult = Result<int>.Success(usersViewModel.Count);
 
         _ = _userAppService.BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>(), Arg.Any<CancellationToken>())
@@ -580,28 +517,7 @@ public sealed class UserEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Post, $"{basepath}/bulk-insert");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var usersViewModel = new List<UserViewModel>(
-        [
-            new() {
-                Id = Guid.NewGuid(),
-                Name = "Test User_A",
-                Email = "test_user_a@mail.com",
-                Password = "test_password",
-                TelegramChatId = 123456789,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new() {
-                Id = Guid.NewGuid(),
-                Name = "Test User_B",
-                Email = "test_user_b@mail.com",
-                Password = "test_password",
-                TelegramChatId = 987654321,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }
-        ]);
-
+        var usersViewModel = _userViewModelFaker.Generate(2);
         var expectedResult = Result<int>.Failure("Service error");
 
         _ = _userAppService.BulkInsertAsync(Arg.Any<ICollection<UserViewModel>>(), Arg.Any<CancellationToken>())
@@ -632,24 +548,14 @@ public sealed class UserEndpointsTests
     public async Task UpdateUser_WhenUserIsAuthenticated_ShouldReturnOk()
     {
         // Arrange
-        var id = Guid.NewGuid();
         var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var userViewModel = new UserViewModel
-        {
-            Id = id,
-            Name = "Test User_A",
-            Email = "test_user_a@mail.com",
-            Password = "test_password",
-            TelegramChatId = 123456789,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var userViewModel = _userViewModelFaker.Generate();
         var expectedResult = Result<UserViewModel>.Success(userViewModel);
 
-        _ = _userAppService.UpdateAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
+        _ = _userAppService.UpdateAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -689,24 +595,14 @@ public sealed class UserEndpointsTests
     public async Task UpdateUser_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
-        var id = Guid.NewGuid();
         var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var userViewModel = new UserViewModel
-        {
-            Id = id,
-            Name = "Test User_A",
-            Email = "test_user_a@mail.com",
-            Password = "test_password",
-            TelegramChatId = 123456789,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var userViewModel = _userViewModelFaker.Generate();
         var expectedResult = Result<UserViewModel>.Failure("Service error");
 
-        _ = _userAppService.UpdateAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
+        _ = _userAppService.UpdateAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -738,7 +634,9 @@ public sealed class UserEndpointsTests
 
         var expectedResult = Result<UserViewModel>.Success(null);
 
-        _ = _userAppService.RemoveAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
+        _ = _userAppService.RemoveAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
+
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
             .Returns(Task.FromResult(AuthorizationResult.Success()));
@@ -781,7 +679,8 @@ public sealed class UserEndpointsTests
 
         var expectedResult = Result<UserViewModel>.Failure("Service error");
 
-        _ = _userAppService.RemoveAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>()).Returns(expectedResult);
+        _ = _userAppService.RemoveAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())

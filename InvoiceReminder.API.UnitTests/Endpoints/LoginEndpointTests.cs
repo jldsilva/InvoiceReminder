@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.API.AuthenticationSetup;
 using InvoiceReminder.API.UnitTests.Factories;
 using InvoiceReminder.Application.Interfaces;
@@ -23,6 +24,9 @@ public sealed class LoginEndpointTests
     private readonly HttpClient _client;
     private readonly IJwtProvider _jwtProvider;
     private readonly IUserAppService _userAppService;
+    private readonly Faker<UserViewModel> _userViewModelFaker;
+    private readonly Faker<LoginRequest> _loginRequestFaker;
+    private readonly Faker _faker;
     private const string basepath = "/api/login";
 
     public TestContext TestContext { get; set; }
@@ -35,6 +39,20 @@ public sealed class LoginEndpointTests
         _client = factory.CreateClient();
         _jwtProvider = serviceProvider.GetRequiredService<IJwtProvider>();
         _userAppService = serviceProvider.GetRequiredService<IUserAppService>();
+        _faker = new Faker();
+
+        _userViewModelFaker = new Faker<UserViewModel>()
+            .RuleFor(u => u.Id, faker => faker.Random.Guid())
+            .RuleFor(u => u.Name, faker => faker.Person.FullName)
+            .RuleFor(u => u.Email, faker => faker.Internet.Email())
+            .RuleFor(u => u.Password, faker => faker.Internet.Password().ToSHA256())
+            .RuleFor(u => u.TelegramChatId, faker => faker.Random.Long(1))
+            .RuleFor(u => u.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(u => u.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+
+        _loginRequestFaker = new Faker<LoginRequest>()
+            .RuleFor(l => l.Email, faker => faker.Internet.Email())
+            .RuleFor(l => l.Password, faker => faker.Internet.Password());
     }
 
     [TestMethod]
@@ -42,18 +60,17 @@ public sealed class LoginEndpointTests
     {
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
+        var password = _faker.Internet.Password();
+
+        var expectedUser = _userViewModelFaker
+            .Clone()
+            .RuleFor(u => u.Password, password.ToSHA256())
+            .Generate();
 
         var loginRequest = new LoginRequest
         {
-            Email = "test@example.com",
-            Password = "password"
-        };
-
-        var expectedUser = new UserViewModel
-        {
-            Id = Guid.NewGuid(),
-            Email = "test@example.com",
-            Password = "password".ToSHA256()
+            Email = expectedUser.Email,
+            Password = password
         };
 
         var expectedJwtObject = new JwtObject
@@ -93,11 +110,7 @@ public sealed class LoginEndpointTests
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
-        var loginRequest = new LoginRequest
-        {
-            Email = "invalid@example.com",
-            Password = "password"
-        };
+        var loginRequest = _loginRequestFaker.Generate();
 
         var expectedJwtObject = new JwtObject
         {
@@ -133,17 +146,12 @@ public sealed class LoginEndpointTests
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
+        var expectedUser = _userViewModelFaker.Generate();
+
         var loginRequest = new LoginRequest
         {
-            Email = "test@example.com",
-            Password = "wrong_password"
-        };
-
-        var expectedUser = new UserViewModel
-        {
-            Id = Guid.NewGuid(),
-            Email = "test@example.com",
-            Password = "password".ToSHA256()
+            Email = expectedUser.Email,
+            Password = _faker.Internet.Password()
         };
 
         var expectedJwtObject = new JwtObject
@@ -211,11 +219,7 @@ public sealed class LoginEndpointTests
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
-        var loginRequest = new LoginRequest
-        {
-            Email = "test@example.com",
-            Password = "password"
-        };
+        var loginRequest = _loginRequestFaker.Generate();
 
         _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new Exception("Service error"));

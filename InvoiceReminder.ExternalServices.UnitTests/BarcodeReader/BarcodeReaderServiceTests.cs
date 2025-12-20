@@ -1,3 +1,4 @@
+using Bogus;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.Domain.Enums;
 using InvoiceReminder.ExternalServices.BarcodeReader;
@@ -16,6 +17,8 @@ public sealed class BarcodeReaderServiceTests
     private readonly ILogger<BarcodeReaderService> _logger;
     private readonly IInvoiceBarcodeHandler _barcodeHandler;
     private readonly BarcodeReaderService _barcodeReaderService;
+    private readonly Faker<Invoice> _invoiceFaker;
+    private readonly Faker _faker;
     private readonly string _accountBarcode;
     private readonly string _bankBarcode;
 
@@ -24,6 +27,27 @@ public sealed class BarcodeReaderServiceTests
         _logger = Substitute.For<ILogger<BarcodeReaderService>>();
         _barcodeHandler = Substitute.For<IInvoiceBarcodeHandler>();
         _barcodeReaderService = new BarcodeReaderService(_logger);
+        _faker = new Faker();
+
+        _invoiceFaker = new Faker<Invoice>()
+            .RuleFor(i => i.Id, faker => faker.Random.Guid())
+            .RuleFor(i => i.UserId, faker => faker.Random.Guid())
+            .RuleFor(i => i.Bank, faker => faker.PickRandom(
+                "Banco do Brasil",
+                "Bradesco",
+                "Itaú",
+                "Caixa Econômica Federal",
+                "Santander",
+                "Safra",
+                "Citibank",
+                "BTG Pactual"))
+            .RuleFor(i => i.Beneficiary, faker => faker.Company.CompanyName())
+            .RuleFor(i => i.Amount, faker => faker.Finance.Amount(10, 10000))
+            .RuleFor(i => i.Barcode, faker => faker.Random.AlphaNumeric(44))
+            .RuleFor(i => i.DueDate, faker => faker.Date.Future().ToUniversalTime())
+            .RuleFor(i => i.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(i => i.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+
         _accountBarcode = "83670000000 0 27540221202 9 50407000000 6 00001559022 7";
         _bankBarcode = "341-7\n34191.09008 14292.880391 20803.050002 4 10770000016165";
     }
@@ -33,11 +57,11 @@ public sealed class BarcodeReaderServiceTests
     {
         // Arrange
         var invalidPdfData = Array.Empty<byte>();
-        var beneficiary = "Test Beneficiary";
+        var beneficiary = _faker.Company.CompanyName();
 
         // Act && Assert
         _ = Should.Throw<ArgumentException>(() =>
-        _barcodeReaderService.ReadTextContentFromPdf(invalidPdfData, beneficiary, InvoiceType.BankInvoice));
+            _barcodeReaderService.ReadTextContentFromPdf(invalidPdfData, beneficiary, InvoiceType.BankInvoice));
     }
 
     [TestMethod]
@@ -45,25 +69,22 @@ public sealed class BarcodeReaderServiceTests
     {
         // Arrange
         var pdfData = CreatePdfInMemory(InvoiceType.AccountInvoice);
-        var beneficiary = "Test Beneficiary";
+        var expectedInvoice = _invoiceFaker.Generate();
 
         _ = _barcodeHandler.CreateInvoice(Arg.Any<string>(), Arg.Any<string>())
-            .Returns(new Invoice
-            {
-                Beneficiary = beneficiary,
-                Barcode = _bankBarcode,
-                Amount = 100.00m,
-                DueDate = DateTime.UtcNow.AddDays(30)
-            });
+            .Returns(expectedInvoice);
 
         // Act
-        var invoice = _barcodeReaderService.ReadTextContentFromPdf(pdfData, beneficiary, InvoiceType.AccountInvoice);
+        var invoice = _barcodeReaderService.ReadTextContentFromPdf(
+            pdfData,
+            expectedInvoice.Beneficiary,
+            InvoiceType.AccountInvoice);
 
         // Assert
         invoice.ShouldSatisfyAllConditions(invoice =>
         {
             _ = invoice.ShouldNotBeNull();
-            invoice.Beneficiary.ShouldBe(beneficiary);
+            invoice.Beneficiary.ShouldBe(expectedInvoice.Beneficiary);
             invoice.Barcode.ShouldNotBeNullOrEmpty();
             invoice.Amount.ShouldBeGreaterThan(0);
         });
@@ -74,25 +95,22 @@ public sealed class BarcodeReaderServiceTests
     {
         // Arrange
         var pdfData = CreatePdfInMemory(InvoiceType.BankInvoice);
-        var beneficiary = "Test Beneficiary";
+        var expectedInvoice = _invoiceFaker.Generate();
 
         _ = _barcodeHandler.CreateInvoice(Arg.Any<string>(), Arg.Any<string>())
-            .Returns(new Invoice
-            {
-                Beneficiary = beneficiary,
-                Barcode = _bankBarcode,
-                Amount = 100.00m,
-                DueDate = DateTime.UtcNow.AddDays(30)
-            });
+            .Returns(expectedInvoice);
 
         // Act
-        var invoice = _barcodeReaderService.ReadTextContentFromPdf(pdfData, beneficiary, InvoiceType.BankInvoice);
+        var invoice = _barcodeReaderService.ReadTextContentFromPdf(
+            pdfData,
+            expectedInvoice.Beneficiary,
+            InvoiceType.BankInvoice);
 
         // Assert
         invoice.ShouldSatisfyAllConditions(invoice =>
         {
             _ = invoice.ShouldNotBeNull();
-            invoice.Beneficiary.ShouldBe(beneficiary);
+            invoice.Beneficiary.ShouldBe(expectedInvoice.Beneficiary);
             invoice.Barcode.ShouldNotBeNullOrEmpty();
             invoice.Amount.ShouldBeGreaterThan(0);
         });
