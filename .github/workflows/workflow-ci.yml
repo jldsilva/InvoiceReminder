@@ -33,23 +33,11 @@ jobs:
         echo "LANG=en_US.UTF-8" >> $GITHUB_ENV
         echo "LC_ALL=en_US.UTF-8" >> $GITHUB_ENV
 
-    - name: Restore dependencies
+    - name: Restore Dependencies
       run: dotnet restore
 
     - name: Build
       run: dotnet build --no-restore --configuration Debug
 
     - name: Run Tests
-      run: |
-        echo "🔍 Executando testes unitários..."
-        dotnet test --no-build --configuration Debug \
-          --verbosity detailed \
-          --logger "trx;LogFileName=tests.trx" \
-          --results-directory TestResults
-
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: 'TestResults/*.trx'
+      run: dotnet test --no-build --verbosity normal
