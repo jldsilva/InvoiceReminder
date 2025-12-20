@@ -9,7 +9,6 @@ permissions:
 on:
   pull_request:
     branches: [ "main", "develop" ]
-
   push:
     branches: [ "main", "develop" ]
 
@@ -25,19 +24,33 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    - name: Set UTF-8 locale
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y locales
-        sudo locale-gen en_US.UTF-8
-        echo "LANG=en_US.UTF-8" >> $GITHUB_ENV
-        echo "LC_ALL=en_US.UTF-8" >> $GITHUB_ENV
-
     - name: Restore Dependencies
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --no-restore --configuration Debug
+      run: dotnet build --no-restore --configuration Debug --nologo
 
     - name: Run Tests
-      run: dotnet test --no-build --verbosity normal
+      shell: bash
+      run: |
+        echo "🔍 Localizando Projetos de Teste..."
+        TEST_PROJECTS=$(find . -name "*.csproj" | grep -E "\.UnitTests|\.Tests" | grep -v "Assets")
+
+        if [ -z "$TEST_PROJECTS" ]; then
+          echo "⚠️ Nenhum projeto de teste encontrado."
+          exit 1
+        fi
+
+        FAIL=0
+        for PROJ in $TEST_PROJECTS; do
+          echo "::group::🚀 Testando $PROJ"
+          dotnet test "$PROJ" --no-build --configuration Debug --verbosity normal || FAIL=1
+          echo "::endgroup::"
+        done
+
+        if [ $FAIL -ne 0 ]; then
+          echo "❌ Alguns testes falharam."
+          exit 1
+        fi
+        
+        echo "✅ Todos os testes passaram!"
