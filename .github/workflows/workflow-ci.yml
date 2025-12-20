@@ -44,7 +44,7 @@ jobs:
         FAIL=0
         for PROJ in $TEST_PROJECTS; do
           echo "::group::🚀 Testando $PROJ"
-          dotnet test "$PROJ" --no-build --configuration Debug --verbosity normal || FAIL=1
+          dotnet test --project "$PROJ" --no-build --configuration Debug --verbosity normal || FAIL=1
           echo "::endgroup::"
         done
 
