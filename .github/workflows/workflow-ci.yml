@@ -34,7 +34,7 @@ jobs:
       shell: bash
       run: |
         echo "🔍 Localizando Projetos de Teste..."
-        TEST_PROJECTS=$(find . -name "*.csproj" | grep -E "\.UnitTests|\.Tests" | grep -v "Assets")
+        TEST_PROJECTS=$(find . -name "*.csproj" | grep -E "\.UnitTests|\.Tests|\.ArchitectureTests" | grep -v "Assets")
 
         if [ -z "$TEST_PROJECTS" ]; then
           echo "⚠️ Nenhum projeto de teste encontrado."
