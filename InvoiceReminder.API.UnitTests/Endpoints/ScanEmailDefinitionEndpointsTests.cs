@@ -1,7 +1,9 @@
+using Bogus;
 using InvoiceReminder.API.UnitTests.Factories;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
 using InvoiceReminder.Domain.Abstractions;
+using InvoiceReminder.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +23,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
     private readonly HttpClient _client;
     private readonly IAuthorizationService _authorizationService;
     private readonly IScanEmailDefinitionAppService _scanEmailDefinitionAppService;
+    private readonly Faker<ScanEmailDefinitionViewModel> _scanEmailDefinitionViewModelFaker;
+    private readonly Faker _faker;
     private const string basepath = "/api/scan_email";
 
     public TestContext TestContext { get; set; }
@@ -33,6 +37,18 @@ public sealed class ScanEmailDefinitionEndpointsTests
         _client = factory.CreateClient();
         _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
         _scanEmailDefinitionAppService = serviceProvider.GetRequiredService<IScanEmailDefinitionAppService>();
+        _faker = new Faker();
+
+        _scanEmailDefinitionViewModelFaker = new Faker<ScanEmailDefinitionViewModel>()
+            .RuleFor(s => s.Id, faker => faker.Random.Guid())
+            .RuleFor(s => s.UserId, faker => faker.Random.Guid())
+            .RuleFor(s => s.InvoiceType, faker => faker.PickRandom(InvoiceType.AccountInvoice, InvoiceType.BankInvoice))
+            .RuleFor(s => s.Beneficiary, faker => faker.Company.CompanyName())
+            .RuleFor(s => s.Description, faker => faker.Lorem.Sentence())
+            .RuleFor(s => s.SenderEmailAddress, faker => faker.Internet.Email())
+            .RuleFor(s => s.AttachmentFileName, faker => faker.System.FileName())
+            .RuleFor(s => s.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(s => s.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
 
     #region MapGet Tests
@@ -43,25 +59,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var expectedResult = Result<IEnumerable<ScanEmailDefinitionViewModel>>.Success(
-        [
-            new() {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                Beneficiary = "Beneficiary 1",
-                Description = "Description 1",
-                AttachmentFileName = "Attachment 1",
-                CreatedAt = DateTime.UtcNow,
-            },
-            new() {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                Beneficiary = "Beneficiary 2",
-                Description = "Description 2",
-                AttachmentFileName = "Attachment 2",
-                CreatedAt = DateTime.UtcNow,
-            },
-        ]);
+        var scanEmailDefinitions = _scanEmailDefinitionViewModelFaker.Generate(2);
+        var expectedResult = Result<IEnumerable<ScanEmailDefinitionViewModel>>.Success(scanEmailDefinitions);
 
         _ = _scanEmailDefinitionAppService.GetAll().Returns(expectedResult);
 
@@ -139,17 +138,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Success(
-        new()
-        {
-            Id = id,
-            UserId = Guid.NewGuid(),
-            Beneficiary = "Beneficiary",
-            Description = "Description",
-            AttachmentFileName = "Attachment",
-            SenderEmailAddress = "test@mail.com",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        });
+            _scanEmailDefinitionViewModelFaker.Clone().RuleFor(s => s.Id, id).Generate());
 
         _ = _scanEmailDefinitionAppService.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
@@ -280,25 +269,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-userid/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var expectedResult = Result<IEnumerable<ScanEmailDefinitionViewModel>>.Success(
-        [
-           new() {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                Beneficiary = "Beneficiary 1",
-                Description = "Description 1",
-                AttachmentFileName = "Attachment 1",
-                CreatedAt = DateTime.UtcNow,
-            },
-            new() {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                Beneficiary = "Beneficiary 2",
-                Description = "Description 2",
-                AttachmentFileName = "Attachment 2",
-                CreatedAt = DateTime.UtcNow,
-            },
-        ]);
+        var scanEmailDefinitions = _scanEmailDefinitionViewModelFaker.Generate(2);
+        var expectedResult = Result<IEnumerable<ScanEmailDefinitionViewModel>>.Success(scanEmailDefinitions);
 
         _ = _scanEmailDefinitionAppService.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
@@ -425,21 +397,12 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var email = "sender_test@mail.com";
+        var email = _faker.Internet.Email();
         var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Success(
-           new()
-           {
-               Id = Guid.NewGuid(),
-               UserId = Guid.NewGuid(),
-               Beneficiary = "Beneficiary 1",
-               Description = "Description 1",
-               SenderEmailAddress = email,
-               AttachmentFileName = "Attachment 1",
-               CreatedAt = DateTime.UtcNow,
-           }
+           _scanEmailDefinitionViewModelFaker.Clone().RuleFor(s => s.SenderEmailAddress, email).Generate()
         );
 
         _ = _scanEmailDefinitionAppService
@@ -485,7 +448,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var email = "sender_test@mail.com";
+        var email = _faker.Internet.Email();
         var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
@@ -515,7 +478,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var email = "sender_test@mail.com";
+        var email = _faker.Internet.Email();
         var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
@@ -554,19 +517,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var jobScheduleViewModel = new ScanEmailDefinitionViewModel
-        {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            Beneficiary = "Beneficiary",
-            Description = "Description",
-            AttachmentFileName = "Attachment",
-            SenderEmailAddress = "test@mail.com",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        var expectedResult = Result<ScanEmailDefinitionViewModel>.Success(jobScheduleViewModel);
+        var scanEmailDefinitionViewModel = _scanEmailDefinitionViewModelFaker.Generate();
+        var expectedResult = Result<ScanEmailDefinitionViewModel>.Success(scanEmailDefinitionViewModel);
 
         _ = _scanEmailDefinitionAppService.AddAsync(Arg.Any<ScanEmailDefinitionViewModel>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
@@ -576,7 +528,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        request.Content = JsonContent.Create(jobScheduleViewModel);
+        request.Content = JsonContent.Create(scanEmailDefinitionViewModel);
         var response = await _client.SendAsync(request, TestContext.CancellationToken);
         var result = await response.Content
             .ReadFromJsonAsync<ScanEmailDefinitionViewModel>(TestContext.CancellationToken);
@@ -614,18 +566,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var jobScheduleViewModel = new ScanEmailDefinitionViewModel
-        {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            Beneficiary = "Beneficiary",
-            Description = "Description",
-            AttachmentFileName = "Attachment",
-            SenderEmailAddress = "test@mail.com",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var scanEmailDefinitionViewModel = _scanEmailDefinitionViewModelFaker.Generate();
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Failure("Service error");
 
         _ = _scanEmailDefinitionAppService.AddAsync(Arg.Any<ScanEmailDefinitionViewModel>(), Arg.Any<CancellationToken>())
@@ -636,7 +577,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        request.Content = JsonContent.Create(jobScheduleViewModel);
+        request.Content = JsonContent.Create(scanEmailDefinitionViewModel);
         var response = await _client.SendAsync(request, TestContext.CancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
@@ -660,19 +601,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var jobScheduleViewModel = new ScanEmailDefinitionViewModel
-        {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            Beneficiary = "Beneficiary",
-            Description = "Description",
-            AttachmentFileName = "Attachment",
-            SenderEmailAddress = "test@mail.com",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        var expectedResult = Result<ScanEmailDefinitionViewModel>.Success(jobScheduleViewModel);
+        var scanEmailDefinitionViewModel = _scanEmailDefinitionViewModelFaker.Generate();
+        var expectedResult = Result<ScanEmailDefinitionViewModel>.Success(scanEmailDefinitionViewModel);
 
         _ = _scanEmailDefinitionAppService.UpdateAsync(Arg.Any<ScanEmailDefinitionViewModel>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
@@ -682,7 +612,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        request.Content = JsonContent.Create(jobScheduleViewModel);
+        request.Content = JsonContent.Create(scanEmailDefinitionViewModel);
         var response = await _client.SendAsync(request, TestContext.CancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ScanEmailDefinitionViewModel>(TestContext.CancellationToken);
 
@@ -719,18 +649,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
         var request = new HttpRequestMessage(HttpMethod.Put, basepath);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        var jobScheduleViewModel = new ScanEmailDefinitionViewModel
-        {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            Beneficiary = "Beneficiary",
-            Description = "Description",
-            AttachmentFileName = "Attachment",
-            SenderEmailAddress = "test@mail.com",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
+        var scanEmailDefinitionViewModel = _scanEmailDefinitionViewModelFaker.Generate();
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Failure("Service error");
 
         _ = _scanEmailDefinitionAppService.UpdateAsync(Arg.Any<ScanEmailDefinitionViewModel>(), Arg.Any<CancellationToken>())
@@ -741,7 +660,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
             .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
-        request.Content = JsonContent.Create(jobScheduleViewModel);
+        request.Content = JsonContent.Create(scanEmailDefinitionViewModel);
         var response = await _client.SendAsync(request, TestContext.CancellationToken);
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
