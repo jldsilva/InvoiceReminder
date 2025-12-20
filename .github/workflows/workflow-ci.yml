@@ -1,4 +1,4 @@
-# This workflow will build a .NET project
+# This workflow will build and test a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
 name: .NET CI Workflow
@@ -39,35 +39,17 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration Debug
 
-    - name: Run tests
+    - name: Run Tests
       run: |
-        echo "🔍 Localizando projetos de teste..."
-        TEST_PROJECTS=$(find . -name "*.csproj" | grep -E "\.UnitTests|\.Tests" | grep -v "Assets")
-
-        if [ -z "$TEST_PROJECTS" ]; then
-          echo "⚠️ Nenhum projeto de teste encontrado. Abortando."
-          exit 1
-        fi
-
-        FAIL=0
-
-        for PROJ in $TEST_PROJECTS; do
-          echo "▶️ Executando testes do projeto: $PROJ"
-          dotnet test --project "$PROJ" --no-build --configuration Debug \
-            --logger "trx" \
-            --results-directory "$(dirname "$PROJ")/TestResults" || FAIL=1
-        done
-
-        if [ $FAIL -ne 0 ]; then
-          echo "❌ Alguns testes falharam. Pipeline abortado."
-          exit 1
-        fi
-
-        echo "✅ Todos os testes passaram."
+        echo "🔍 Executando testes unitários..."
+        dotnet test --no-build --configuration Debug \
+          --verbosity detailed \
+          --logger "trx;LogFileName=tests.trx" \
+          --results-directory TestResults
 
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: test-results
-        path: '**/TestResults/*.trx'
+        path: 'TestResults/*.trx'
