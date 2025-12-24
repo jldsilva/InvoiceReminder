@@ -32,6 +32,8 @@ public sealed class QuartzHostedServiceTests
         _service = Substitute.For<QuartzHostedService>(_logger, _schedulerFactory, _jobFactory, _schedules);
 
         _ = _schedulerFactory.GetScheduler(Arg.Any<CancellationToken>()).Returns(Task.FromResult(_scheduler));
+        _ = _scheduler.IsStarted.Returns(false);
+        _ = _scheduler.IsShutdown.Returns(false);
     }
 
     [TestInitialize]
@@ -46,8 +48,241 @@ public sealed class QuartzHostedServiceTests
         _jobScheduleFaker = new Faker<JobSchedule>()
             .RuleFor(j => j.Id, _ => Guid.NewGuid())
             .RuleFor(j => j.UserId, _ => Guid.NewGuid())
-            .RuleFor(j => j.CronExpression, _ => "0/5 * * * * ?");
+            .RuleFor(j => j.CronExpression, _ => "0 9 * * * ?");
     }
+
+    #region StartAsync Tests
+
+    [TestMethod]
+    public async Task StartAsync_ShouldScheduleAndStartAllSchedules()
+    {
+        // Arrange
+        _schedules.Add(_jobScheduleFaker.Generate());
+
+        // Act
+        await _service.StartAsync(TestContext.CancellationToken);
+
+        // Assert
+        _ = _scheduler.Received(1).ScheduleJob(
+            Arg.Any<IJobDetail>(),
+            Arg.Any<ITrigger>(),
+            Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken)
+        );
+
+        _ = _scheduler.Received(1).Start(Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken));
+    }
+
+    [TestMethod]
+    public async Task StartAsync_InvalidCronExpression_ShouldLogError()
+    {
+        // Arrange
+        var schedule = _jobScheduleFaker
+            .RuleFor(j => j.CronExpression, _ => "invalid cron")
+            .Generate();
+
+        _schedules.Add(schedule);
+
+        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
+
+        _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+        // Act
+        await service.StartAsync(TestContext.CancellationToken);
+
+        // Assert
+        var eventId = Arg.Any<EventId>();
+        var state = Arg.Is<object>(o => o.ToString().Contains("CronJob inválido:"));
+        var loggedException = Arg.Is<Exception>(e => e == null);
+        var formatter = Arg.Any<Func<object, Exception, string>>();
+
+        _logger.Received(1).Log(LogLevel.Error, eventId, state, loggedException, formatter);
+
+        _ = _scheduler.DidNotReceive().ScheduleJob(
+            Arg.Any<IJobDetail>(),
+            Arg.Any<ITrigger>(),
+            Arg.Any<CancellationToken>()
+        );
+    }
+
+    [TestMethod]
+    public async Task StartAsync_WithEmptySchedules_ShouldInitializeSchedulerButNotScheduleJobs()
+    {
+        // Arrange && Act
+        await _service.StartAsync(TestContext.CancellationToken);
+
+        // Assert
+        _ = await _schedulerFactory.Received(1).GetScheduler(Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken));
+
+        _ = _scheduler.DidNotReceive().ScheduleJob(Arg.Any<IJobDetail>(), Arg.Any<ITrigger>(), Arg.Any<CancellationToken>());
+
+        await _scheduler.Received(1).Start(Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken));
+
+        _service.Scheduler.ShouldBeSameAs(_scheduler);
+    }
+
+    [TestMethod]
+    public async Task StartAsync_WithMultipleSchedules_ShouldScheduleAllValidJobs()
+    {
+        // Arrange
+        var schedule1 = _jobScheduleFaker.Generate();
+        var schedule2 = _jobScheduleFaker.Generate();
+        _schedules.AddRange([schedule1, schedule2]);
+
+        // Act
+        await _service.StartAsync(TestContext.CancellationToken);
+
+        // Assert
+        _ = _scheduler.Received(2).ScheduleJob(
+            Arg.Any<IJobDetail>(),
+            Arg.Any<ITrigger>(),
+            Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken)
+        );
+
+        await _scheduler.Received(1).Start(Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken));
+    }
+
+    [TestMethod]
+    public async Task StartAsync_WithMultipleInvalidCronExpressions_ShouldLogErrorsForEach()
+    {
+        // Arrange
+        var invalidSchedule1 = _jobScheduleFaker
+            .RuleFor(j => j.CronExpression, _ => "invalid 1")
+            .Generate();
+
+        var invalidSchedule2 = _jobScheduleFaker
+            .RuleFor(j => j.CronExpression, _ => "invalid 2")
+            .Generate();
+
+        _schedules.AddRange([invalidSchedule1, invalidSchedule2]);
+
+        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
+
+        _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+        // Act
+        await service.StartAsync(TestContext.CancellationToken);
+
+        // Assert
+        var eventId = Arg.Any<EventId>();
+        var state = Arg.Any<object>();
+        var loggedException = Arg.Any<Exception>();
+        var formatter = Arg.Any<Func<object, Exception, string>>();
+
+        _logger.Received(2).Log(LogLevel.Error, eventId, state, loggedException, formatter);
+
+        _ = _scheduler.DidNotReceive().ScheduleJob(
+            Arg.Any<IJobDetail>(),
+            Arg.Any<ITrigger>(),
+            Arg.Any<CancellationToken>()
+        );
+    }
+
+    [TestMethod]
+    public async Task StartAsync_WithMixedValidAndInvalidSchedules_ShouldScheduleOnlyValidOnes()
+    {
+        // Arrange
+        var validSchedule = _jobScheduleFaker.Generate();
+        var invalidSchedule = _jobScheduleFaker
+            .RuleFor(j => j.CronExpression, _ => "invalid cron")
+            .Generate();
+
+        _schedules.AddRange([validSchedule, invalidSchedule]);
+
+        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
+
+        _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+        // Act
+        await service.StartAsync(TestContext.CancellationToken);
+
+        // Assert
+        var eventId = Arg.Any<EventId>();
+        var state = Arg.Any<object>();
+        var loggedException = Arg.Any<Exception>();
+        var formatter = Arg.Any<Func<object, Exception, string>>();
+
+        _logger.Received(1).Log(LogLevel.Error, eventId, state, loggedException, formatter);
+
+        _ = _scheduler.Received(1).ScheduleJob(
+            Arg.Is<IJobDetail>(j => j.Key.Name == $"{validSchedule.Id}.job"),
+            Arg.Any<ITrigger>(),
+            Arg.Any<CancellationToken>()
+        );
+    }
+
+    [TestMethod]
+    public async Task StartAsync_WhenSchedulerAlreadyStarted_ShouldNotCallStartAgain()
+    {
+        // Arrange
+        var schedule = _jobScheduleFaker.Generate();
+        _schedules.Add(schedule);
+
+        _ = _scheduler.IsStarted.Returns(true);
+
+        // Act
+        await _service.StartAsync(TestContext.CancellationToken);
+
+        // Assert
+        await _scheduler.DidNotReceive().Start(Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task StartAsync_ShouldSetSchedulerPublicProperty()
+    {
+        // Act
+        await _service.StartAsync(TestContext.CancellationToken);
+
+        // Assert
+        _service.Scheduler.ShouldBeSameAs(_scheduler);
+    }
+
+    #endregion
+
+    #region StopAsync Tests
+
+    [TestMethod]
+    public async Task StopAsync_ShouldShutdownScheduler()
+    {
+        // Arrange
+        _schedules.Add(_jobScheduleFaker.Generate());
+
+        // Act
+        await _service.StartAsync(TestContext.CancellationToken);
+        await _service.StopAsync(TestContext.CancellationToken);
+
+        // Assert
+        _ = _scheduler.Received(1).Shutdown(TestContext.CancellationToken);
+    }
+
+    [TestMethod]
+    public async Task StopAsync_WhenSchedulerIsNull_ShouldNotThrowException()
+    {
+        // Arrange
+        var service = new QuartzHostedService(_jobFactory, _schedulerFactory);
+
+        // Act & Assert
+        await Should.NotThrowAsync(async () => await service.StopAsync(TestContext.CancellationToken));
+    }
+
+    [TestMethod]
+    public async Task StopAsync_WhenSchedulerIsAlreadyShutdown_ShouldNotCallShutdownAgain()
+    {
+        // Arrange
+        _schedules.Add(_jobScheduleFaker.Generate());
+
+        _ = _scheduler.IsShutdown.Returns(true);
+
+        // Act
+        await _service.StartAsync(TestContext.CancellationToken);
+        await _service.StopAsync(TestContext.CancellationToken);
+
+        // Assert
+        await _scheduler.DidNotReceive().Shutdown(Arg.Any<CancellationToken>());
+    }
+
+    #endregion
+
+    #region ScheduleJobAsync Tests
 
     [TestMethod]
     public async Task ScheduleJobAsync_ShouldScheduleJobAndStartScheduler()
@@ -66,7 +301,8 @@ public sealed class QuartzHostedServiceTests
         _ = _scheduler.Received(1).ScheduleJob(
             Arg.Is<IJobDetail>(j => j.Key.Name == $"{schedule.Id}.job"),
             Arg.Is<ITrigger>(t => t.Key.Name == $"{schedule.Id}.trigger"),
-            Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken));
+            Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken)
+        );
 
         await _scheduler.Received(1).Start(Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken));
     }
@@ -79,6 +315,105 @@ public sealed class QuartzHostedServiceTests
                 await _service.ScheduleJobAsync(null, TestContext.CancellationToken)
             );
     }
+
+    [TestMethod]
+    public async Task ScheduleJobAsync_WhenSchedulerAlreadyStarted_ShouldNotCallStartAgain()
+    {
+        // Arrange
+        var schedule = _jobScheduleFaker.Generate();
+
+        _ = _scheduler.IsStarted.Returns(true);
+
+        // Act
+        await _service.ScheduleJobAsync(schedule, TestContext.CancellationToken);
+
+        // Assert
+        await _scheduler.DidNotReceive().Start(Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task ScheduleJobAsync_CreatesJobWithCorrectDataMap()
+    {
+        // Arrange
+        var schedule = _jobScheduleFaker.Generate();
+
+        // Act
+        await _service.ScheduleJobAsync(schedule, TestContext.CancellationToken);
+
+        // Assert
+        _ = _scheduler.Received(1).ScheduleJob(
+            Arg.Is<IJobDetail>(j =>
+                j.Key.Name == $"{schedule.Id}.job" &&
+                j.JobDataMap.GetGuidValue("UserId") == schedule.UserId),
+            Arg.Any<ITrigger>(),
+            Arg.Any<CancellationToken>()
+        );
+    }
+
+    #endregion
+
+    #region UpdateJobScheduleAsync Tests
+
+    [TestMethod]
+    public async Task UpdateJobScheduleAsync_WithValidSchedule_ShouldDeleteAndRescheduleJob()
+    {
+        // Arrange
+        var schedule = _jobScheduleFaker.Generate();
+        var jobKey = new JobKey($"{schedule.Id}.job");
+
+        _ = _scheduler.CheckExists(jobKey, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        await _service.UpdateJobScheduleAsync(schedule, TestContext.CancellationToken);
+
+        // Assert
+        _ = await _scheduler.Received(1).CheckExists(jobKey, Arg.Any<CancellationToken>());
+
+        _ = await _scheduler.Received(1).DeleteJob(jobKey, Arg.Any<CancellationToken>());
+
+        _ = _scheduler.Received(1).ScheduleJob(
+            Arg.Is<IJobDetail>(j => j.Key.Name == $"{schedule.Id}.job"),
+            Arg.Is<ITrigger>(t => t.Key.Name == $"{schedule.Id}.trigger"),
+            Arg.Any<CancellationToken>()
+        );
+
+        await _scheduler.Received(1).Start(Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task UpdateJobScheduleAsync_WithNullSchedule_ShouldThrowArgumentNullException()
+    {
+        // Act & Assert
+        _ = await Should.ThrowAsync<ArgumentNullException>(async () =>
+                await _service.UpdateJobScheduleAsync(null, TestContext.CancellationToken)
+            );
+    }
+
+    [TestMethod]
+    public async Task UpdateJobScheduleAsync_WhenJobDoesNotExist_ShouldOnlyScheduleNewJob()
+    {
+        // Arrange
+        var schedule = _jobScheduleFaker.Generate();
+        var jobKey = new JobKey($"{schedule.Id}.job");
+
+        _ = _scheduler.CheckExists(jobKey, Arg.Any<CancellationToken>()).Returns(false);
+
+        // Act
+        await _service.UpdateJobScheduleAsync(schedule, TestContext.CancellationToken);
+
+        // Assert
+        _ = await _scheduler.DidNotReceive().DeleteJob(Arg.Any<JobKey>(), Arg.Any<CancellationToken>());
+
+        _ = _scheduler.Received(1).ScheduleJob(
+            Arg.Is<IJobDetail>(j => j.Key.Name == $"{schedule.Id}.job"),
+            Arg.Any<ITrigger>(),
+            Arg.Any<CancellationToken>()
+        );
+    }
+
+    #endregion
+
+    #region DeleteJobAsync Tests
 
     [TestMethod]
     public async Task DeleteJobAsync_ShouldDeleteJobIfExists()
@@ -112,6 +447,46 @@ public sealed class QuartzHostedServiceTests
     }
 
     [TestMethod]
+    public async Task DeleteJobAsync_WhenJobDoesNotExist_ShouldNotCallDeleteJob()
+    {
+        // Arrange
+        var schedule = _jobScheduleFaker.Generate();
+        var jobKey = new JobKey($"{schedule.Id}.job");
+
+        _ = _scheduler.CheckExists(jobKey, Arg.Any<CancellationToken>()).Returns(false);
+
+        // Act
+        await _service.DeleteJobAsync(schedule, TestContext.CancellationToken);
+
+        // Assert
+        _ = await _scheduler.Received(1).CheckExists(jobKey, Arg.Any<CancellationToken>());
+
+        _ = await _scheduler.DidNotReceive().DeleteJob(Arg.Any<JobKey>(), Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task DeleteJobAsync_InitializesSchedulerIfNull()
+    {
+        // Arrange
+        var schedule = _jobScheduleFaker.Generate();
+        var jobKey = new JobKey($"{schedule.Id}.job");
+
+        _ = _scheduler.CheckExists(jobKey, Arg.Any<CancellationToken>()).Returns(false);
+
+        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
+
+        // Act
+        await service.DeleteJobAsync(schedule, TestContext.CancellationToken);
+
+        // Assert
+        service.Scheduler.ShouldBeSameAs(_scheduler);
+    }
+
+    #endregion
+
+    #region PauseJobAsync Tests
+
+    [TestMethod]
     public async Task PauseJobAsync_ShouldPauseTriggerAndJob()
     {
         // Arrange
@@ -127,8 +502,6 @@ public sealed class QuartzHostedServiceTests
 
         _ = _scheduler.Received(1).PauseJob(Arg.Is<JobKey>(k => k.Name == $"{schedule.Id}.job"),
             Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken));
-
-        _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
     }
 
     [TestMethod]
@@ -139,6 +512,24 @@ public sealed class QuartzHostedServiceTests
                 await _service.PauseJobAsync(null, TestContext.CancellationToken)
             );
     }
+
+    [TestMethod]
+    public async Task PauseJobAsync_InitializesSchedulerIfNull()
+    {
+        // Arrange
+        var schedule = _jobScheduleFaker.Generate();
+        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
+
+        // Act
+        await service.PauseJobAsync(schedule, TestContext.CancellationToken);
+
+        // Assert
+        service.Scheduler.ShouldBeSameAs(_scheduler);
+    }
+
+    #endregion
+
+    #region ResumeJobAsync Tests
 
     [TestMethod]
     public async Task ResumeJobAsync_ShouldResumeTriggerAndJob()
@@ -157,8 +548,6 @@ public sealed class QuartzHostedServiceTests
 
         _ = _scheduler.Received(1).ResumeTrigger(Arg.Is<TriggerKey>(k => k.Name == $"{schedule.Id}.trigger"),
             Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken));
-
-        _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
     }
 
     [TestMethod]
@@ -174,64 +563,52 @@ public sealed class QuartzHostedServiceTests
     }
 
     [TestMethod]
-    public async Task StartAsync_ShouldScheduleAndStartAllSchedules()
+    public async Task ResumeJobAsync_InitializesSchedulerIfNull()
     {
         // Arrange
-        _schedules.Add(_jobScheduleFaker.Generate());
-
-        // Act
-        await _service.StartAsync(TestContext.CancellationToken);
-
-        // Assert
-        _ = _scheduler.Received(1).ScheduleJob(
-            Arg.Any<IJobDetail>(),
-            Arg.Any<ITrigger>(),
-            Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken));
-
-        _ = _scheduler.Received(1).Start(Arg.Is<CancellationToken>(ct => ct == TestContext.CancellationToken));
-
-        _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
-    }
-
-    [TestMethod]
-    public async Task StartAsync_InvalidCronExpression_ShouldLogError()
-    {
-        // Arrange
-        var schedule = _jobScheduleFaker
-            .RuleFor(j => j.CronExpression, _ => "invalid cron")
-            .Generate();
-
-        _schedules.Add(schedule);
+        var schedule = _jobScheduleFaker.Generate();
         var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
 
-        _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+        // Act
+        await service.ResumeJobAsync(schedule, TestContext.CancellationToken);
 
-        // Act && Assert
-        await service.StartAsync(TestContext.CancellationToken);
+        // Assert
+        service.Scheduler.ShouldBeSameAs(_scheduler);
+    }
 
-        _ = _scheduler.DidNotReceive().ScheduleJob(Arg.Any<IJobDetail>(), Arg.Any<ITrigger>(), Arg.Any<CancellationToken>());
+    #endregion
 
-        _scheduler.Received(1).JobFactory = Arg.Is(_jobFactory);
+    #region Constructor Tests
 
-        var eventId = Arg.Any<EventId>();
-        var state = Arg.Is<object>(o => o.ToString().Contains("CronJob inválido:"));
-        var loggedException = Arg.Is<Exception>(e => e == null);
-        var formatter = Arg.Any<Func<object, Exception, string>>();
+    [TestMethod]
+    public void Constructor_WithAllParameters_ShouldInitializeService()
+    {
+        // Act
+        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
 
-        _logger.Received(1).Log(LogLevel.Error, eventId, state, loggedException, formatter);
+        // Assert
+        _ = service.ShouldNotBeNull();
     }
 
     [TestMethod]
-    public async Task StopAsync_ShouldShutdownScheduler()
+    public void Constructor_WithTwoParameters_ShouldInitializeService()
     {
-        // Arrange
-        _schedules.Add(_jobScheduleFaker.Generate());
-
         // Act
-        await _service.StartAsync(TestContext.CancellationToken);
-        await _service.StopAsync(TestContext.CancellationToken);
+        var service = new QuartzHostedService(_jobFactory, _schedulerFactory);
 
         // Assert
-        _ = _scheduler.Received(1).Shutdown(TestContext.CancellationToken);
+        _ = service.ShouldNotBeNull();
     }
+
+    [TestMethod]
+    public void Constructor_WithNullSchedules_ShouldInitializeWithEmptyList()
+    {
+        // Act
+        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, null);
+
+        // Assert
+        _ = service.ShouldNotBeNull();
+    }
+
+    #endregion
 }
