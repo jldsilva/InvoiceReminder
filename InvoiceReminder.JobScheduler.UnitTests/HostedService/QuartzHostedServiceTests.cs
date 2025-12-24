@@ -82,12 +82,10 @@ public sealed class QuartzHostedServiceTests
 
         _schedules.Add(schedule);
 
-        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
-
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
         // Act
-        await service.StartAsync(TestContext.CancellationToken);
+        await _service.StartAsync(TestContext.CancellationToken);
 
         // Assert
         var eventId = Arg.Any<EventId>();
@@ -155,12 +153,10 @@ public sealed class QuartzHostedServiceTests
 
         _schedules.AddRange([invalidSchedule1, invalidSchedule2]);
 
-        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
-
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
         // Act
-        await service.StartAsync(TestContext.CancellationToken);
+        await _service.StartAsync(TestContext.CancellationToken);
 
         // Assert
         var eventId = Arg.Any<EventId>();
@@ -188,12 +184,10 @@ public sealed class QuartzHostedServiceTests
 
         _schedules.AddRange([validSchedule, invalidSchedule]);
 
-        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
-
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
         // Act
-        await service.StartAsync(TestContext.CancellationToken);
+        await _service.StartAsync(TestContext.CancellationToken);
 
         // Assert
         var eventId = Arg.Any<EventId>();
@@ -473,13 +467,11 @@ public sealed class QuartzHostedServiceTests
 
         _ = _scheduler.CheckExists(jobKey, Arg.Any<CancellationToken>()).Returns(false);
 
-        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
-
         // Act
-        await service.DeleteJobAsync(schedule, TestContext.CancellationToken);
+        await _service.DeleteJobAsync(schedule, TestContext.CancellationToken);
 
         // Assert
-        service.Scheduler.ShouldBeSameAs(_scheduler);
+        _service.Scheduler.ShouldBeSameAs(_scheduler);
     }
 
     #endregion
@@ -518,13 +510,12 @@ public sealed class QuartzHostedServiceTests
     {
         // Arrange
         var schedule = _jobScheduleFaker.Generate();
-        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
 
         // Act
-        await service.PauseJobAsync(schedule, TestContext.CancellationToken);
+        await _service.PauseJobAsync(schedule, TestContext.CancellationToken);
 
         // Assert
-        service.Scheduler.ShouldBeSameAs(_scheduler);
+        _service.Scheduler.ShouldBeSameAs(_scheduler);
     }
 
     #endregion
@@ -537,10 +528,9 @@ public sealed class QuartzHostedServiceTests
         // Arrange
         var schedule = _jobScheduleFaker.Generate();
         _schedules.Add(schedule);
-        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
 
         // Act
-        await service.ResumeJobAsync(schedule, TestContext.CancellationToken);
+        await _service.ResumeJobAsync(schedule, TestContext.CancellationToken);
 
         // Assert
         _ = _scheduler.Received(1).ResumeJob(Arg.Is<JobKey>(k => k.Name == $"{schedule.Id}.job"),
@@ -553,12 +543,9 @@ public sealed class QuartzHostedServiceTests
     [TestMethod]
     public async Task ResumeJobAsync_NullSchedule_ShouldThrowArgumentNullException()
     {
-        // Arrange
-        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
-
         // Act & Assert
         _ = await Should.ThrowAsync<ArgumentNullException>(async () =>
-                await service.ResumeJobAsync(null, TestContext.CancellationToken)
+                await _service.ResumeJobAsync(null, TestContext.CancellationToken)
             );
     }
 
@@ -567,13 +554,12 @@ public sealed class QuartzHostedServiceTests
     {
         // Arrange
         var schedule = _jobScheduleFaker.Generate();
-        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
 
         // Act
-        await service.ResumeJobAsync(schedule, TestContext.CancellationToken);
+        await _service.ResumeJobAsync(schedule, TestContext.CancellationToken);
 
         // Assert
-        service.Scheduler.ShouldBeSameAs(_scheduler);
+        _service.Scheduler.ShouldBeSameAs(_scheduler);
     }
 
     #endregion
@@ -583,11 +569,8 @@ public sealed class QuartzHostedServiceTests
     [TestMethod]
     public void Constructor_WithAllParameters_ShouldInitializeService()
     {
-        // Act
-        var service = new QuartzHostedService(_logger, _schedulerFactory, _jobFactory, _schedules);
-
-        // Assert
-        _ = service.ShouldNotBeNull();
+        // Act && Assert
+        _ = _service.ShouldNotBeNull();
     }
 
     [TestMethod]
