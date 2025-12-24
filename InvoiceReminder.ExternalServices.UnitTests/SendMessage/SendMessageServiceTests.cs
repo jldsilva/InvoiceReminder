@@ -446,7 +446,7 @@ public sealed class SendMessageServiceTests
     }
 
     [TestMethod]
-    public async Task SendMessage_TelegramService_ThrowsException_Should_Still_BulkInsertInvoices()
+    public async Task SendMessage_TelegramService_ThrowsException_Should_Log_And_Rethrow()
     {
         // Arrange
         var authToken = _emailAuthTokenFaker.Generate();
@@ -478,6 +478,9 @@ public sealed class SendMessageServiceTests
         _ = await Should.ThrowAsync<InvalidOperationException>(async () =>
             await _sendMessageService.SendMessage(user.Id, TestContext.CancellationToken)
         );
+
+        _ = _invoiceRepository.DidNotReceive()
+            .BulkInsertAsync(Arg.Any<ICollection<Invoice>>(), Arg.Any<CancellationToken>());
 
         var eventId = Arg.Any<EventId>();
         var state = Arg.Any<object>();
