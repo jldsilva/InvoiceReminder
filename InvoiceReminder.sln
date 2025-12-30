@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.0.11222.15
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.API", "InvoiceReminder.API\InvoiceReminder.API.csproj", "{CA4D17D7-211B-4FFA-ADDF-FD8C1890708B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Presentation", "1 - Presentation", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2 - Services", "2 - Services", "{49106062-DF04-4407-B267-DBBE4A99B280}"
@@ -25,37 +23,47 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4.2 - Data", "4.2 - Data", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4.3 - Crosscutting", "4.3 - Crosscutting", "{9E180232-F1E2-4A65-9C8B-17188EBE60AC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5 - Unit Tests", "5 - Unit Tests", "{67471F47-0B78-4F8A-95CD-145F78F644C3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5 - Tests", "5 - Tests", "{67471F47-0B78-4F8A-95CD-145F78F644C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.CrossCutting.IoC", "InvoiceReminder.CrossCutting.IoC\InvoiceReminder.CrossCutting.IoC.csproj", "{90BE8610-76AB-44DC-B39A-57B6C684BF33}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5.1 - Architecture Tests", "5.1 - Architecture Tests", "{75B98BB5-3EE7-4F79-BC4D-AD9261687449}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Data", "InvoiceReminder.Data\InvoiceReminder.Data.csproj", "{D087924E-D489-4018-95FE-A89B0D0A42DA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5.2 - Integration Tests", "5.2 - Integration Tests", "{CA571B85-3CB9-4B15-8363-20E769BDE34D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Authentication", "InvoiceReminder.Authentication\InvoiceReminder.Authentication.csproj", "{D4D9D4C9-2DFF-4F0D-83C5-DEA36D455E3A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5.3 - Unit Tests", "5.3 - Unit Tests", "{787440A7-A78A-4DD9-9999-2694378FE4FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Domain", "InvoiceReminder.Domain\InvoiceReminder.Domain.csproj", "{0A7AEFDB-5181-45E6-AFCF-368FD879EC12}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.JobScheduler", "InvoiceReminder.JobScheduler\InvoiceReminder.JobScheduler.csproj", "{394EC1DE-9FDA-44F9-A5F5-7BF259150910}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.API", "InvoiceReminder.API\InvoiceReminder.API.csproj", "{CA4D17D7-211B-4FFA-ADDF-FD8C1890708B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Application", "InvoiceReminder.Application\InvoiceReminder.Application.csproj", "{995B652F-6095-4056-A1AB-F45AAF0135D2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.JobScheduler", "InvoiceReminder.JobScheduler\InvoiceReminder.JobScheduler.csproj", "{394EC1DE-9FDA-44F9-A5F5-7BF259150910}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.ExternalServices", "InvoiceReminder.ExternalServices\InvoiceReminder.ExternalServices.csproj", "{F2EB382B-25E4-43D8-8159-53DB5085DED6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.DomainEntities.UnitTests", "InvoiceReminder.DomainEntities.UnitTests\InvoiceReminder.DomainEntities.UnitTests.csproj", "{F50B9864-67DB-48DF-9B95-D78C126E0A2C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Domain", "InvoiceReminder.Domain\InvoiceReminder.Domain.csproj", "{0A7AEFDB-5181-45E6-AFCF-368FD879EC12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Infrastructure.UnitTests", "InvoiceReminder.Infrastructure.UnitTests\InvoiceReminder.Infrastructure.UnitTests.csproj", "{BB724E60-FEC2-44C4-B6AF-1692EF1958B4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Authentication", "InvoiceReminder.Authentication\InvoiceReminder.Authentication.csproj", "{D4D9D4C9-2DFF-4F0D-83C5-DEA36D455E3A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.API.UnitTests", "InvoiceReminder.API.UnitTests\InvoiceReminder.API.UnitTests.csproj", "{A1770BD0-A964-4580-8F90-A6EAF20444B9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Data", "InvoiceReminder.Data\InvoiceReminder.Data.csproj", "{D087924E-D489-4018-95FE-A89B0D0A42DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.Application.UnitTests", "InvoiceReminder.Application.UnitTests\InvoiceReminder.Application.UnitTests.csproj", "{CCE01871-5AEF-4D60-ADAF-AE63F1AB4136}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.JobScheduler.UnitTests", "InvoiceReminder.JobScheduler.UnitTests\InvoiceReminder.JobScheduler.UnitTests.csproj", "{1CC0FC52-71DE-4FEB-8A8F-3B8F879D33C1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.ExternalServices.UnitTests", "InvoiceReminder.ExternalServices.UnitTests\InvoiceReminder.ExternalServices.UnitTests.csproj", "{45590E22-E032-476B-848F-D43669E82DA2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.UnitTests.Assets", "InvoiceReminder.UnitTests.Assets\InvoiceReminder.UnitTests.Assets.csproj", "{0D3F963F-37A2-40E6-865D-0FD732FC5376}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.CrossCutting.IoC", "InvoiceReminder.CrossCutting.IoC\InvoiceReminder.CrossCutting.IoC.csproj", "{90BE8610-76AB-44DC-B39A-57B6C684BF33}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.ArchitectureTests", "InvoiceReminder.ArchitectureTests\InvoiceReminder.ArchitectureTests.csproj", "{F8FE30DD-52E6-4981-96A7-D4D487522A26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.IntegrationTests", "InvoiceReminder.IntegrationTests\InvoiceReminder.IntegrationTests.csproj", "{F2E0270A-1FCB-4E71-B4EE-5E3059B7B8B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.UnitTests.Domain", "InvoiceReminder.UnitTests.Domain\InvoiceReminder.UnitTests.Domain.csproj", "{F50B9864-67DB-48DF-9B95-D78C126E0A2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.UnitTests.Infrastructure", "InvoiceReminder.UnitTests.Infrastructure\InvoiceReminder.UnitTests.Infrastructure.csproj", "{BB724E60-FEC2-44C4-B6AF-1692EF1958B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.UnitTests.API", "InvoiceReminder.UnitTests.API\InvoiceReminder.UnitTests.API.csproj", "{A1770BD0-A964-4580-8F90-A6EAF20444B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.UnitTests.Application", "InvoiceReminder.UnitTests.Application\InvoiceReminder.UnitTests.Application.csproj", "{CCE01871-5AEF-4D60-ADAF-AE63F1AB4136}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.UnitTests.JobScheduler", "InvoiceReminder.UnitTests.JobScheduler\InvoiceReminder.UnitTests.JobScheduler.csproj", "{1CC0FC52-71DE-4FEB-8A8F-3B8F879D33C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.UnitTests.ExternalServices", "InvoiceReminder.UnitTests.ExternalServices\InvoiceReminder.UnitTests.ExternalServices.csproj", "{45590E22-E032-476B-848F-D43669E82DA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceReminder.UnitTests.SUT.Assets", "InvoiceReminder.UnitTests.SUT.Assets\InvoiceReminder.UnitTests.SUT.Assets.csproj", "{0D3F963F-37A2-40E6-865D-0FD732FC5376}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens de Solução", "{380A7511-A354-6D7A-0CC0-8FA1F1BA7B6C}"
 	ProjectSection(SolutionItems) = preProject
@@ -106,6 +114,14 @@ Global
 		{F2EB382B-25E4-43D8-8159-53DB5085DED6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2EB382B-25E4-43D8-8159-53DB5085DED6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2EB382B-25E4-43D8-8159-53DB5085DED6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2E0270A-1FCB-4E71-B4EE-5E3059B7B8B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2E0270A-1FCB-4E71-B4EE-5E3059B7B8B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2E0270A-1FCB-4E71-B4EE-5E3059B7B8B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2E0270A-1FCB-4E71-B4EE-5E3059B7B8B7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F50B9864-67DB-48DF-9B95-D78C126E0A2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F50B9864-67DB-48DF-9B95-D78C126E0A2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F50B9864-67DB-48DF-9B95-D78C126E0A2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -134,10 +150,6 @@ Global
 		{0D3F963F-37A2-40E6-865D-0FD732FC5376}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D3F963F-37A2-40E6-865D-0FD732FC5376}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D3F963F-37A2-40E6-865D-0FD732FC5376}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F8FE30DD-52E6-4981-96A7-D4D487522A26}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -157,14 +169,18 @@ Global
 		{394EC1DE-9FDA-44F9-A5F5-7BF259150910} = {665C60E7-33FC-4B5B-B5EE-E31CDF83B1B1}
 		{995B652F-6095-4056-A1AB-F45AAF0135D2} = {6A1AF399-E528-43C3-B5FD-CA7DADA09377}
 		{F2EB382B-25E4-43D8-8159-53DB5085DED6} = {BF3C7CE8-60C1-4A70-9BF1-22050115A1C4}
-		{F50B9864-67DB-48DF-9B95-D78C126E0A2C} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
-		{BB724E60-FEC2-44C4-B6AF-1692EF1958B4} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
-		{A1770BD0-A964-4580-8F90-A6EAF20444B9} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
-		{CCE01871-5AEF-4D60-ADAF-AE63F1AB4136} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
-		{1CC0FC52-71DE-4FEB-8A8F-3B8F879D33C1} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
-		{45590E22-E032-476B-848F-D43669E82DA2} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
-		{0D3F963F-37A2-40E6-865D-0FD732FC5376} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
-		{F8FE30DD-52E6-4981-96A7-D4D487522A26} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
+		{F8FE30DD-52E6-4981-96A7-D4D487522A26} = {75B98BB5-3EE7-4F79-BC4D-AD9261687449}
+		{F2E0270A-1FCB-4E71-B4EE-5E3059B7B8B7} = {CA571B85-3CB9-4B15-8363-20E769BDE34D}
+		{F50B9864-67DB-48DF-9B95-D78C126E0A2C} = {787440A7-A78A-4DD9-9999-2694378FE4FE}
+		{BB724E60-FEC2-44C4-B6AF-1692EF1958B4} = {787440A7-A78A-4DD9-9999-2694378FE4FE}
+		{A1770BD0-A964-4580-8F90-A6EAF20444B9} = {787440A7-A78A-4DD9-9999-2694378FE4FE}
+		{CCE01871-5AEF-4D60-ADAF-AE63F1AB4136} = {787440A7-A78A-4DD9-9999-2694378FE4FE}
+		{1CC0FC52-71DE-4FEB-8A8F-3B8F879D33C1} = {787440A7-A78A-4DD9-9999-2694378FE4FE}
+		{45590E22-E032-476B-848F-D43669E82DA2} = {787440A7-A78A-4DD9-9999-2694378FE4FE}
+		{0D3F963F-37A2-40E6-865D-0FD732FC5376} = {787440A7-A78A-4DD9-9999-2694378FE4FE}
+		{75B98BB5-3EE7-4F79-BC4D-AD9261687449} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
+		{CA571B85-3CB9-4B15-8363-20E769BDE34D} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
+		{787440A7-A78A-4DD9-9999-2694378FE4FE} = {67471F47-0B78-4F8A-95CD-145F78F644C3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6165C451-34A2-4F1A-88D1-21F3EB4B587B}

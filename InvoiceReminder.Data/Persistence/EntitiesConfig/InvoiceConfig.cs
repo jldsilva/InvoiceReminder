@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("InvoiceReminder.Infrastructure.UnitTests")]
+[assembly: InternalsVisibleTo("InvoiceReminder.UnitTests.Infrastructure")]
 
 namespace InvoiceReminder.Data.Persistence.EntitiesConfig;
 
