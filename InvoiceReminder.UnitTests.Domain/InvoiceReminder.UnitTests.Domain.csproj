@@ -1,0 +1,30 @@
+﻿<Project Sdk="MSTest.Sdk/4.0.2">
+
+  <PropertyGroup>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+    <OutputType>Exe</OutputType>
+    <UseVSTest>false</UseVSTest>
+  </PropertyGroup>
+    
+  <ItemGroup>
+    <ProjectReference Include="..\InvoiceReminder.Domain\InvoiceReminder.Domain.csproj" />
+    <ProjectReference Include="..\InvoiceReminder.UnitTests.SUT.Assets\InvoiceReminder.UnitTests.SUT.Assets.csproj" />
+  </ItemGroup>
+    
+  <ItemGroup>
+    <PackageReference Include="Bogus" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Shouldly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="MSTest.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Update="MSTest.TestAdapter" />
+    <PackageReference Update="MSTest.TestFramework" />
+  </ItemGroup>
+
+</Project>

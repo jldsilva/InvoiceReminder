@@ -2,6 +2,7 @@ using InvoiceReminder.Data.Exceptions;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
@@ -14,6 +15,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly CoreDbContext _context;
     private readonly DbConnection _connection;
     private readonly ILogger<UnitOfWork> _logger;
+    private const string LogExceptionMessage = "{ContextualInfo} - Exception: {Message}";
 
     public UnitOfWork(CoreDbContext context, ILogger<UnitOfWork> logger)
     {
@@ -24,29 +26,47 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        await OpenConnection(cancellationToken);
-
-        using var transaction = await _connection.BeginTransactionAsync(cancellationToken);
+        IDbContextTransaction transaction = default;
 
         try
         {
+            await OpenConnection(cancellationToken);
+
+            transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
             _ = await _context.SaveChangesAsync(cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
         }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var method = $"{nameof(UnitOfWork)}.{nameof(SaveChangesAsync)}";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
+
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
+
+            throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
+        }
         catch (Exception ex)
         {
+            var method = $"{nameof(UnitOfWork)}.{nameof(SaveChangesAsync)}";
+            var contextualInfo = $"Exception raised. Rolling back changes >> {method}(...)";
+
             if (_logger.IsEnabled(LogLevel.Error))
             {
-                _logger.LogError(ex, "{Message}", ex.Message);
+                _logger.LogError(ex, LogExceptionMessage, contextualInfo, ex.Message);
             }
 
             await transaction.RollbackAsync(cancellationToken);
 
-            throw new DataLayerException($"Exception raised while saving changes: {ex.Message}", ex);
+            throw new DataLayerException(contextualInfo, ex);
         }
         finally
         {
+            transaction?.Dispose();
             await CloseConnection();
         }
     }

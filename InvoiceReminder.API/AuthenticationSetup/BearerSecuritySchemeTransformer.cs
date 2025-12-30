@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("InvoiceReminder.API.UnitTests")]
+[assembly: InternalsVisibleTo("InvoiceReminder.UnitTests.API")]
 
 namespace InvoiceReminder.API.AuthenticationSetup;
 
