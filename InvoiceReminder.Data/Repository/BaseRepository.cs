@@ -39,6 +39,21 @@ public class BaseRepository<TDbContext, TEntity> : IBaseRepository<TEntity>
         return entities.Count;
     }
 
+    public virtual async Task BulkRemoveAsync(ICollection<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.BulkDeleteAsync(entities, cancellationToken: cancellationToken);
+    }
+
+    public virtual async Task BulkUpdateAsync(ICollection<TEntity> entities, CancellationToken cancellationToken = default)
+    {
+        foreach (var entity in entities)
+        {
+            entity.GetType().GetProperty("UpdatedAt")?.SetValue(entity, DateTime.UtcNow);
+        }
+
+        await _dbContext.BulkUpdateAsync(entities, cancellationToken: cancellationToken);
+    }
+
     public virtual void Remove(TEntity entity)
     {
         if (_dbContext.Entry(entity).State == EntityState.Detached)

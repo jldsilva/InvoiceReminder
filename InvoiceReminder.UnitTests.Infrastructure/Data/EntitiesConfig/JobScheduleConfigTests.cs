@@ -11,16 +11,6 @@ namespace InvoiceReminder.UnitTests.Infrastructure.Data.EntitiesConfig;
 public sealed class JobScheduleConfigTests
 {
     [TestMethod]
-    public void JobScheduleConfig_ShouldNotThrowErrorWhenInstantiated()
-    {
-        // Arrange && Act
-        Action action = () => _ = new JobScheduleConfig();
-
-        // Assert
-        action.ShouldNotThrow();
-    }
-
-    [TestMethod]
     public void JobScheduleConfig_ShouldConfigureEntityCorrectly()
     {
         // Arrange
@@ -62,6 +52,7 @@ public sealed class JobScheduleConfigTests
         var cronExpressionProperty = entityType.FindProperty(nameof(JobSchedule.CronExpression));
         _ = cronExpressionProperty.ShouldNotBeNull();
         cronExpressionProperty.GetColumnName().ShouldBe("cron_expression");
+        cronExpressionProperty.GetMaxLength().ShouldBe(255);
         (!cronExpressionProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade CreatedAt (herdada de EntityDefaults)

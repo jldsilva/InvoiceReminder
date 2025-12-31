@@ -11,16 +11,6 @@ namespace InvoiceReminder.UnitTests.Infrastructure.Data.EntitiesConfig;
 public sealed class InvoiceConfigTests
 {
     [TestMethod]
-    public void InvoiceConfig_ShouldNotThrowErrorWhenInstantiated()
-    {
-        // Arrange && Act
-        Action action = () => _ = new InvoiceConfig();
-
-        // Assert
-        action.ShouldNotThrow();
-    }
-
-    [TestMethod]
     public void InvoiceConfig_ShouldConfigureEntityCorrectly()
     {
         // Arrange

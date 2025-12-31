@@ -111,7 +111,7 @@ public sealed class CronJobTests
             LogLevel.Information,
             Arg.Any<EventId>(),
             Arg.Is<object>(o => o.ToString().Contains("Test Job Description triggered...")),
-            Arg.Any<Exception>(),
+            null,
             Arg.Any<Func<object, Exception, string>>()
         );
     }

@@ -11,16 +11,6 @@ namespace InvoiceReminder.UnitTests.Infrastructure.Data.EntitiesConfig;
 public sealed class UserConfigTests
 {
     [TestMethod]
-    public void UserConfig_ShouldNotThrowErrorWhenInstantiated()
-    {
-        // Arrange && Act
-        Action action = () => _ = new UserConfig();
-
-        // Assert
-        action.ShouldNotThrow();
-    }
-
-    [TestMethod]
     public void UserConfig_ShouldConfigureEntityCorrectly()
     {
         // Arrange
@@ -43,6 +33,13 @@ public sealed class UserConfigTests
         primaryKey.Properties.Count.ShouldBe(1);
         primaryKey.Properties[0].Name.ShouldBe(nameof(User.Id));
 
+        // Verifica índice único no Email
+        var emailIndex = entityType.GetIndexes()
+            .FirstOrDefault(i => i.Properties.Count == 1 && i.Properties[0].Name == nameof(User.Email));
+        _ = emailIndex.ShouldNotBeNull();
+        emailIndex.IsUnique.ShouldBeTrue();
+        emailIndex.GetDatabaseName().ShouldBe("idx_user_email");
+
         // Verifica propriedade Id
         var idProperty = entityType.FindProperty(nameof(User.Id));
         _ = idProperty.ShouldNotBeNull();
@@ -62,18 +59,21 @@ public sealed class UserConfigTests
         var nameProperty = entityType.FindProperty(nameof(User.Name));
         _ = nameProperty.ShouldNotBeNull();
         nameProperty.GetColumnName().ShouldBe("name");
+        nameProperty.GetMaxLength().ShouldBe(255);
         (!nameProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade Email
         var emailProperty = entityType.FindProperty(nameof(User.Email));
         _ = emailProperty.ShouldNotBeNull();
         emailProperty.GetColumnName().ShouldBe("email");
+        emailProperty.GetMaxLength().ShouldBe(255);
         (!emailProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade Password
         var passwordProperty = entityType.FindProperty(nameof(User.Password));
         _ = passwordProperty.ShouldNotBeNull();
         passwordProperty.GetColumnName().ShouldBe("password");
+        passwordProperty.GetMaxLength().ShouldBe(255);
         (!passwordProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade CreatedAt (herdada de EntityDefaults)
