@@ -136,13 +136,8 @@ public sealed class BaseRepositoryIntegrationTests
         _ = await _userRepository.BulkInsertAsync(users, TestContext.CancellationToken);
 
         // Assert
-        using var dbContext = new CoreDbContext(new DbContextOptionsBuilder<CoreDbContext>()
-            .UseNpgsql(DatabaseFixture.ConnectionString)
-            .Options);
-
         var userIds = users.Select(u => u.Id).ToList();
-        var count = await dbContext.Set<User>()
-            .CountAsync(u => userIds.Contains(u.Id), TestContext.CancellationToken);
+        var count = _userRepository.Where(u => userIds.Contains(u.Id)).Count();
 
         count.ShouldBe(3);
     }
@@ -286,13 +281,15 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task GetAll_Should_Return_Empty_Collection_When_No_Entities()
     {
         // Arrange
-        using var repository = CreateFreshRepository<User>();
+        var invoices = _invoiceRepository.GetAll().ToList();
+        await _invoiceRepository.BulkRemoveAsync(invoices, TestContext.CancellationToken);
 
-        // Act - Try to get all invoices (likely none exist at test start)
-        var result = repository.GetAll().ToList();
+        // Act
+        var result = _invoiceRepository.GetAll();
 
         // Assert
         _ = result.ShouldNotBeNull();
+        result.ShouldBeEmpty();
     }
 
     #endregion

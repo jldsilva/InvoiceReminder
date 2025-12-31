@@ -13,7 +13,9 @@ public static class TestData
             .RuleFor(u => u.TelegramChatId, f => f.Random.Long(100000000, long.MaxValue))
             .RuleFor(u => u.Name, f => f.Person.FullName)
             .RuleFor(u => u.Email, f => f.Internet.Email())
-            .RuleFor(u => u.Password, f => f.Internet.Password(length: 16, memorable: false));
+            .RuleFor(u => u.Password, f => f.Internet.Password(length: 16, memorable: false))
+            .RuleFor(u => u.CreatedAt, f => f.Date.Past().ToUniversalTime())
+            .RuleFor(u => u.UpdatedAt, f => f.Date.Recent().ToUniversalTime());
     }
 
     public static Faker<EmailAuthToken> EmailAuthTokenFaker()

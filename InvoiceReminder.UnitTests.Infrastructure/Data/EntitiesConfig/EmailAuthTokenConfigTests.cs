@@ -11,16 +11,6 @@ namespace InvoiceReminder.UnitTests.Infrastructure.Data.EntitiesConfig;
 public sealed class EmailAuthTokenConfigTests
 {
     [TestMethod]
-    public void EmailAuthTokenConfig_ShouldNotThrowErrorWhenInstantiated()
-    {
-        // Arrange && Act
-        Action action = () => _ = new EmailAuthTokenConfig();
-
-        // Assert
-        action.ShouldNotThrow();
-    }
-
-    [TestMethod]
     public void EmailAuthTokenConfig_ShouldConfigureEntityCorrectly()
     {
         // Arrange
@@ -62,18 +52,21 @@ public sealed class EmailAuthTokenConfigTests
         var accessTokenProperty = entityType.FindProperty(nameof(EmailAuthToken.AccessToken));
         _ = accessTokenProperty.ShouldNotBeNull();
         accessTokenProperty.GetColumnName().ShouldBe("access_token");
+        accessTokenProperty.GetMaxLength().ShouldBe(512);
         (!accessTokenProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade RefreshToken
         var refreshTokenProperty = entityType.FindProperty(nameof(EmailAuthToken.RefreshToken));
         _ = refreshTokenProperty.ShouldNotBeNull();
         refreshTokenProperty.GetColumnName().ShouldBe("refresh_token");
+        refreshTokenProperty.GetMaxLength().ShouldBe(512);
         (!refreshTokenProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade NonceValue
         var nonceValueProperty = entityType.FindProperty(nameof(EmailAuthToken.NonceValue));
         _ = nonceValueProperty.ShouldNotBeNull();
         nonceValueProperty.GetColumnName().ShouldBe("nonce_value");
+        nonceValueProperty.GetMaxLength().ShouldBe(64);
         (!nonceValueProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade TokenProvider
@@ -86,6 +79,7 @@ public sealed class EmailAuthTokenConfigTests
         var accessTokenExpiryProperty = entityType.FindProperty(nameof(EmailAuthToken.AccessTokenExpiry));
         _ = accessTokenExpiryProperty.ShouldNotBeNull();
         accessTokenExpiryProperty.GetColumnName().ShouldBe("access_token_expiry");
+        accessTokenExpiryProperty.GetColumnType().ShouldBe("timestamp with time zone");
         (!accessTokenExpiryProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade CreatedAt (herdada de EntityDefaults)

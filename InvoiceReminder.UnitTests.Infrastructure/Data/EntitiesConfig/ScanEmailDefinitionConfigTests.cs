@@ -11,16 +11,6 @@ namespace InvoiceReminder.UnitTests.Infrastructure.Data.EntitiesConfig;
 public sealed class ScanEmailDefinitionConfigTests
 {
     [TestMethod]
-    public void ScanEmailDefinitionConfig_ShouldNotThrowErrorWhenInstantiated()
-    {
-        // Arrange && Act
-        Action action = () => _ = new ScanEmailDefinitionConfig();
-
-        // Assert
-        action.ShouldNotThrow();
-    }
-
-    [TestMethod]
     public void ScanEmailDefinitionConfig_ShouldConfigureEntityCorrectly()
     {
         // Arrange
@@ -68,25 +58,29 @@ public sealed class ScanEmailDefinitionConfigTests
         var beneficiaryProperty = entityType.FindProperty(nameof(ScanEmailDefinition.Beneficiary));
         _ = beneficiaryProperty.ShouldNotBeNull();
         beneficiaryProperty.GetColumnName().ShouldBe("beneficiary");
+        beneficiaryProperty.GetMaxLength().ShouldBe(255);
         (!beneficiaryProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade Description
         var descriptionProperty = entityType.FindProperty(nameof(ScanEmailDefinition.Description));
         _ = descriptionProperty.ShouldNotBeNull();
         descriptionProperty.GetColumnName().ShouldBe("description");
+        descriptionProperty.GetMaxLength().ShouldBe(255);
         (!descriptionProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade SenderEmailAddress
         var senderEmailAddressProperty = entityType.FindProperty(nameof(ScanEmailDefinition.SenderEmailAddress));
         _ = senderEmailAddressProperty.ShouldNotBeNull();
         senderEmailAddressProperty.GetColumnName().ShouldBe("sender_email_address");
+        senderEmailAddressProperty.GetMaxLength().ShouldBe(255);
         (!senderEmailAddressProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade AttachmentFileName
-        var cronExpressionProperty = entityType.FindProperty(nameof(ScanEmailDefinition.AttachmentFileName));
-        _ = cronExpressionProperty.ShouldNotBeNull();
-        cronExpressionProperty.GetColumnName().ShouldBe("attachment_filename");
-        (!cronExpressionProperty.IsNullable).ShouldBeTrue();
+        var attachmentFileNameProperty = entityType.FindProperty(nameof(ScanEmailDefinition.AttachmentFileName));
+        _ = attachmentFileNameProperty.ShouldNotBeNull();
+        attachmentFileNameProperty.GetColumnName().ShouldBe("attachment_filename");
+        attachmentFileNameProperty.GetMaxLength().ShouldBe(255);
+        (!attachmentFileNameProperty.IsNullable).ShouldBeTrue();
 
         // Verifica propriedade CreatedAt (herdada de EntityDefaults)
         var createdAtProperty = entityType.FindProperty(nameof(ScanEmailDefinition.CreatedAt));
