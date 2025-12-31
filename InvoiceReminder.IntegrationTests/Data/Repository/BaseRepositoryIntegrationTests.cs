@@ -473,6 +473,8 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Where_Should_Return_Multiple_Matching_Entities()
     {
         // Arrange
+        await _userRepository.BulkRemoveAsync([.. _userRepository.GetAll()], TestContext.CancellationToken);
+
         var user1 = TestData.UserFaker()
             .RuleFor(u => u.Name, _ => "Jack Doe")
             .Generate();

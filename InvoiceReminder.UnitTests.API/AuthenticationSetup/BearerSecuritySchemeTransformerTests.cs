@@ -48,8 +48,8 @@ public sealed class BearerSecuritySchemeTransformerTests
             _ = _document.ShouldBeOfType<OpenApiDocument>();
             _ = _document.Components.ShouldNotBeNull();
             _ = _document.Components.SecuritySchemes.ShouldNotBeNull();
-            _ = _document.Components.SecuritySchemes.ContainsKey("Bearer");
 
+            _document.Components.SecuritySchemes.ContainsKey("Bearer").ShouldBe(true);
             _document.Components.SecuritySchemes["Bearer"].Scheme.ShouldBeEquivalentTo("bearer");
         });
     }

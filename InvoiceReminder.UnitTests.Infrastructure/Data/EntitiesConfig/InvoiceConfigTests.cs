@@ -38,7 +38,7 @@ public sealed class InvoiceConfigTests
         _ = idProperty.ShouldNotBeNull();
         idProperty.GetColumnName().ShouldBe("id");
         idProperty.GetColumnType().ShouldBe("uuid");
-        (!idProperty.IsNullable).ShouldBeTrue();
+        idProperty.IsNullable.ShouldBeFalse();
         idProperty.ValueGenerated.ShouldBe(ValueGenerated.OnAdd);
 
         // Verifica propriedade UserId
@@ -46,53 +46,53 @@ public sealed class InvoiceConfigTests
         _ = userIdProperty.ShouldNotBeNull();
         userIdProperty.GetColumnName().ShouldBe("user_id");
         userIdProperty.GetColumnType().ShouldBe("uuid");
-        (!userIdProperty.IsNullable).ShouldBeTrue();
+        userIdProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade Bank
         var bankProperty = entityType.FindProperty(nameof(Invoice.Bank));
         _ = bankProperty.ShouldNotBeNull();
         bankProperty.GetColumnName().ShouldBe("bank");
-        (!bankProperty.IsNullable).ShouldBeTrue();
+        bankProperty.IsNullable.ShouldBeFalse();
         bankProperty.GetMaxLength().ShouldBe(255);
 
         // Verifica propriedade Beneficiary
         var beneficiaryProperty = entityType.FindProperty(nameof(Invoice.Beneficiary));
         _ = beneficiaryProperty.ShouldNotBeNull();
         beneficiaryProperty.GetColumnName().ShouldBe("beneficiary");
-        (!beneficiaryProperty.IsNullable).ShouldBeTrue();
+        beneficiaryProperty.IsNullable.ShouldBeFalse();
         beneficiaryProperty.GetMaxLength().ShouldBe(255);
 
         // Verifica propriedade Barcode
         var barcodeProperty = entityType.FindProperty(nameof(Invoice.Barcode));
         _ = barcodeProperty.ShouldNotBeNull();
         barcodeProperty.GetColumnName().ShouldBe("barcode");
-        (!barcodeProperty.IsNullable).ShouldBeTrue();
+        barcodeProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade Amount
         var amountProperty = entityType.FindProperty(nameof(Invoice.Amount));
         _ = amountProperty.ShouldNotBeNull();
         amountProperty.GetColumnName().ShouldBe("amount");
-        (!amountProperty.IsNullable).ShouldBeTrue();
+        amountProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade DueDate
         var dueDateProperty = entityType.FindProperty(nameof(Invoice.DueDate));
         _ = dueDateProperty.ShouldNotBeNull();
         dueDateProperty.GetColumnName().ShouldBe("due_date");
         dueDateProperty.GetColumnType().ShouldBe("timestamp with time zone");
-        (!dueDateProperty.IsNullable).ShouldBeTrue();
+        dueDateProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade CreatedAt (herdada de EntityDefaults)
         var createdAtProperty = entityType.FindProperty(nameof(Invoice.CreatedAt));
         _ = createdAtProperty.ShouldNotBeNull();
         createdAtProperty.GetColumnName().ShouldBe("created_at");
         createdAtProperty.GetColumnType().ShouldBe("timestamp with time zone");
-        (!createdAtProperty.IsNullable).ShouldBeTrue();
+        createdAtProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade UpdatedAt (herdada de EntityDefaults)
         var updatedAtProperty = entityType.FindProperty(nameof(Invoice.UpdatedAt));
         _ = updatedAtProperty.ShouldNotBeNull();
         updatedAtProperty.GetColumnName().ShouldBe("updated_at");
         updatedAtProperty.GetColumnType().ShouldBe("timestamp with time zone");
-        (!updatedAtProperty.IsNullable).ShouldBeTrue();
+        updatedAtProperty.IsNullable.ShouldBeFalse();
     }
 }

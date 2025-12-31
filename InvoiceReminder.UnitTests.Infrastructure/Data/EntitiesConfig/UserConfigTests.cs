@@ -45,7 +45,7 @@ public sealed class UserConfigTests
         _ = idProperty.ShouldNotBeNull();
         idProperty.GetColumnName().ShouldBe("id");
         idProperty.GetColumnType().ShouldBe("uuid");
-        (!idProperty.IsNullable).ShouldBeTrue();
+        idProperty.IsNullable.ShouldBeFalse();
         idProperty.ValueGenerated.ShouldBe(ValueGenerated.OnAdd);
 
         // Verifica propriedade TelegramChatId
@@ -53,41 +53,41 @@ public sealed class UserConfigTests
         _ = telegramChatIdProperty.ShouldNotBeNull();
         telegramChatIdProperty.GetColumnName().ShouldBe("telegram_chat_id");
         telegramChatIdProperty.GetColumnType().ShouldBe("bigint");
-        (!telegramChatIdProperty.IsNullable).ShouldBeTrue();
+        telegramChatIdProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade Name
         var nameProperty = entityType.FindProperty(nameof(User.Name));
         _ = nameProperty.ShouldNotBeNull();
         nameProperty.GetColumnName().ShouldBe("name");
         nameProperty.GetMaxLength().ShouldBe(255);
-        (!nameProperty.IsNullable).ShouldBeTrue();
+        nameProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade Email
         var emailProperty = entityType.FindProperty(nameof(User.Email));
         _ = emailProperty.ShouldNotBeNull();
         emailProperty.GetColumnName().ShouldBe("email");
         emailProperty.GetMaxLength().ShouldBe(255);
-        (!emailProperty.IsNullable).ShouldBeTrue();
+        emailProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade Password
         var passwordProperty = entityType.FindProperty(nameof(User.Password));
         _ = passwordProperty.ShouldNotBeNull();
         passwordProperty.GetColumnName().ShouldBe("password");
         passwordProperty.GetMaxLength().ShouldBe(255);
-        (!passwordProperty.IsNullable).ShouldBeTrue();
+        passwordProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade CreatedAt (herdada de EntityDefaults)
         var createdAtProperty = entityType.FindProperty(nameof(User.CreatedAt));
         _ = createdAtProperty.ShouldNotBeNull();
         createdAtProperty.GetColumnName().ShouldBe("created_at");
         createdAtProperty.GetColumnType().ShouldBe("timestamp with time zone");
-        (!createdAtProperty.IsNullable).ShouldBeTrue();
+        createdAtProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade UpdatedAt (herdada de EntityDefaults)
         var updatedAtProperty = entityType.FindProperty(nameof(User.UpdatedAt));
         _ = updatedAtProperty.ShouldNotBeNull();
         updatedAtProperty.GetColumnName().ShouldBe("updated_at");
         updatedAtProperty.GetColumnType().ShouldBe("timestamp with time zone");
-        (!updatedAtProperty.IsNullable).ShouldBeTrue();
+        updatedAtProperty.IsNullable.ShouldBeFalse();
     }
 }

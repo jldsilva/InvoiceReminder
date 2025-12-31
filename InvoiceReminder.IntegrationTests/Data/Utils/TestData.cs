@@ -10,12 +10,12 @@ public static class TestData
     {
         return new Faker<User>()
             .RuleFor(u => u.Id, _ => Guid.NewGuid())
-            .RuleFor(u => u.TelegramChatId, f => f.Random.Long(100000000, long.MaxValue))
-            .RuleFor(u => u.Name, f => f.Person.FullName)
-            .RuleFor(u => u.Email, f => f.Internet.Email())
-            .RuleFor(u => u.Password, f => f.Internet.Password(length: 16, memorable: false))
-            .RuleFor(u => u.CreatedAt, f => f.Date.Past().ToUniversalTime())
-            .RuleFor(u => u.UpdatedAt, f => f.Date.Recent().ToUniversalTime());
+            .RuleFor(u => u.TelegramChatId, faker => faker.Random.Long(100000000, long.MaxValue))
+            .RuleFor(u => u.Name, faker => faker.Person.FullName)
+            .RuleFor(u => u.Email, faker => faker.Internet.Email())
+            .RuleFor(u => u.Password, faker => faker.Internet.Password(length: 16, memorable: false))
+            .RuleFor(u => u.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
+            .RuleFor(e => e.UpdatedAt, (faker, u) => faker.Date.Between(u.CreatedAt, DateTime.UtcNow).ToUniversalTime());
     }
 
     public static Faker<EmailAuthToken> EmailAuthTokenFaker()
@@ -29,7 +29,7 @@ public static class TestData
             .RuleFor(e => e.NonceValue, faker => faker.Random.Hash())
             .RuleFor(e => e.AccessTokenExpiry, faker => faker.Date.Future().ToUniversalTime())
             .RuleFor(e => e.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(e => e.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+            .RuleFor(e => e.UpdatedAt, (faker, e) => faker.Date.Between(e.CreatedAt, DateTime.UtcNow).ToUniversalTime());
     }
 
     public static Faker<Invoice> InvoiceFaker()
@@ -51,7 +51,7 @@ public static class TestData
             .RuleFor(i => i.Barcode, faker => faker.Random.AlphaNumeric(44))
             .RuleFor(i => i.DueDate, faker => faker.Date.Future().ToUniversalTime())
             .RuleFor(i => i.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(i => i.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+            .RuleFor(i => i.UpdatedAt, (faker, i) => faker.Date.Between(i.CreatedAt, DateTime.UtcNow).ToUniversalTime());
     }
 
     public static Faker<JobSchedule> JobScheduleFaker()
@@ -67,7 +67,7 @@ public static class TestData
                 "0 9 * * MON-FRI",
                 "0 0 1 * *"))
             .RuleFor(j => j.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(j => j.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+            .RuleFor(j => j.UpdatedAt, (faker, j) => faker.Date.Between(j.CreatedAt, DateTime.UtcNow).ToUniversalTime());
     }
 
     public static Faker<ScanEmailDefinition> ScanEmailDefinitionFaker()
@@ -81,6 +81,6 @@ public static class TestData
             .RuleFor(s => s.SenderEmailAddress, faker => faker.Internet.Email())
             .RuleFor(s => s.AttachmentFileName, faker => faker.System.FileName("pdf"))
             .RuleFor(s => s.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(s => s.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+            .RuleFor(s => s.UpdatedAt, (faker, s) => faker.Date.Between(s.CreatedAt, DateTime.UtcNow).ToUniversalTime());
     }
 }
