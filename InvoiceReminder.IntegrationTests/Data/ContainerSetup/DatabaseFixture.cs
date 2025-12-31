@@ -15,16 +15,24 @@ public static class DatabaseFixture
     [AssemblyInitialize]
     public static async Task AssemblyInit(TestContext context)
     {
-        _dbContainer = new PostgreSqlBuilder()
+        try
+        {
+            _dbContainer = new PostgreSqlBuilder()
             .WithDatabase("postgres")
             .WithUsername("postgres")
             .WithPassword("Fake!Password#123")
             .WithImage("postgres:15-alpine")
             .Build();
 
-        await _dbContainer.StartAsync(context.CancellationToken);
-        await CreateSchema(context);
-        await RunMigrations(context);
+            await _dbContainer.StartAsync(context.CancellationToken);
+            await CreateSchema(context);
+            await RunMigrations(context);
+        }
+        catch (Exception ex)
+        {
+            context.WriteLine($"Failed to initialize test database: {ex.Message}");
+            throw;
+        }
     }
 
     [AssemblyCleanup]

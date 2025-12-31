@@ -59,13 +59,13 @@ public sealed class CronJobTests
 
         _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
-        _logger.ReceivedWithAnyArgs(1).Log(
-            LogLevel.Information,
-            Arg.Any<EventId>(),
-            Arg.Any<object>(),
-            null,
-            Arg.Any<Func<object, Exception, string>>()
-        );
+        _logger.Received(1).Log(
+             LogLevel.Information,
+             Arg.Any<EventId>(),
+             Arg.Any<object>(),
+             null,
+             Arg.Any<Func<object, Exception, string>>()
+         );
     }
 
     [TestMethod]

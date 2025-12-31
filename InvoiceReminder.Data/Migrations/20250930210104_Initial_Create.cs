@@ -5,15 +5,13 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace InvoiceReminder.Data.Migrations;
 
-[ExcludeFromCodeCoverage]
 /// <inheritdoc />
+[ExcludeFromCodeCoverage]
 public partial class Initial_Create : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.Sql("CREATE SCHEMA IF NOT EXISTS invoice_reminder;");
-
         _ = migrationBuilder.EnsureSchema(
             name: "invoice_reminder");
 

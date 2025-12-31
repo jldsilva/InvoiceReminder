@@ -1,10 +1,10 @@
-using Bogus;
 using InvoiceReminder.Data.Exceptions;
+using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Data.Repository;
 using InvoiceReminder.Domain.Entities;
-using InvoiceReminder.Domain.Enums;
 using InvoiceReminder.IntegrationTests.Data.ContainerSetup;
+using InvoiceReminder.IntegrationTests.Data.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -30,64 +30,37 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
             .Options;
 
         _dbContext = new CoreDbContext(options);
-        _repositoryLogger = Substitute.For<ILogger<ScanEmailDefinitionRepository>>(); ;
+        _repositoryLogger = Substitute.For<ILogger<ScanEmailDefinitionRepository>>();
         _unitOfWorkLogger = Substitute.For<ILogger<UnitOfWork>>();
         _repository = new ScanEmailDefinitionRepository(_dbContext, _repositoryLogger);
         _unitOfWork = new UnitOfWork(_dbContext, _unitOfWorkLogger);
     }
 
-    #region Helper Methods
-
-    private static Faker<User> UserFaker()
+    [TestCleanup]
+    public void TestCleanup()
     {
-        return new Faker<User>()
-            .RuleFor(u => u.Id, _ => Guid.NewGuid())
-            .RuleFor(u => u.TelegramChatId, f => f.Random.Long(100000000, long.MaxValue))
-            .RuleFor(u => u.Name, f => f.Person.FullName)
-            .RuleFor(u => u.Email, f => f.Internet.Email())
-            .RuleFor(u => u.Password, f => f.Internet.Password(length: 16, memorable: false));
+        _unitOfWork?.Dispose();
+        _repository?.Dispose();
+        _dbContext?.Dispose();
     }
 
-    private static Faker<ScanEmailDefinition> ScanEmailDefinitionFaker()
+    [TestMethod]
+    public void ScanEmailDefinitionRepository_ShouldBeAssignableToItsInterface_And_GenericInterface_And_GenericRepository()
     {
-        return new Faker<ScanEmailDefinition>()
-            .RuleFor(s => s.Id, faker => faker.Random.Guid())
-            .RuleFor(s => s.UserId, faker => faker.Random.Guid())
-            .RuleFor(s => s.InvoiceType, faker => faker.PickRandom(InvoiceType.AccountInvoice, InvoiceType.BankInvoice))
-            .RuleFor(s => s.Beneficiary, faker => faker.Person.FullName)
-            .RuleFor(s => s.Description, faker => faker.Lorem.Sentence())
-            .RuleFor(s => s.SenderEmailAddress, faker => faker.Internet.Email())
-            .RuleFor(s => s.AttachmentFileName, faker => faker.System.FileName("pdf"))
-            .RuleFor(s => s.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(s => s.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+        // Arrange && Act
+        var repository = new ScanEmailDefinitionRepository(_dbContext, _repositoryLogger);
+
+        // Assert
+        repository.ShouldSatisfyAllConditions(() =>
+        {
+            _ = repository.ShouldBeAssignableTo<IScanEmailDefinitionRepository>();
+            _ = repository.ShouldBeAssignableTo<IBaseRepository<ScanEmailDefinition>>();
+            _ = repository.ShouldBeAssignableTo<BaseRepository<CoreDbContext, ScanEmailDefinition>>();
+
+            _ = repository.ShouldNotBeNull();
+            _ = repository.ShouldBeOfType<ScanEmailDefinitionRepository>();
+        });
     }
-
-    private async Task<User> CreateAndSaveUserAsync(User user = null)
-    {
-        user ??= UserFaker().Generate();
-        var logger = Substitute.For<ILogger<UserRepository>>();
-        var userRepository = new UserRepository(_dbContext, logger);
-
-        _ = await userRepository.AddAsync(user, TestContext.CancellationToken);
-        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
-
-        return user;
-    }
-
-    private async Task<ScanEmailDefinition> CreateAndSaveScanEmailDefinitionAsync(ScanEmailDefinition scanEmailDefinition = null)
-    {
-        var user = await CreateAndSaveUserAsync();
-        scanEmailDefinition ??= ScanEmailDefinitionFaker()
-            .RuleFor(s => s.UserId, _ => user.Id)
-            .Generate();
-
-        _ = await _repository.AddAsync(scanEmailDefinition, TestContext.CancellationToken);
-        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
-
-        return scanEmailDefinition;
-    }
-
-    #endregion
 
     #region GetByIdAsync Tests
 
@@ -214,10 +187,10 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
     {
         // Arrange
         var user = await CreateAndSaveUserAsync();
-        var definition1 = ScanEmailDefinitionFaker()
+        var definition1 = TestData.ScanEmailDefinitionFaker()
             .RuleFor(s => s.UserId, _ => user.Id)
             .Generate();
-        var definition2 = ScanEmailDefinitionFaker()
+        var definition2 = TestData.ScanEmailDefinitionFaker()
             .RuleFor(s => s.UserId, _ => user.Id)
             .Generate();
 
@@ -344,10 +317,10 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
     {
         // Arrange
         var user = await CreateAndSaveUserAsync();
-        var definition1 = ScanEmailDefinitionFaker()
+        var definition1 = TestData.ScanEmailDefinitionFaker()
             .RuleFor(s => s.UserId, _ => user.Id)
             .Generate();
-        var definition2 = ScanEmailDefinitionFaker()
+        var definition2 = TestData.ScanEmailDefinitionFaker()
             .RuleFor(s => s.UserId, _ => user.Id)
             .Generate();
 
@@ -425,7 +398,7 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
     {
         // Arrange
         var user = await CreateAndSaveUserAsync();
-        var scanEmailDefinition = ScanEmailDefinitionFaker()
+        var scanEmailDefinition = TestData.ScanEmailDefinitionFaker()
             .RuleFor(s => s.UserId, _ => user.Id)
             .Generate();
 
@@ -450,7 +423,7 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
     {
         // Arrange
         var user = await CreateAndSaveUserAsync();
-        var scanEmailDefinitions = ScanEmailDefinitionFaker()
+        var scanEmailDefinitions = TestData.ScanEmailDefinitionFaker()
             .RuleFor(s => s.UserId, _ => user.Id)
             .Generate(3);
 
@@ -478,10 +451,10 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
         var user1 = await CreateAndSaveUserAsync();
         var user2 = await CreateAndSaveUserAsync();
 
-        var definition1 = ScanEmailDefinitionFaker()
+        var definition1 = TestData.ScanEmailDefinitionFaker()
             .RuleFor(s => s.UserId, _ => user1.Id)
             .Generate();
-        var definition2 = ScanEmailDefinitionFaker()
+        var definition2 = TestData.ScanEmailDefinitionFaker()
             .RuleFor(s => s.UserId, _ => user2.Id)
             .Generate();
 
@@ -541,7 +514,6 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
     public async Task GetBySenderEmailAddressAsync_Should_Handle_Cancellation_Request()
     {
         // Arrange
-        var scanEmailDefinition = await CreateAndSaveScanEmailDefinitionAsync();
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
@@ -549,7 +521,7 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
 
         // Act & Assert
         _ = await Should.ThrowAsync<OperationCanceledException>(
-            async () => await _repository.GetBySenderEmailAddressAsync(scanEmailDefinition.SenderEmailAddress, scanEmailDefinition.UserId, cts.Token)
+            async () => await _repository.GetBySenderEmailAddressAsync("any@mail.com", Guid.NewGuid(), cts.Token)
         );
 
         _repositoryLogger.Received(1).Log(
@@ -565,7 +537,6 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
     public async Task GetBySenderBeneficiaryAsync_Should_Handle_Cancellation_Request()
     {
         // Arrange
-        var scanEmailDefinition = await CreateAndSaveScanEmailDefinitionAsync();
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
@@ -573,7 +544,7 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
 
         // Act & Assert
         _ = await Should.ThrowAsync<OperationCanceledException>(
-            async () => await _repository.GetBySenderBeneficiaryAsync(scanEmailDefinition.Beneficiary, scanEmailDefinition.UserId, cts.Token)
+            async () => await _repository.GetBySenderBeneficiaryAsync("Beneficiary", Guid.NewGuid(), cts.Token)
         );
 
         _repositoryLogger.Received(1).Log(
@@ -589,7 +560,6 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
     public async Task GetByUserIdAsync_Should_Handle_Cancellation_Request()
     {
         // Arrange
-        var scanEmailDefinition = await CreateAndSaveScanEmailDefinitionAsync();
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
@@ -597,7 +567,7 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
 
         // Act & Assert
         _ = await Should.ThrowAsync<OperationCanceledException>(
-            async () => await _repository.GetByUserIdAsync(scanEmailDefinition.UserId, cts.Token)
+            async () => await _repository.GetByUserIdAsync(Guid.NewGuid(), cts.Token)
         );
 
         _repositoryLogger.Received(1).Log(
@@ -607,6 +577,35 @@ public sealed class ScanEmailDefinitionRepositoryIntegrationTests
             Arg.Any<OperationCanceledException>(),
             Arg.Any<Func<object, Exception, string>>()
         );
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private async Task<User> CreateAndSaveUserAsync(User user = null)
+    {
+        user ??= TestData.UserFaker().Generate();
+        var logger = Substitute.For<ILogger<UserRepository>>();
+        var userRepository = new UserRepository(_dbContext, logger);
+
+        _ = await userRepository.AddAsync(user, TestContext.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
+
+        return user;
+    }
+
+    private async Task<ScanEmailDefinition> CreateAndSaveScanEmailDefinitionAsync(ScanEmailDefinition scanEmailDefinition = null)
+    {
+        var user = await CreateAndSaveUserAsync();
+        scanEmailDefinition ??= TestData.ScanEmailDefinitionFaker()
+            .RuleFor(s => s.UserId, _ => user.Id)
+            .Generate();
+
+        _ = await _repository.AddAsync(scanEmailDefinition, TestContext.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
+
+        return scanEmailDefinition;
     }
 
     #endregion

@@ -330,7 +330,7 @@ public sealed class UnitOfWorkIntegrationTests
             .Options;
 
         var dbContext = new CoreDbContext(options);
-        var logger = Substitute.For<ILogger<UnitOfWork>>(); ;
+        var logger = Substitute.For<ILogger<UnitOfWork>>();
         var unitOfWork = new UnitOfWork(dbContext, logger);
 
         // Act
