@@ -24,14 +24,6 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    - name: Cache Docker layers
-      uses: actions/cache@v4
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-docker-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-docker-
-
     - name: Restore Dependencies
       run: dotnet restore
 
@@ -42,7 +34,7 @@ jobs:
       shell: bash
       run: |
         echo "🔍 Localizando Projetos de Teste..."
-        TEST_PROJECTS=$(find . -name "*.csproj" | grep -E "\.ArchitectureTests|\.IntegrationTests|\.UnitTests" | grep -v "Assets")
+        TEST_PROJECTS=$(find . -name "*.csproj" | grep -E "\.ArchitectureTests|\.IntegrationTests|\.UnitTests" | grep -v "Assets" | sort)
 
         if [ -z "$TEST_PROJECTS" ]; then
           echo "⚠️ Nenhum projeto de teste encontrado."

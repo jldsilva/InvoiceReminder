@@ -1,8 +1,8 @@
-using Bogus;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Data.Repository;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.IntegrationTests.Data.ContainerSetup;
+using InvoiceReminder.IntegrationTests.Data.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -42,27 +42,13 @@ public sealed class BaseRepositoryIntegrationTests
         _dbContext?.Dispose();
     }
 
-    #region Helper Methods
-
-    private static Faker<User> UserFaker()
-    {
-        return new Faker<User>()
-            .RuleFor(u => u.Id, _ => Guid.NewGuid())
-            .RuleFor(u => u.TelegramChatId, f => f.Random.Long(100000000, long.MaxValue))
-            .RuleFor(u => u.Name, f => f.Person.FullName)
-            .RuleFor(u => u.Email, f => f.Internet.Email())
-            .RuleFor(u => u.Password, f => f.Internet.Password(length: 16, memorable: false));
-    }
-
-    #endregion
-
     #region AddAsync Tests
 
     [TestMethod]
     public async Task AddAsync_Should_Add_Entity_To_DbSet()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
 
         // Act
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
@@ -76,7 +62,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task AddAsync_Should_Persist_Added_Entity_After_SaveChanges()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
 
         // Act
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
@@ -101,7 +87,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task AddAsync_Should_Return_Added_Entity()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
 
         // Act
         var result = await _userRepository.AddAsync(user, TestContext.CancellationToken);
@@ -118,7 +104,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task BulkInsertAsync_Should_Insert_Multiple_Entities()
     {
         // Arrange
-        var users = UserFaker().Generate(5);
+        var users = TestData.UserFaker().Generate(5);
 
         // Act
         var result = await _userRepository.BulkInsertAsync(users, TestContext.CancellationToken);
@@ -131,7 +117,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task BulkInsertAsync_Should_Set_CreatedAt_And_UpdatedAt()
     {
         // Arrange
-        var users = UserFaker().Generate(3);
+        var users = TestData.UserFaker().Generate(3);
 
         // Act
         _ = await _userRepository.BulkInsertAsync(users, TestContext.CancellationToken);
@@ -144,7 +130,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task BulkInsertAsync_Should_Persist_Entities_To_Database()
     {
         // Arrange
-        var users = UserFaker().Generate(3);
+        var users = TestData.UserFaker().Generate(3);
 
         // Act
         _ = await _userRepository.BulkInsertAsync(users, TestContext.CancellationToken);
@@ -178,7 +164,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task BulkInsertAsync_Should_Handle_Cancellation()
     {
         // Arrange
-        var users = UserFaker().Generate(5);
+        var users = TestData.UserFaker().Generate(5);
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
@@ -196,7 +182,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task GetByIdAsync_Should_Return_Entity_By_Id()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
         await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
@@ -247,7 +233,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task GetAll_Should_Return_All_Entities()
     {
         // Arrange
-        var users = UserFaker().Generate(3);
+        var users = TestData.UserFaker().Generate(3);
 
         _ = await _userRepository.BulkInsertAsync(users, TestContext.CancellationToken);
 
@@ -255,12 +241,7 @@ public sealed class BaseRepositoryIntegrationTests
         _userRepository.Dispose();
         await _dbContext.DisposeAsync();
 
-        var options = new DbContextOptionsBuilder<CoreDbContext>()
-            .UseNpgsql(DatabaseFixture.ConnectionString)
-            .Options;
-
-        using var dbContext = new CoreDbContext(options);
-        using var repository = new BaseRepository<CoreDbContext, User>(dbContext);
+        using var repository = CreateFreshRepository<User>();
 
         // Act
         var result = repository.GetAll().ToList();
@@ -278,7 +259,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task GetAll_Should_Return_Entities_As_NoTracking()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
         await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
@@ -305,12 +286,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task GetAll_Should_Return_Empty_Collection_When_No_Entities()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<CoreDbContext>()
-            .UseNpgsql(DatabaseFixture.ConnectionString)
-            .Options;
-
-        using var dbContext = new CoreDbContext(options);
-        using var repository = new BaseRepository<CoreDbContext, Invoice>(dbContext);
+        using var repository = CreateFreshRepository<User>();
 
         // Act - Try to get all invoices (likely none exist at test start)
         var result = repository.GetAll().ToList();
@@ -327,7 +303,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Remove_Should_Mark_Entity_As_Deleted()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
         await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
@@ -343,7 +319,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Remove_Should_Delete_Entity_From_Database()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
         await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
@@ -365,7 +341,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Remove_Should_Attach_Detached_Entity_Before_Deleting()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
         await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
@@ -388,7 +364,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Update_Should_Mark_Entity_As_Modified()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
         await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
@@ -407,7 +383,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Update_Should_Persist_Changes_To_Database()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
         await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
@@ -432,7 +408,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Update_Should_Attach_Detached_Entity_Before_Updating()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
         await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
@@ -452,7 +428,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Update_Should_Return_Updated_Entity()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
         await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
@@ -473,13 +449,13 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Where_Should_Return_Filtered_Entities()
     {
         // Arrange
-        var user1 = UserFaker()
+        var user1 = TestData.UserFaker()
             .RuleFor(u => u.Email, _ => "test1@example.com")
             .Generate();
-        var user2 = UserFaker()
+        var user2 = TestData.UserFaker()
             .RuleFor(u => u.Email, _ => "test2@example.com")
             .Generate();
-        var user3 = UserFaker()
+        var user3 = TestData.UserFaker()
             .RuleFor(u => u.Email, _ => "test3@example.com")
             .Generate();
 
@@ -500,13 +476,13 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Where_Should_Return_Multiple_Matching_Entities()
     {
         // Arrange
-        var user1 = UserFaker()
+        var user1 = TestData.UserFaker()
             .RuleFor(u => u.Name, _ => "Jack Doe")
             .Generate();
-        var user2 = UserFaker()
+        var user2 = TestData.UserFaker()
             .RuleFor(u => u.Name, _ => "Jane Smith")
             .Generate();
-        var user3 = UserFaker()
+        var user3 = TestData.UserFaker()
             .RuleFor(u => u.Name, _ => "Jack Smith")
             .Generate();
 
@@ -527,7 +503,7 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Where_Should_Return_Empty_Collection_When_No_Match()
     {
         // Arrange
-        var user = UserFaker().Generate();
+        var user = TestData.UserFaker().Generate();
         _ = await _userRepository.AddAsync(user, TestContext.CancellationToken);
         await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
 
@@ -542,11 +518,11 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Where_Should_Support_Complex_Predicates()
     {
         // Arrange
-        var user1 = UserFaker()
+        var user1 = TestData.UserFaker()
             .RuleFor(u => u.Name, _ => "Alice")
             .RuleFor(u => u.TelegramChatId, _ => 1000)
             .Generate();
-        var user2 = UserFaker()
+        var user2 = TestData.UserFaker()
             .RuleFor(u => u.Name, _ => "Bob")
             .RuleFor(u => u.TelegramChatId, _ => 2000)
             .Generate();
@@ -606,6 +582,21 @@ public sealed class BaseRepositoryIntegrationTests
             repository.Dispose();
             repository.Dispose();
         });
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private BaseRepository<CoreDbContext, T> CreateFreshRepository<T>() where T : class
+    {
+        var options = new DbContextOptionsBuilder<CoreDbContext>()
+            .UseNpgsql(DatabaseFixture.ConnectionString)
+            .Options;
+
+        var dbContext = new CoreDbContext(options);
+
+        return new BaseRepository<CoreDbContext, T>(dbContext);
     }
 
     #endregion

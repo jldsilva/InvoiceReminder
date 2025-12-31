@@ -23,6 +23,7 @@ internal class ScanEmailDefinitionConfig : IEntityTypeConfiguration<ScanEmailDef
 
         _ = builder.Property(x => x.UserId)
             .HasColumnName("user_id")
+            .HasColumnType("uuid")
             .IsRequired();
 
         _ = builder.Property(x => x.InvoiceType)

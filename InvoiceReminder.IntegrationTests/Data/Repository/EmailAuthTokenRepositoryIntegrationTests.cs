@@ -1,9 +1,10 @@
-using Bogus;
 using InvoiceReminder.Data.Exceptions;
+using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Data.Repository;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.IntegrationTests.Data.ContainerSetup;
+using InvoiceReminder.IntegrationTests.Data.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -35,58 +36,31 @@ public sealed class EmailAuthTokenRepositoryIntegrationTests
         _unitOfWork = new UnitOfWork(_dbContext, _unitOfWorkLogger);
     }
 
-    #region Helper Methods
-
-    private static Faker<User> UserFaker()
+    [TestCleanup]
+    public void TestCleanup()
     {
-        return new Faker<User>()
-            .RuleFor(u => u.Id, _ => Guid.NewGuid())
-            .RuleFor(u => u.TelegramChatId, f => f.Random.Long(100000000, long.MaxValue))
-            .RuleFor(u => u.Name, f => f.Person.FullName)
-            .RuleFor(u => u.Email, f => f.Internet.Email())
-            .RuleFor(u => u.Password, f => f.Internet.Password(length: 16, memorable: false));
+        _unitOfWork?.Dispose();
+        _repository?.Dispose();
+        _dbContext?.Dispose();
     }
 
-    private static Faker<EmailAuthToken> EmailAuthTokenFaker()
+    [TestMethod]
+    public void EmailAuthTokenRepository_ShouldBeAssignableToItsInterface_And_GenericInterface_And_GenericRepository()
     {
-        return new Faker<EmailAuthToken>()
-            .RuleFor(e => e.Id, faker => faker.Random.Guid())
-            .RuleFor(e => e.UserId, faker => faker.Random.Guid())
-            .RuleFor(e => e.AccessToken, faker => faker.Random.AlphaNumeric(128))
-            .RuleFor(e => e.RefreshToken, faker => faker.Random.AlphaNumeric(128))
-            .RuleFor(e => e.TokenProvider, faker => faker.PickRandom("Google", "Microsoft", "GitHub"))
-            .RuleFor(e => e.NonceValue, faker => faker.Random.Hash())
-            .RuleFor(e => e.AccessTokenExpiry, faker => faker.Date.Future().ToUniversalTime())
-            .RuleFor(e => e.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(e => e.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+        // Arrange && Act
+        var repository = new EmailAuthTokenRepository(_dbContext, _repositoryLogger);
+
+        // Assert
+        repository.ShouldSatisfyAllConditions(() =>
+        {
+            _ = repository.ShouldBeAssignableTo<IEmailAuthTokenRepository>();
+            _ = repository.ShouldBeAssignableTo<IBaseRepository<EmailAuthToken>>();
+            _ = repository.ShouldBeAssignableTo<BaseRepository<CoreDbContext, EmailAuthToken>>();
+
+            _ = repository.ShouldNotBeNull();
+            _ = repository.ShouldBeOfType<EmailAuthTokenRepository>();
+        });
     }
-
-    private async Task<EmailAuthToken> CreateAndSaveEmailAuthTokenAsync(EmailAuthToken emailAuthToken = null)
-    {
-        var user = await CreateAndSaveUserAsync();
-        emailAuthToken ??= EmailAuthTokenFaker()
-            .RuleFor(e => e.UserId, _ => user.Id)
-            .Generate();
-
-        _ = await _repository.AddAsync(emailAuthToken, TestContext.CancellationToken);
-        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
-
-        return emailAuthToken;
-    }
-
-    private async Task<User> CreateAndSaveUserAsync(User user = null)
-    {
-        user ??= UserFaker().Generate();
-        var logger = Substitute.For<ILogger<UserRepository>>(); ;
-        var userRepository = new UserRepository(_dbContext, logger);
-
-        _ = await userRepository.AddAsync(user, TestContext.CancellationToken);
-        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
-
-        return user;
-    }
-
-    #endregion
 
     #region GetByIdAsync Tests
 
@@ -196,11 +170,11 @@ public sealed class EmailAuthTokenRepositoryIntegrationTests
     {
         // Arrange
         var user = await CreateAndSaveUserAsync();
-        var googleToken = EmailAuthTokenFaker()
+        var googleToken = TestData.EmailAuthTokenFaker()
             .RuleFor(e => e.UserId, _ => user.Id)
             .RuleFor(e => e.TokenProvider, _ => "Google")
             .Generate();
-        var microsoftToken = EmailAuthTokenFaker()
+        var microsoftToken = TestData.EmailAuthTokenFaker()
             .RuleFor(e => e.UserId, _ => user.Id)
             .RuleFor(e => e.TokenProvider, _ => "Microsoft")
             .Generate();
@@ -260,7 +234,6 @@ public sealed class EmailAuthTokenRepositoryIntegrationTests
     public async Task GetByUserIdAsync_Should_Handle_Cancellation_Request()
     {
         // Arrange
-        var emailAuthToken = await CreateAndSaveEmailAuthTokenAsync();
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
@@ -268,7 +241,7 @@ public sealed class EmailAuthTokenRepositoryIntegrationTests
 
         // Act & Assert
         _ = await Should.ThrowAsync<OperationCanceledException>(
-            async () => await _repository.GetByUserIdAsync(emailAuthToken.UserId, emailAuthToken.TokenProvider, cts.Token)
+            async () => await _repository.GetByUserIdAsync(Guid.NewGuid(), "Google", cts.Token)
         );
 
         _repositoryLogger.Received(1).Log(
@@ -278,6 +251,35 @@ public sealed class EmailAuthTokenRepositoryIntegrationTests
             Arg.Any<OperationCanceledException>(),
             Arg.Any<Func<object, Exception, string>>()
         );
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private async Task<EmailAuthToken> CreateAndSaveEmailAuthTokenAsync(EmailAuthToken emailAuthToken = null)
+    {
+        var user = await CreateAndSaveUserAsync();
+        emailAuthToken ??= TestData.EmailAuthTokenFaker()
+            .RuleFor(e => e.UserId, _ => user.Id)
+            .Generate();
+
+        _ = await _repository.AddAsync(emailAuthToken, TestContext.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
+
+        return emailAuthToken;
+    }
+
+    private async Task<User> CreateAndSaveUserAsync(User user = null)
+    {
+        user ??= TestData.UserFaker().Generate();
+        var logger = Substitute.For<ILogger<UserRepository>>();
+        var userRepository = new UserRepository(_dbContext, logger);
+
+        _ = await userRepository.AddAsync(user, TestContext.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
+
+        return user;
     }
 
     #endregion

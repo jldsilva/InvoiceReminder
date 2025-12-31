@@ -163,7 +163,7 @@ public sealed class QuartzHostedServiceTests
         _logger.Received(2).Log(
             LogLevel.Error,
             Arg.Any<EventId>(),
-            Arg.Any<object>(),
+            Arg.Is<object>(o => o.ToString().Contains("CronJob inválido:")),
             Arg.Any<Exception>(),
             Arg.Any<Func<object, Exception, string>>()
         );
@@ -195,7 +195,7 @@ public sealed class QuartzHostedServiceTests
         _logger.Received(1).Log(
             LogLevel.Error,
             Arg.Any<EventId>(),
-            Arg.Any<object>(),
+            Arg.Is<object>(o => o.ToString().Contains("CronJob inválido:")),
             Arg.Any<Exception>(),
             Arg.Any<Func<object, Exception, string>>()
         );

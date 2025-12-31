@@ -60,7 +60,7 @@ public class UnitOfWork : IUnitOfWork
                 _logger.LogError(ex, LogExceptionMessage, contextualInfo, ex.Message);
             }
 
-            await transaction.RollbackAsync(cancellationToken);
+            await transaction?.RollbackAsync(CancellationToken.None);
 
             throw new DataLayerException(contextualInfo, ex);
         }

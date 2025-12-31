@@ -1,9 +1,10 @@
-using Bogus;
 using InvoiceReminder.Data.Exceptions;
+using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Data.Repository;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.IntegrationTests.Data.ContainerSetup;
+using InvoiceReminder.IntegrationTests.Data.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -35,60 +36,31 @@ public sealed class JobScheduleRepositoryIntegrationTests
         _unitOfWork = new UnitOfWork(_dbContext, _unitOfWorkLogger);
     }
 
-    #region Helper Methods
-
-    private static Faker<User> UserFaker()
+    [TestCleanup]
+    public void TestCleanup()
     {
-        return new Faker<User>()
-            .RuleFor(u => u.Id, _ => Guid.NewGuid())
-            .RuleFor(u => u.TelegramChatId, f => f.Random.Long(100000000, long.MaxValue))
-            .RuleFor(u => u.Name, f => f.Person.FullName)
-            .RuleFor(u => u.Email, f => f.Internet.Email())
-            .RuleFor(u => u.Password, f => f.Internet.Password(length: 16, memorable: false));
+        _unitOfWork?.Dispose();
+        _repository?.Dispose();
+        _dbContext?.Dispose();
     }
 
-    private static Faker<JobSchedule> JobScheduleFaker()
+    [TestMethod]
+    public void JobScheduleRepository_ShouldBeAssignableToItsInterface_And_GenericInterface_And_GenericRepository()
     {
-        return new Faker<JobSchedule>()
-            .RuleFor(j => j.Id, faker => faker.Random.Guid())
-            .RuleFor(j => j.UserId, faker => faker.Random.Guid())
-            .RuleFor(j => j.CronExpression, faker => faker.PickRandom(
-                "0 0 * * *",
-                "0 */6 * * *",
-                "0 */12 * * *",
-                "0 9 * * MON",
-                "0 9 * * MON-FRI",
-                "0 0 1 * *"))
-            .RuleFor(j => j.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(j => j.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+        // Arrange && Act
+        var repository = new JobScheduleRepository(_dbContext, _repositoryLogger);
+
+        // Assert
+        repository.ShouldSatisfyAllConditions(() =>
+        {
+            _ = repository.ShouldBeAssignableTo<IJobScheduleRepository>();
+            _ = repository.ShouldBeAssignableTo<IBaseRepository<JobSchedule>>();
+            _ = repository.ShouldBeAssignableTo<BaseRepository<CoreDbContext, JobSchedule>>();
+
+            _ = repository.ShouldNotBeNull();
+            _ = repository.ShouldBeOfType<JobScheduleRepository>();
+        });
     }
-
-    private async Task<User> CreateAndSaveUserAsync(User user = null)
-    {
-        user ??= UserFaker().Generate();
-        var logger = Substitute.For<ILogger<UserRepository>>();
-        var userRepository = new UserRepository(_dbContext, logger);
-
-        _ = await userRepository.AddAsync(user, TestContext.CancellationToken);
-        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
-
-        return user;
-    }
-
-    private async Task<JobSchedule> CreateAndSaveJobScheduleAsync(JobSchedule jobSchedule = null)
-    {
-        var user = await CreateAndSaveUserAsync();
-        jobSchedule ??= JobScheduleFaker()
-            .RuleFor(j => j.UserId, _ => user.Id)
-            .Generate();
-
-        _ = await _repository.AddAsync(jobSchedule, TestContext.CancellationToken);
-        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
-
-        return jobSchedule;
-    }
-
-    #endregion
 
     #region GetByIdAsync Tests
 
@@ -170,7 +142,7 @@ public sealed class JobScheduleRepositoryIntegrationTests
     {
         // Arrange
         var user = await CreateAndSaveUserAsync();
-        var jobSchedule = JobScheduleFaker()
+        var jobSchedule = TestData.JobScheduleFaker()
             .RuleFor(j => j.UserId, _ => user.Id)
             .Generate();
 
@@ -195,7 +167,7 @@ public sealed class JobScheduleRepositoryIntegrationTests
     {
         // Arrange
         var user = await CreateAndSaveUserAsync();
-        var jobSchedules = JobScheduleFaker()
+        var jobSchedules = TestData.JobScheduleFaker()
             .RuleFor(j => j.UserId, _ => user.Id)
             .Generate(3);
 
@@ -222,10 +194,10 @@ public sealed class JobScheduleRepositoryIntegrationTests
         var user1 = await CreateAndSaveUserAsync();
         var user2 = await CreateAndSaveUserAsync();
 
-        var jobSchedule1 = JobScheduleFaker()
+        var jobSchedule1 = TestData.JobScheduleFaker()
             .RuleFor(j => j.UserId, _ => user1.Id)
             .Generate();
-        var jobSchedule2 = JobScheduleFaker()
+        var jobSchedule2 = TestData.JobScheduleFaker()
             .RuleFor(j => j.UserId, _ => user2.Id)
             .Generate();
 
@@ -285,7 +257,6 @@ public sealed class JobScheduleRepositoryIntegrationTests
     public async Task GetByUserIdAsync_Should_Handle_Cancellation_Request()
     {
         // Arrange
-        var jobSchedule = await CreateAndSaveJobScheduleAsync();
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
@@ -293,7 +264,7 @@ public sealed class JobScheduleRepositoryIntegrationTests
 
         // Act & Assert
         _ = await Should.ThrowAsync<OperationCanceledException>(
-            async () => await _repository.GetByUserIdAsync(jobSchedule.UserId, cts.Token)
+            async () => await _repository.GetByUserIdAsync(Guid.NewGuid(), cts.Token)
         );
 
         _repositoryLogger.Received(1).Log(
@@ -303,6 +274,35 @@ public sealed class JobScheduleRepositoryIntegrationTests
             Arg.Any<OperationCanceledException>(),
             Arg.Any<Func<object, Exception, string>>()
         );
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private async Task<User> CreateAndSaveUserAsync(User user = null)
+    {
+        user ??= TestData.UserFaker().Generate();
+        var logger = Substitute.For<ILogger<UserRepository>>();
+        var userRepository = new UserRepository(_dbContext, logger);
+
+        _ = await userRepository.AddAsync(user, TestContext.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
+
+        return user;
+    }
+
+    private async Task<JobSchedule> CreateAndSaveJobScheduleAsync(JobSchedule jobSchedule = null)
+    {
+        var user = await CreateAndSaveUserAsync();
+        jobSchedule ??= TestData.JobScheduleFaker()
+            .RuleFor(j => j.UserId, _ => user.Id)
+            .Generate();
+
+        _ = await _repository.AddAsync(jobSchedule, TestContext.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
+
+        return jobSchedule;
     }
 
     #endregion

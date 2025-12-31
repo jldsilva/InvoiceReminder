@@ -1,9 +1,10 @@
-using Bogus;
 using InvoiceReminder.Data.Exceptions;
+using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Data.Repository;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.IntegrationTests.Data.ContainerSetup;
+using InvoiceReminder.IntegrationTests.Data.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -35,66 +36,31 @@ public sealed class InvoiceRepositoryIntegrationTests
         _unitOfWork = new UnitOfWork(_dbContext, _unitOfWorkLogger);
     }
 
-    #region Helper Methods
-
-    private static Faker<User> UserFaker()
+    [TestCleanup]
+    public void TestCleanup()
     {
-        return new Faker<User>()
-            .RuleFor(u => u.Id, _ => Guid.NewGuid())
-            .RuleFor(u => u.TelegramChatId, f => f.Random.Long(100000000, long.MaxValue))
-            .RuleFor(u => u.Name, f => f.Person.FullName)
-            .RuleFor(u => u.Email, f => f.Internet.Email())
-            .RuleFor(u => u.Password, f => f.Internet.Password(length: 16, memorable: false));
+        _unitOfWork?.Dispose();
+        _repository?.Dispose();
+        _dbContext?.Dispose();
     }
 
-    private static Faker<Invoice> InvoiceFaker()
+    [TestMethod]
+    public void InvoiceRepository_ShouldBeAssignableToItsInterface_And_GenericInterface_And_GenericRepository()
     {
-        return new Faker<Invoice>()
-            .RuleFor(i => i.Id, faker => faker.Random.Guid())
-            .RuleFor(i => i.UserId, faker => faker.Random.Guid())
-            .RuleFor(i => i.Bank, faker => faker.PickRandom(
-                "Banco do Brasil",
-                "Bradesco",
-                "Itaú",
-                "Caixa Econômica Federal",
-                "Santander",
-                "Safra",
-                "Citibank",
-                "BTG Pactual"))
-            .RuleFor(i => i.Beneficiary, faker => faker.Person.FullName)
-            .RuleFor(i => i.Amount, faker => faker.Finance.Amount(10, 10000))
-            .RuleFor(i => i.Barcode, faker => faker.Random.AlphaNumeric(44))
-            .RuleFor(i => i.DueDate, faker => faker.Date.Future().ToUniversalTime())
-            .RuleFor(i => i.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(i => i.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+        // Arrange && Act
+        var repository = new InvoiceRepository(_dbContext, _repositoryLogger);
+
+        // Assert
+        repository.ShouldSatisfyAllConditions(() =>
+        {
+            _ = repository.ShouldBeAssignableTo<IInvoiceRepository>();
+            _ = repository.ShouldBeAssignableTo<IBaseRepository<Invoice>>();
+            _ = repository.ShouldBeAssignableTo<BaseRepository<CoreDbContext, Invoice>>();
+
+            _ = repository.ShouldNotBeNull();
+            _ = repository.ShouldBeOfType<InvoiceRepository>();
+        });
     }
-
-    private async Task<User> CreateAndSaveUserAsync(User user = null)
-    {
-        user ??= UserFaker().Generate();
-        var logger = Substitute.For<ILogger<UserRepository>>();
-        var userRepository = new UserRepository(_dbContext, logger);
-
-        _ = await userRepository.AddAsync(user, TestContext.CancellationToken);
-        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
-
-        return user;
-    }
-
-    private async Task<Invoice> CreateAndSaveInvoiceAsync(Invoice invoice = null)
-    {
-        var user = await CreateAndSaveUserAsync();
-        invoice ??= InvoiceFaker()
-            .RuleFor(i => i.UserId, _ => user.Id)
-            .Generate();
-
-        _ = await _repository.AddAsync(invoice, TestContext.CancellationToken);
-        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
-
-        return invoice;
-    }
-
-    #endregion
 
     #region GetByIdAsync Tests
 
@@ -210,10 +176,10 @@ public sealed class InvoiceRepositoryIntegrationTests
     {
         // Arrange
         var user = await CreateAndSaveUserAsync();
-        var invoice1 = InvoiceFaker()
+        var invoice1 = TestData.InvoiceFaker()
             .RuleFor(i => i.UserId, _ => user.Id)
             .Generate();
-        var invoice2 = InvoiceFaker()
+        var invoice2 = TestData.InvoiceFaker()
             .RuleFor(i => i.UserId, _ => user.Id)
             .Generate();
 
@@ -273,7 +239,6 @@ public sealed class InvoiceRepositoryIntegrationTests
     public async Task GetByBarcodeAsync_Should_Handle_Cancellation_Request()
     {
         // Arrange
-        var invoice = await CreateAndSaveInvoiceAsync();
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
@@ -281,7 +246,7 @@ public sealed class InvoiceRepositoryIntegrationTests
 
         // Act & Assert
         _ = await Should.ThrowAsync<OperationCanceledException>(
-            async () => await _repository.GetByBarcodeAsync(invoice.Barcode, cts.Token)
+            async () => await _repository.GetByBarcodeAsync("##########", cts.Token)
         );
 
         _repositoryLogger.Received(1).Log(
@@ -291,6 +256,35 @@ public sealed class InvoiceRepositoryIntegrationTests
             Arg.Any<OperationCanceledException>(),
             Arg.Any<Func<object, Exception, string>>()
         );
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private async Task<User> CreateAndSaveUserAsync(User user = null)
+    {
+        user ??= TestData.UserFaker().Generate();
+        var logger = Substitute.For<ILogger<UserRepository>>();
+        var userRepository = new UserRepository(_dbContext, logger);
+
+        _ = await userRepository.AddAsync(user, TestContext.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
+
+        return user;
+    }
+
+    private async Task<Invoice> CreateAndSaveInvoiceAsync(Invoice invoice = null)
+    {
+        var user = await CreateAndSaveUserAsync();
+        invoice ??= TestData.InvoiceFaker()
+            .RuleFor(i => i.UserId, _ => user.Id)
+            .Generate();
+
+        _ = await _repository.AddAsync(invoice, TestContext.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
+
+        return invoice;
     }
 
     #endregion

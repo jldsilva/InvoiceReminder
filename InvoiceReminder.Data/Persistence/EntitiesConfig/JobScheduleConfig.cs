@@ -17,11 +17,13 @@ internal class JobScheduleConfig : IEntityTypeConfiguration<JobSchedule>
 
         _ = builder.Property(x => x.Id)
             .HasColumnName("id")
+            .HasColumnType("uuid")
             .ValueGeneratedOnAdd()
             .IsRequired();
 
         _ = builder.Property(x => x.UserId)
             .HasColumnName("user_id")
+            .HasColumnType("uuid")
             .IsRequired();
 
         _ = builder.Property(x => x.CronExpression)

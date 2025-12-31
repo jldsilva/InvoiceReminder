@@ -1,9 +1,10 @@
-using Bogus;
 using InvoiceReminder.Data.Exceptions;
+using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Data.Persistence;
 using InvoiceReminder.Data.Repository;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.IntegrationTests.Data.ContainerSetup;
+using InvoiceReminder.IntegrationTests.Data.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -35,62 +36,31 @@ public sealed class UserRepositoryIntegrationTests
         _unitOfWork = new UnitOfWork(_dbContext, _unitOfWorkLogger);
     }
 
-    #region Helper Methods
-
-    private static Faker<EmailAuthToken> EmailAuthTokenFaker()
+    [TestCleanup]
+    public void TestCleanup()
     {
-        return new Faker<EmailAuthToken>()
-            .RuleFor(e => e.Id, faker => faker.Random.Guid())
-            .RuleFor(e => e.UserId, faker => faker.Random.Guid())
-            .RuleFor(e => e.AccessToken, faker => faker.Random.AlphaNumeric(128))
-            .RuleFor(e => e.RefreshToken, faker => faker.Random.AlphaNumeric(128))
-            .RuleFor(e => e.TokenProvider, faker => faker.PickRandom("Google", "Microsoft", "GitHub"))
-            .RuleFor(e => e.NonceValue, faker => faker.Random.Hash())
-            .RuleFor(e => e.AccessTokenExpiry, faker => faker.Date.Future().ToUniversalTime())
-            .RuleFor(e => e.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
-            .RuleFor(e => e.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
+        _unitOfWork?.Dispose();
+        _repository?.Dispose();
+        _dbContext?.Dispose();
     }
 
-    private static Faker<Invoice> InvoiceFaker()
+    [TestMethod]
+    public void UserRepository_ShouldBeAssignableToItsInterface_And_GenericInterface_And_GenericRepository()
     {
-        return new Faker<Invoice>()
-            .RuleFor(i => i.Id, faker => faker.Random.Guid())
-            .RuleFor(i => i.UserId, faker => faker.Random.Guid())
-            .RuleFor(i => i.Bank, faker => faker.PickRandom(
-                "Banco do Brasil",
-                "Bradesco",
-                "Itaú",
-                "Caixa Econômica Federal",
-                "Santander",
-                "Safra",
-                "Citibank",
-                "BTG Pactual"))
-            .RuleFor(i => i.Beneficiary, faker => faker.Person.FullName)
-            .RuleFor(i => i.Amount, faker => faker.Finance.Amount(10, 10000))
-            .RuleFor(i => i.Barcode, faker => faker.Random.AlphaNumeric(44))
-            .RuleFor(i => i.DueDate, faker => faker.Date.Future().ToUniversalTime());
+        // Arrange && Act
+        var repository = new UserRepository(_dbContext, _repositoryLogger);
+
+        // Assert
+        repository.ShouldSatisfyAllConditions(() =>
+        {
+            _ = repository.ShouldBeAssignableTo<IUserRepository>();
+            _ = repository.ShouldBeAssignableTo<IBaseRepository<User>>();
+            _ = repository.ShouldBeAssignableTo<BaseRepository<CoreDbContext, User>>();
+
+            _ = repository.ShouldNotBeNull();
+            _ = repository.ShouldBeOfType<UserRepository>();
+        });
     }
-
-    private static Faker<User> UserFaker()
-    {
-        return new Faker<User>()
-            .RuleFor(u => u.Id, _ => Guid.NewGuid())
-            .RuleFor(u => u.TelegramChatId, f => f.Random.Long(100000000, long.MaxValue))
-            .RuleFor(u => u.Name, f => f.Person.FullName)
-            .RuleFor(u => u.Email, f => f.Internet.Email())
-            .RuleFor(u => u.Password, f => f.Internet.Password(length: 16, memorable: false));
-    }
-
-    private async Task<User> CreateAndSaveUserAsync(User user = null)
-    {
-        user ??= UserFaker().Generate();
-        _ = await _repository.AddAsync(user, TestContext.CancellationToken);
-        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
-
-        return user;
-    }
-
-    #endregion
 
     #region GetByIdAsync Tests
 
@@ -129,8 +99,8 @@ public sealed class UserRepositoryIntegrationTests
     public async Task GetByIdAsync_Should_Load_Related_Entities()
     {
         // Arrange
-        var user = UserFaker().Generate();
-        var invoice = InvoiceFaker()
+        var user = TestData.UserFaker().Generate();
+        var invoice = TestData.InvoiceFaker()
             .RuleFor(u => u.UserId, _ => user.Id)
             .Generate();
 
@@ -220,8 +190,8 @@ public sealed class UserRepositoryIntegrationTests
     public async Task GetByEmailAsync_Should_Find_User_With_Multiple_Related_Entities()
     {
         // Arrange
-        var user = UserFaker().Generate();
-        var emailToken = EmailAuthTokenFaker()
+        var user = TestData.UserFaker().Generate();
+        var emailToken = TestData.EmailAuthTokenFaker()
             .RuleFor(e => e.UserId, _ => user.Id)
             .Generate();
 
@@ -296,7 +266,6 @@ public sealed class UserRepositoryIntegrationTests
     public async Task GetByIdAsync_Should_Handle_Cancellation_Request()
     {
         // Arrange
-        var user = await CreateAndSaveUserAsync();
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
@@ -304,7 +273,7 @@ public sealed class UserRepositoryIntegrationTests
 
         // Act & Assert
         _ = await Should.ThrowAsync<OperationCanceledException>(
-            async () => await _repository.GetByIdAsync(user.Id, cts.Token)
+            async () => await _repository.GetByIdAsync(Guid.NewGuid(), cts.Token)
         );
 
         _repositoryLogger.Received(1).Log(
@@ -320,7 +289,6 @@ public sealed class UserRepositoryIntegrationTests
     public async Task GetByEmailAsync_Should_Handle_Cancellation_Request()
     {
         // Arrange
-        var user = await CreateAndSaveUserAsync();
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
@@ -328,7 +296,7 @@ public sealed class UserRepositoryIntegrationTests
 
         // Act & Assert
         _ = await Should.ThrowAsync<OperationCanceledException>(
-            async () => await _repository.GetByEmailAsync(user.Email, cts.Token)
+            async () => await _repository.GetByEmailAsync("any@mail.com", cts.Token)
         );
 
         _repositoryLogger.Received(1).Log(
@@ -338,6 +306,19 @@ public sealed class UserRepositoryIntegrationTests
             Arg.Any<OperationCanceledException>(),
             Arg.Any<Func<object, Exception, string>>()
         );
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private async Task<User> CreateAndSaveUserAsync(User user = null)
+    {
+        user ??= TestData.UserFaker().Generate();
+        _ = await _repository.AddAsync(user, TestContext.CancellationToken);
+        await _unitOfWork.SaveChangesAsync(TestContext.CancellationToken);
+
+        return user;
     }
 
     #endregion
