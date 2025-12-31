@@ -46,54 +46,55 @@ public sealed class EmailAuthTokenConfigTests
         _ = userIdProperty.ShouldNotBeNull();
         userIdProperty.GetColumnName().ShouldBe("user_id");
         userIdProperty.GetColumnType().ShouldBe("uuid");
-        (!userIdProperty.IsNullable).ShouldBeTrue();
+        userIdProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade AccessToken
         var accessTokenProperty = entityType.FindProperty(nameof(EmailAuthToken.AccessToken));
         _ = accessTokenProperty.ShouldNotBeNull();
         accessTokenProperty.GetColumnName().ShouldBe("access_token");
         accessTokenProperty.GetMaxLength().ShouldBe(512);
-        (!accessTokenProperty.IsNullable).ShouldBeTrue();
+        accessTokenProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade RefreshToken
         var refreshTokenProperty = entityType.FindProperty(nameof(EmailAuthToken.RefreshToken));
         _ = refreshTokenProperty.ShouldNotBeNull();
         refreshTokenProperty.GetColumnName().ShouldBe("refresh_token");
         refreshTokenProperty.GetMaxLength().ShouldBe(512);
-        (!refreshTokenProperty.IsNullable).ShouldBeTrue();
+        refreshTokenProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade NonceValue
         var nonceValueProperty = entityType.FindProperty(nameof(EmailAuthToken.NonceValue));
         _ = nonceValueProperty.ShouldNotBeNull();
         nonceValueProperty.GetColumnName().ShouldBe("nonce_value");
         nonceValueProperty.GetMaxLength().ShouldBe(64);
-        (!nonceValueProperty.IsNullable).ShouldBeTrue();
+        nonceValueProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade TokenProvider
         var tokenProviderProperty = entityType.FindProperty(nameof(EmailAuthToken.TokenProvider));
         _ = tokenProviderProperty.ShouldNotBeNull();
         tokenProviderProperty.GetColumnName().ShouldBe("token_provider");
-        (!tokenProviderProperty.IsNullable).ShouldBeTrue();
+        tokenProviderProperty.GetMaxLength().ShouldBe(25);
+        tokenProviderProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade AccessTokenExpiry
         var accessTokenExpiryProperty = entityType.FindProperty(nameof(EmailAuthToken.AccessTokenExpiry));
         _ = accessTokenExpiryProperty.ShouldNotBeNull();
         accessTokenExpiryProperty.GetColumnName().ShouldBe("access_token_expiry");
         accessTokenExpiryProperty.GetColumnType().ShouldBe("timestamp with time zone");
-        (!accessTokenExpiryProperty.IsNullable).ShouldBeTrue();
+        accessTokenExpiryProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade CreatedAt (herdada de EntityDefaults)
         var createdAtProperty = entityType.FindProperty(nameof(EmailAuthToken.CreatedAt));
         _ = createdAtProperty.ShouldNotBeNull();
         createdAtProperty.GetColumnName().ShouldBe("created_at");
         createdAtProperty.GetColumnType().ShouldBe("timestamp with time zone");
-        (!createdAtProperty.IsNullable).ShouldBeTrue();
+        createdAtProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade UpdatedAt (herdada de EntityDefaults)
         var updatedAtProperty = entityType.FindProperty(nameof(EmailAuthToken.UpdatedAt));
         _ = updatedAtProperty.ShouldNotBeNull();
         updatedAtProperty.GetColumnName().ShouldBe("updated_at");
         updatedAtProperty.GetColumnType().ShouldBe("timestamp with time zone");
-        (!updatedAtProperty.IsNullable).ShouldBeTrue();
+        updatedAtProperty.IsNullable.ShouldBeFalse();
     }
 }
