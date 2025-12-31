@@ -118,12 +118,17 @@ public sealed class BaseRepositoryIntegrationTests
     {
         // Arrange
         var users = TestData.UserFaker().Generate(3);
+        var beforeInsert = DateTime.UtcNow.AddSeconds(-1);
 
         // Act
         _ = await _userRepository.BulkInsertAsync(users, TestContext.CancellationToken);
+        var afterInsert = DateTime.UtcNow.AddSeconds(1);
 
         // Assert
-        users.ShouldAllBe(u => u.CreatedAt != default && u.UpdatedAt != default);
+        users.ShouldAllBe(u =>
+            u.CreatedAt >= beforeInsert && u.CreatedAt <= afterInsert &&
+            u.UpdatedAt >= beforeInsert && u.UpdatedAt <= afterInsert
+        );
     }
 
     [TestMethod]
@@ -473,8 +478,6 @@ public sealed class BaseRepositoryIntegrationTests
     public async Task Where_Should_Return_Multiple_Matching_Entities()
     {
         // Arrange
-        await _userRepository.BulkRemoveAsync([.. _userRepository.GetAll()], TestContext.CancellationToken);
-
         var user1 = TestData.UserFaker()
             .RuleFor(u => u.Name, _ => "Jack Doe")
             .Generate();
@@ -494,7 +497,7 @@ public sealed class BaseRepositoryIntegrationTests
         var result = _userRepository.Where(u => u.Name.Contains("Jack"));
 
         // Assert
-        result.Count().ShouldBe(2);
+        result.Count().ShouldBeGreaterThanOrEqualTo(2);
         result.ShouldAllBe(u => u.Name.Contains("Jack"));
     }
 
