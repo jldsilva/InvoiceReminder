@@ -49,7 +49,7 @@ public sealed class BearerSecuritySchemeTransformerTests
             _ = _document.Components.ShouldNotBeNull();
             _ = _document.Components.SecuritySchemes.ShouldNotBeNull();
 
-            _document.Components.SecuritySchemes.ContainsKey("Bearer").ShouldBe(true);
+            _document.Components.SecuritySchemes.ShouldContainKey("Bearer");
             _document.Components.SecuritySchemes["Bearer"].Scheme.ShouldBeEquivalentTo("bearer");
         });
     }

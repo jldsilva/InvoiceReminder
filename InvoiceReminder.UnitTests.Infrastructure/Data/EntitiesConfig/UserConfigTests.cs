@@ -53,6 +53,7 @@ public sealed class UserConfigTests
         _ = telegramChatIdProperty.ShouldNotBeNull();
         telegramChatIdProperty.GetColumnName().ShouldBe("telegram_chat_id");
         telegramChatIdProperty.GetColumnType().ShouldBe("bigint");
+        telegramChatIdProperty.GetDefaultValue().ShouldBe(0L);
         telegramChatIdProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade Name
