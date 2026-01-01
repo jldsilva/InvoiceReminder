@@ -46,7 +46,7 @@
     <PackageVersion Include="Scrutor" Version="7.0.0" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.17.0.131074" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
-    <PackageVersion Include="Telegram.Bot" Version="22.7.6" />
+    <PackageVersion Include="Telegram.Bot" Version="22.8.0" />
   </ItemGroup>
 
   <ItemGroup Label="Unit Tests Packages: Support">
