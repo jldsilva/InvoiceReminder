@@ -17,11 +17,10 @@ public static class DatabaseFixture
     {
         try
         {
-            _dbContainer = new PostgreSqlBuilder()
+            _dbContainer = new PostgreSqlBuilder("postgres:15-alpine")
             .WithDatabase("postgres")
             .WithUsername("postgres")
             .WithPassword("Fake!Password#123")
-            .WithImage("postgres:15-alpine")
             .Build();
 
             await _dbContainer.StartAsync(context.CancellationToken);

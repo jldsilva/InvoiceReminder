@@ -65,8 +65,13 @@ public static class DependencyInjectionConfig
             : services.AddDbContext<CoreDbContext>((sp, options) =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();
-                _ = options.UseNpgsql(config.GetConnectionString("DatabaseConnection"));
+
+                _ = options.UseNpgsql(config.GetConnectionString("DatabaseConnection"),
+                        b => b.MigrationsHistoryTable("__EFMigrationsHistory", "invoice_reminder")
+                    );
             });
+
+        services.RunMigrations();
 
         return services;
     }
@@ -136,5 +141,16 @@ public static class DependencyInjectionConfig
         var efcommands = new[] { "migration", "update", "add", "remove", "drop", "list" };
 
         return args.Any(arg => efcommands.Any(command => arg.Contains(command, StringComparison.CurrentCultureIgnoreCase)));
+    }
+
+    private static void RunMigrations(this IServiceCollection services)
+    {
+        if (!_testEnvironments.Contains(_environment))
+        {
+            using var serviceScope = services.BuildServiceProvider().CreateScope();
+            using var context = serviceScope.ServiceProvider.GetService<CoreDbContext>();
+
+            context.Database.Migrate();
+        }
     }
 }

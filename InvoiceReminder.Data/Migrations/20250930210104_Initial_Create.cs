@@ -12,8 +12,9 @@ public partial class Initial_Create : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        _ = migrationBuilder.EnsureSchema(
-            name: "invoice_reminder");
+        _ = migrationBuilder.Sql("CREATE SCHEMA IF NOT EXISTS invoice_reminder;");
+
+        _ = migrationBuilder.EnsureSchema(name: "invoice_reminder");
 
         _ = migrationBuilder.CreateTable(
             name: "user",
