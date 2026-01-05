@@ -19,31 +19,33 @@ Sistema para envio automático de lembretes de pagamento de boletos bancários.
 
 ## Sobre o Projeto
 
-O **InvoiceReminder** é um sistema desenvolvido em C# para automatizar o envio de lembretes referentes a pagamentos de boletos bancários (invoices). Ele pode ser utilizado por empresas ou profissionais autônomos que desejam organizar e automatizar o processo de cobrança/reminder, evitando atrasos e otimizando o fluxo de caixa.
+O **InvoiceReminder** é um sistema desenvolvido em C# para automatizar o envio de lembretes referentes a pagamentos de boletos bancários (invoices). Ele pode ser utilizado por empresas ou profissionais autônomos que desejam organizar e automatizar o processo de pagamentos, evitando atrasos e otimizando o fluxo de caixa.
 
 ## Funcionalidades
 
-- Cadastro de clientes e notas fiscais
+- Cadastro de clientes e emitentes de cobrança
 - Agendamento de lembretes automáticos via Telegram chat bot
 - Personalização de mensagens de lembrete
-- Relatórios de notas fiscais pendentes e lembretes enviados
+- Relatórios de boletos pendentes e lembretes enviados
 - Suporte a múltiplos usuários
 - Interface Rest API
 
 ## Tecnologias Utilizadas
 
 - **Linguagem:** C#
-- **Framework:** .NET Core 9
+- **Framework:** .NET Core 10
 - **Autenticação:** JSON Web Token
 - **Banco de Dados:** PostgreSQL
-- **Solução de ORM:** Entity Framework Core 9 e Dapper
+- **Solução de ORM:** Entity Framework Core e Dapper
 - **Serviços Externos:** Google Api, iText, Telegram.Bot
 - **Agendamento de Tarefas:** Quartz.net
-- **Testes Unitários:** MSTest, NSubstitute e Shouldly
+- **Testes Unitários:** Bogus, MSTest, NSubstitute e Shouldly
+- **Testes de Integração:** Bogus, MSTest, Shouldly e Testcontainers
+- **Testes de Arquitetura:** NetArchTest
 
 ## Pré-requisitos
 
-- [.NET SDK](https://dotnet.microsoft.com/download) (versão recomendada: 9.0 ou superior)
+- [.NET SDK](https://dotnet.microsoft.com/download) (versão recomendada: 10.0 ou superior)
 - [PostgreSQL](https://www.postgresql.org/download/) (versão recomendada: 16 ou superior)
 - [Google OAuth Client](https://console.cloud.google.com/) para gerar chave de integração com o sistema de autenticação sem senha
 - Criar um chat bot do Telegram através da interação com @BotFather
@@ -139,20 +141,6 @@ curl https://localhost:7104/api/job_schedule \
   "cronExpression": null
 }'
 ```
-
-## Contribuição
-
-Contribuições são bem-vindas! Para contribuir:
-
-1. Faça um fork do projeto
-2. Crie uma branch com sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas alterações (`git commit -m 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
-
-## Licença
-
-Este projeto está sob licença [MIT](LICENSE).
 
 ## Contato
 

@@ -145,7 +145,9 @@ public static class DependencyInjectionConfig
 
     private static void RunMigrations(this IServiceCollection services)
     {
-        if (!_testEnvironments.Contains(_environment))
+        var isDevelopment = _environment == "Development";
+
+        if (!_testEnvironments.Contains(_environment) && !isDevelopment)
         {
             using var serviceScope = services.BuildServiceProvider().CreateScope();
             using var context = serviceScope.ServiceProvider.GetService<CoreDbContext>();
