@@ -1,4 +1,4 @@
-using InvoiceReminder.Application.ViewModels;
+using InvoiceReminder.Authentication.Abstractions;
 using InvoiceReminder.Authentication.Interfaces;
 using InvoiceReminder.Authentication.Jwt;
 using Microsoft.Extensions.Options;
@@ -68,7 +68,7 @@ public sealed class JwtProviderTests
     {
         // Arrange
         var jwtProvider = new JwtProvider(_jwtOptions);
-        var user = new UserViewModel
+        var user = new UserClaims
         {
             Id = Guid.NewGuid(),
             Email = "user@test.com"

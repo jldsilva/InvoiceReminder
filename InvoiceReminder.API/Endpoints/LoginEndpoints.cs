@@ -1,6 +1,6 @@
 using InvoiceReminder.API.AuthenticationSetup;
 using InvoiceReminder.Application.Interfaces;
-using InvoiceReminder.Authentication.Extensions;
+using InvoiceReminder.Authentication.Abstractions;
 using InvoiceReminder.Authentication.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,23 +20,18 @@ public class LoginEndpoints : IEndpointDefinition
     private static void MapLogin(IEndpointRouteBuilder endpoints)
     {
         _ = endpoints.MapPost("/",
-            async (IJwtProvider jwtProvider,
-                IUserAppService userAppService,
-                CancellationToken ct,
-                [FromBody] LoginRequest request) =>
+            async (IUserAppService appService, IJwtProvider jwtProvider, [FromBody] LoginRequest request,
+            CancellationToken ct) =>
             {
                 if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request?.Password))
                 {
                     return Results.BadRequest("Email e senha são obrigatórios");
                 }
 
-                var result = await userAppService.GetByEmailAsync(request.Email, ct);
+                var result = await appService.ValidateUserPasswordAsync(request.Email, request.Password, ct);
 
-                var isValid = result.IsSuccess
-                    && request.Password.ToSHA256().Equals(result.Value.Password);
-
-                return isValid
-                    ? Results.Ok(jwtProvider.Generate(result.Value))
+                return result.IsSuccess
+                    ? Results.Ok(jwtProvider.Generate(new UserClaims { Id = result.Value.Id, Email = result.Value.Email }))
                     : Results.Unauthorized();
             })
             .WithName("Login")

@@ -13,7 +13,6 @@ public static class TestData
             .RuleFor(u => u.TelegramChatId, faker => faker.Random.Long(100000000, long.MaxValue))
             .RuleFor(u => u.Name, faker => faker.Person.FullName)
             .RuleFor(u => u.Email, faker => faker.Internet.Email())
-            .RuleFor(u => u.Password, faker => faker.Internet.Password(length: 16, memorable: false))
             .RuleFor(u => u.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
             .RuleFor(e => e.UpdatedAt, (faker, u) => faker.Date.Between(u.CreatedAt, DateTime.UtcNow).ToUniversalTime());
     }

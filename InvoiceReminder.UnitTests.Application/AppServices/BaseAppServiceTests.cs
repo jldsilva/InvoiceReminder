@@ -92,7 +92,7 @@ public sealed class BaseAppServiceTests
         {
             result.IsSuccess.ShouldBeFalse();
             result.Value.ShouldBe(0);
-            result.Error.ShouldBe("Parameter viewModels was Null or Empty.");
+            result.Error.ShouldBe("Parameter viewModelCollection was Null or Empty.");
         });
     }
 

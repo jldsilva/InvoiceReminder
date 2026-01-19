@@ -11,6 +11,7 @@ public static class UserExtensions
     {
         if (!result.TryGetValue(user.Id, out var existingUser))
         {
+            user.UserPassword = parameters.UserPassword;
             parameters.Invoice.AddIfNotExists(user.Invoices);
             parameters.JobSchedule.AddIfNotExists(user.JobSchedules);
             parameters.EmailAuthToken.AddIfNotExists(user.EmailAuthTokens);
@@ -20,6 +21,7 @@ public static class UserExtensions
         }
         else
         {
+            existingUser.UserPassword = parameters.UserPassword;
             parameters.Invoice.AddIfNotExists(existingUser.Invoices);
             parameters.JobSchedule.AddIfNotExists(existingUser.JobSchedules);
             parameters.EmailAuthToken.AddIfNotExists(existingUser.EmailAuthTokens);

@@ -59,7 +59,6 @@ public sealed class UserExtensionsTests
             .RuleFor(e => e.Id, faker => faker.Random.Guid())
             .RuleFor(e => e.Name, faker => faker.Person.FullName)
             .RuleFor(e => e.Email, faker => faker.Internet.Email())
-            .RuleFor(e => e.Password, faker => faker.Internet.Password())
             .RuleFor(e => e.TelegramChatId, faker => faker.Random.Long(1))
             .RuleFor(u => u.Invoices, _ => invoices ?? [])
             .RuleFor(u => u.JobSchedules, _ => jobSchedules ?? [])

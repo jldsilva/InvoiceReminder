@@ -22,9 +22,9 @@ public class JobScheduleEndpoints : IEndpointDefinition
 
     private static void MapGetJobSchedules(RouteGroupBuilder endpoint)
     {
-        _ = endpoint.MapGet("/", (IJobScheduleAppService jobScheduleAppService) =>
+        _ = endpoint.MapGet("/", (IJobScheduleAppService appService) =>
             {
-                var result = jobScheduleAppService.GetAll();
+                var result = appService.GetAll();
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -39,9 +39,10 @@ public class JobScheduleEndpoints : IEndpointDefinition
 
     private static void MapGetJobSchedule(RouteGroupBuilder endpoint)
     {
-        _ = endpoint.MapGet("/{id}", async (IJobScheduleAppService jobScheduleAppService, CancellationToken ct, Guid id) =>
+        _ = endpoint.MapGet("/{id}",
+            async (IJobScheduleAppService appService, Guid id, CancellationToken ct) =>
             {
-                var result = await jobScheduleAppService.GetByIdAsync(id, ct);
+                var result = await appService.GetByIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -58,9 +59,9 @@ public class JobScheduleEndpoints : IEndpointDefinition
     private static void MapGetJobScheduleByUserId(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapGet("/getby-userid/{id}",
-            async (IJobScheduleAppService jobScheduleAppService, CancellationToken ct, Guid id) =>
+            async (IJobScheduleAppService appService, Guid id, CancellationToken ct) =>
             {
-                var result = await jobScheduleAppService.GetByUserIdAsync(id, ct);
+                var result = await appService.GetByUserIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -77,10 +78,10 @@ public class JobScheduleEndpoints : IEndpointDefinition
     private static void MapCreateJobSchedule(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapPost("/",
-            async (IJobScheduleAppService jobScheduleAppService, CancellationToken ct,
-                [FromBody] JobScheduleViewModel jobScheduleViewModel) =>
+            async (IJobScheduleAppService appService, [FromBody] JobScheduleViewModel viewModel,
+            CancellationToken ct) =>
             {
-                var result = await jobScheduleAppService.AddNewJobAsync(jobScheduleViewModel, ct);
+                var result = await appService.AddNewJobAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Created($"{basepath}/{result.Value.Id}", result.Value)
@@ -96,10 +97,10 @@ public class JobScheduleEndpoints : IEndpointDefinition
     private static void MapUpdateJobSchedule(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapPut("/",
-            async (IJobScheduleAppService jobScheduleAppService, CancellationToken ct,
-                [FromBody] JobScheduleViewModel jobScheduleViewModel) =>
+            async (IJobScheduleAppService appService, [FromBody] JobScheduleViewModel viewModel,
+            CancellationToken ct) =>
             {
-                var result = await jobScheduleAppService.UpdateAsync(jobScheduleViewModel, ct);
+                var result = await appService.UpdateAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -115,10 +116,10 @@ public class JobScheduleEndpoints : IEndpointDefinition
     private static void MapDeleteJobSchedule(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapDelete("/",
-            async (IJobScheduleAppService jobScheduleAppService, CancellationToken ct,
-                [FromBody] JobScheduleViewModel jobScheduleViewModel) =>
+            async (IJobScheduleAppService appService, [FromBody] JobScheduleViewModel viewModel,
+            CancellationToken ct) =>
             {
-                var result = await jobScheduleAppService.RemoveAsync(jobScheduleViewModel, ct);
+                var result = await appService.RemoveAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.NoContent()

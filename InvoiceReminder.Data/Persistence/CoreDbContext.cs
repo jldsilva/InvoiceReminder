@@ -8,6 +8,7 @@ public class CoreDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<JobSchedule> Schedules => Set<JobSchedule>();
+    public DbSet<UserPassword> UserPasswords => Set<UserPassword>();
     public DbSet<EmailAuthToken> EmailAuthTokens => Set<EmailAuthToken>();
     public DbSet<ScanEmailDefinition> ScanEmailDefinitions => Set<ScanEmailDefinition>();
 

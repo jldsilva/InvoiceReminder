@@ -28,6 +28,7 @@ public class CustomWebApplicationFactory<TStartup> : WebApplicationFactory<TStar
             _ = services.RemoveAll<IJobScheduleAppService>();
             _ = services.RemoveAll<IScanEmailDefinitionAppService>();
             _ = services.RemoveAll<IUserAppService>();
+            _ = services.RemoveAll<IUserPasswordAppService>();
             _ = services.RemoveAll<ISendMessageService>();
 
             _ = services.AddSingleton(Substitute.For<IAuthorizationService>());
@@ -37,6 +38,7 @@ public class CustomWebApplicationFactory<TStartup> : WebApplicationFactory<TStar
             _ = services.AddSingleton(Substitute.For<IJobScheduleAppService>());
             _ = services.AddSingleton(Substitute.For<IScanEmailDefinitionAppService>());
             _ = services.AddSingleton(Substitute.For<IUserAppService>());
+            _ = services.AddSingleton(Substitute.For<IUserPasswordAppService>());
             _ = services.AddSingleton(Substitute.For<ISendMessageService>());
         });
     }

@@ -23,9 +23,9 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
 
     private static void MapGetScanEmailDefinitions(RouteGroupBuilder endpoint)
     {
-        _ = endpoint.MapGet("/", (IScanEmailDefinitionAppService scanEmailDefinitionAppService) =>
+        _ = endpoint.MapGet("/", (IScanEmailDefinitionAppService appService) =>
             {
-                var result = scanEmailDefinitionAppService.GetAll();
+                var result = appService.GetAll();
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -41,9 +41,9 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
     private static void MapGetScanEmailDefinition(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapGet("/{id}",
-            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService, CancellationToken ct, Guid id) =>
+            async (IScanEmailDefinitionAppService appService, Guid id, CancellationToken ct) =>
             {
-                var result = await scanEmailDefinitionAppService.GetByIdAsync(id, ct);
+                var result = await appService.GetByIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -60,9 +60,9 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
     private static void MapGetByUserId(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapGet("/getby-userid/{id}",
-            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService, CancellationToken ct, Guid id) =>
+            async (IScanEmailDefinitionAppService appService, Guid id, CancellationToken ct) =>
             {
-                var result = await scanEmailDefinitionAppService.GetByUserIdAsync(id, ct);
+                var result = await appService.GetByUserIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -79,12 +79,9 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
     private static void MapGetBySenderEmailAddress(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapGet("/{email}/{id}",
-            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
-                CancellationToken ct,
-                string email,
-                Guid id) =>
+            async (IScanEmailDefinitionAppService appService, string email, Guid id, CancellationToken ct) =>
             {
-                var result = await scanEmailDefinitionAppService.GetBySenderEmailAddressAsync(email, id, ct);
+                var result = await appService.GetBySenderEmailAddressAsync(email, id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -101,11 +98,10 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
     private static void MapCreateScanEmailDefinition(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapPost("/",
-            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
-                CancellationToken ct,
-                [FromBody] ScanEmailDefinitionViewModel scanEmailDefinitionViewModel) =>
+            async (IScanEmailDefinitionAppService appService, [FromBody] ScanEmailDefinitionViewModel viewModel,
+            CancellationToken ct) =>
             {
-                var result = await scanEmailDefinitionAppService.AddAsync(scanEmailDefinitionViewModel, ct);
+                var result = await appService.AddAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Created($"{basepath}/{result.Value.Id}", result.Value)
@@ -121,11 +117,10 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
     private static void MapUpdateScanEmailDefinition(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapPut("/",
-            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService,
-                CancellationToken ct,
-                [FromBody] ScanEmailDefinitionViewModel scanEmailDefinitionViewModel) =>
+            async (IScanEmailDefinitionAppService appService, [FromBody] ScanEmailDefinitionViewModel viewModel,
+            CancellationToken ct) =>
             {
-                var result = await scanEmailDefinitionAppService.UpdateAsync(scanEmailDefinitionViewModel, ct);
+                var result = await appService.UpdateAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -141,10 +136,10 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
     private static void MapDeleteScanEmailDefinition(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapDelete("/",
-            async (IScanEmailDefinitionAppService scanEmailDefinitionAppService, CancellationToken ct,
-                [FromBody] ScanEmailDefinitionViewModel scanEmailDefinitionViewModel) =>
+            async (IScanEmailDefinitionAppService appService, [FromBody] ScanEmailDefinitionViewModel viewModel,
+            CancellationToken ct) =>
             {
-                var result = await scanEmailDefinitionAppService.RemoveAsync(scanEmailDefinitionViewModel, ct);
+                var result = await appService.RemoveAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.NoContent()

@@ -7,17 +7,13 @@ using System.Runtime.CompilerServices;
 
 namespace InvoiceReminder.Data.Persistence.EntitiesConfig;
 
-internal class UserConfig : IEntityTypeConfiguration<User>
+internal class UserPasswordConfig : IEntityTypeConfiguration<UserPassword>
 {
-    public void Configure(EntityTypeBuilder<User> builder)
+    public void Configure(EntityTypeBuilder<UserPassword> builder)
     {
-        _ = builder.ToTable("user");
+        _ = builder.ToTable("user_password");
 
         _ = builder.HasKey(x => x.Id);
-
-        _ = builder.HasIndex(x => x.Email)
-            .HasDatabaseName("IX_user_email")
-            .IsUnique();
 
         _ = builder.Property(x => x.Id)
             .HasColumnName("id")
@@ -25,20 +21,19 @@ internal class UserConfig : IEntityTypeConfiguration<User>
             .ValueGeneratedOnAdd()
             .IsRequired();
 
-        _ = builder.Property(x => x.TelegramChatId)
-            .HasColumnName("telegram_chat_id")
-            .HasColumnType("bigint")
-            .HasDefaultValue(0)
+        _ = builder.Property(x => x.UserId)
+            .HasColumnName("user_id")
+            .HasColumnType("uuid")
             .IsRequired();
 
-        _ = builder.Property(x => x.Name)
-            .HasColumnName("name")
-            .HasMaxLength(255)
+        _ = builder.Property(x => x.PasswordHash)
+            .HasColumnName("password_hash")
+            .HasMaxLength(512)
             .IsRequired();
 
-        _ = builder.Property(x => x.Email)
-            .HasColumnName("email")
-            .HasMaxLength(255)
+        _ = builder.Property(x => x.PasswordSalt)
+            .HasColumnName("password_salt")
+            .HasMaxLength(256)
             .IsRequired();
 
         _ = builder.Property(x => x.CreatedAt)

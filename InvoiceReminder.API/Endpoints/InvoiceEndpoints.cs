@@ -22,9 +22,9 @@ public class InvoiceEndpoints : IEndpointDefinition
 
     private static void MapGetInvoices(RouteGroupBuilder endpoint)
     {
-        _ = endpoint.MapGet("/", (IInvoiceAppService invoiceAppService) =>
+        _ = endpoint.MapGet("/", (IInvoiceAppService appService) =>
             {
-                var result = invoiceAppService.GetAll();
+                var result = appService.GetAll();
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -39,9 +39,9 @@ public class InvoiceEndpoints : IEndpointDefinition
 
     private static void MapGetInvoice(RouteGroupBuilder endpoint)
     {
-        _ = endpoint.MapGet("/{id}", async (IInvoiceAppService invoiceAppService, CancellationToken ct, Guid id) =>
+        _ = endpoint.MapGet("/{id}", async (IInvoiceAppService appService, Guid id, CancellationToken ct) =>
             {
-                var result = await invoiceAppService.GetByIdAsync(id, ct);
+                var result = await appService.GetByIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -58,9 +58,9 @@ public class InvoiceEndpoints : IEndpointDefinition
     private static void MapGetInvoiceByBarcode(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapGet("/getby-barcode/{value}",
-            async (IInvoiceAppService invoiceAppService, CancellationToken ct, string value) =>
+            async (IInvoiceAppService appService, string value, CancellationToken ct) =>
             {
-                var result = await invoiceAppService.GetByBarcodeAsync(value, ct);
+                var result = await appService.GetByBarcodeAsync(value, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -77,9 +77,9 @@ public class InvoiceEndpoints : IEndpointDefinition
     private static void MapCreateInvoice(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapPost("/",
-            async (IInvoiceAppService invoiceAppService, CancellationToken ct, [FromBody] InvoiceViewModel invoiceViewModel) =>
+            async (IInvoiceAppService appService, [FromBody] InvoiceViewModel viewModel, CancellationToken ct) =>
             {
-                var result = await invoiceAppService.AddAsync(invoiceViewModel, ct);
+                var result = await appService.AddAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Created($"{basepath}/{result.Value.Barcode}", result.Value)
@@ -95,9 +95,9 @@ public class InvoiceEndpoints : IEndpointDefinition
     private static void MapUpdateInvoice(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapPut("/",
-            async (IInvoiceAppService invoiceAppService, CancellationToken ct, [FromBody] InvoiceViewModel invoiceViewModel) =>
+            async (IInvoiceAppService appService, [FromBody] InvoiceViewModel viewModel, CancellationToken ct) =>
             {
-                var result = await invoiceAppService.UpdateAsync(invoiceViewModel, ct);
+                var result = await appService.UpdateAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -113,9 +113,9 @@ public class InvoiceEndpoints : IEndpointDefinition
     private static void MapDeleteInvoice(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapDelete("/",
-            async (IInvoiceAppService invoiceAppService, CancellationToken ct, [FromBody] InvoiceViewModel invoiceViewModel) =>
+            async (IInvoiceAppService appService, [FromBody] InvoiceViewModel viewModel, CancellationToken ct) =>
             {
-                var result = await invoiceAppService.RemoveAsync(invoiceViewModel, ct);
+                var result = await appService.RemoveAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.NoContent()

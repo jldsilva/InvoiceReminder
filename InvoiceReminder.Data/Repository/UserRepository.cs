@@ -27,6 +27,8 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             on u.id = i.user_id
             left join invoice_reminder.job_schedule js
             on u.id = js.user_id
+            left join invoice_reminder.user_password up
+            on u.id = up.user_id
             left join invoice_reminder.email_auth_token eat
             on u.id = eat.user_id
             left join invoice_reminder.scan_email_definition sed
@@ -43,13 +45,14 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var filter = "where u.email = @value";
             var command = new CommandDefinition($"{_query} {filter}", new { value }, cancellationToken: cancellationToken);
 
-            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, EmailAuthToken, ScanEmailDefinition, User>
-                (command, (user, invoice, jobschedule, emailAuthToken, scanEmailDefinition) =>
+            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, UserPassword, EmailAuthToken, ScanEmailDefinition, User>
+                (command, (user, invoice, jobschedule, userPassword, emailAuthToken, scanEmailDefinition) =>
                 {
                     var parameters = new UserParameters
                     {
                         Invoice = invoice,
                         JobSchedule = jobschedule,
+                        UserPassword = userPassword,
                         EmailAuthToken = emailAuthToken,
                         ScanEmailDefinition = scanEmailDefinition
                     };
@@ -97,13 +100,14 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
             var filter = "where u.id = @id";
             var command = new CommandDefinition($"{_query} {filter}", new { id }, cancellationToken: cancellationToken);
 
-            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, EmailAuthToken, ScanEmailDefinition, User>(
-                command, (user, invoice, jobschedule, emailAuthToken, scanEmailDefinition) =>
+            _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, UserPassword, EmailAuthToken, ScanEmailDefinition, User>(
+                command, (user, invoice, jobschedule, userPassword, emailAuthToken, scanEmailDefinition) =>
                 {
                     var parameters = new UserParameters
                     {
                         Invoice = invoice,
                         JobSchedule = jobschedule,
+                        UserPassword = userPassword,
                         EmailAuthToken = emailAuthToken,
                         ScanEmailDefinition = scanEmailDefinition
                     };

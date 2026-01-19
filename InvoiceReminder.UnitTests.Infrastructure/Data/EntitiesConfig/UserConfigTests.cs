@@ -38,7 +38,7 @@ public sealed class UserConfigTests
             .FirstOrDefault(i => i.Properties.Count == 1 && i.Properties[0].Name == nameof(User.Email));
         _ = emailIndex.ShouldNotBeNull();
         emailIndex.IsUnique.ShouldBeTrue();
-        emailIndex.GetDatabaseName().ShouldBe("idx_user_email");
+        emailIndex.GetDatabaseName().ShouldBe("IX_user_email");
 
         // Verifica propriedade Id
         var idProperty = entityType.FindProperty(nameof(User.Id));
@@ -69,13 +69,6 @@ public sealed class UserConfigTests
         emailProperty.GetColumnName().ShouldBe("email");
         emailProperty.GetMaxLength().ShouldBe(255);
         emailProperty.IsNullable.ShouldBeFalse();
-
-        // Verifica propriedade Password
-        var passwordProperty = entityType.FindProperty(nameof(User.Password));
-        _ = passwordProperty.ShouldNotBeNull();
-        passwordProperty.GetColumnName().ShouldBe("password");
-        passwordProperty.GetMaxLength().ShouldBe(255);
-        passwordProperty.IsNullable.ShouldBeFalse();
 
         // Verifica propriedade CreatedAt (herdada de EntityDefaults)
         var createdAtProperty = entityType.FindProperty(nameof(User.CreatedAt));

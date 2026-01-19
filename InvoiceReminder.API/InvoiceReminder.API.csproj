@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\InvoiceReminder.Application\InvoiceReminder.Application.csproj" />
-    <ProjectReference Include="..\InvoiceReminder.Authentication\InvoiceReminder.Authentication.csproj" />
     <ProjectReference Include="..\InvoiceReminder.CrossCutting.IoC\InvoiceReminder.CrossCutting.IoC.csproj" />
     <ProjectReference Include="..\InvoiceReminder.ExternalServices\InvoiceReminder.ExternalServices.csproj" />
   </ItemGroup>

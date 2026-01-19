@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace InvoiceReminder.Data.Migrations
 {
     [DbContext(typeof(CoreDbContext))]
-    [Migration("20250930210104_Initial_Create")]
+    [Migration("20260109013522_Initial_Create")]
     partial class Initial_Create
     {
         /// <inheritdoc />
@@ -21,7 +21,7 @@ namespace InvoiceReminder.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("invoice_reminder")
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -40,12 +40,11 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnName("access_token");
 
                     b.Property<DateTime>("AccessTokenExpiry")
-                        .HasColumnType("timestamp")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("access_token_expiry");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
                     b.Property<string>("NonceValue")
@@ -67,8 +66,7 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnName("token_provider");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
                     b.Property<Guid>("UserId")
@@ -111,17 +109,15 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnName("beneficiary");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
                     b.Property<DateTime>("DueDate")
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("due_date");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnUpdate()
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
                     b.Property<Guid>("UserId")
@@ -143,8 +139,7 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
                     b.Property<string>("CronExpression")
@@ -154,8 +149,7 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnName("cron_expression");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnUpdate()
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
                     b.Property<Guid>("UserId")
@@ -189,8 +183,7 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnName("beneficiary");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Description")
@@ -210,8 +203,7 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnName("sender_email_address");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnUpdate()
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
                     b.Property<Guid>("UserId")
@@ -233,8 +225,7 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Email")
@@ -249,12 +240,6 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("name");
 
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("password");
-
                     b.Property<long>("TelegramChatId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
@@ -262,17 +247,55 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnName("telegram_chat_id");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnUpdate()
-                        .HasColumnType("date")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique()
-                        .HasDatabaseName("idx_user_email");
+                        .HasDatabaseName("IX_user_email");
 
                     b.ToTable("user", "invoice_reminder");
+                });
+
+            modelBuilder.Entity("InvoiceReminder.Domain.Entities.UserPassword", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("PasswordSalt")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("password_salt");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("user_password", "invoice_reminder");
                 });
 
             modelBuilder.Entity("InvoiceReminder.Domain.Entities.EmailAuthToken", b =>
@@ -311,6 +334,15 @@ namespace InvoiceReminder.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InvoiceReminder.Domain.Entities.UserPassword", b =>
+                {
+                    b.HasOne("InvoiceReminder.Domain.Entities.User", null)
+                        .WithOne("UserPassword")
+                        .HasForeignKey("InvoiceReminder.Domain.Entities.UserPassword", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InvoiceReminder.Domain.Entities.User", b =>
                 {
                     b.Navigation("EmailAuthTokens");
@@ -320,6 +352,8 @@ namespace InvoiceReminder.Data.Migrations
                     b.Navigation("JobSchedules");
 
                     b.Navigation("ScanEmailDefinitions");
+
+                    b.Navigation("UserPassword");
                 });
 #pragma warning restore 612, 618
         }

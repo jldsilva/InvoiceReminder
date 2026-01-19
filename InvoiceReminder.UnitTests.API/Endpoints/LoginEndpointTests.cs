@@ -2,7 +2,7 @@ using Bogus;
 using InvoiceReminder.API.AuthenticationSetup;
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
-using InvoiceReminder.Authentication.Extensions;
+using InvoiceReminder.Authentication.Abstractions;
 using InvoiceReminder.Authentication.Interfaces;
 using InvoiceReminder.Authentication.Jwt;
 using InvoiceReminder.Domain.Abstractions;
@@ -45,7 +45,6 @@ public sealed class LoginEndpointTests
             .RuleFor(u => u.Id, faker => faker.Random.Guid())
             .RuleFor(u => u.Name, faker => faker.Person.FullName)
             .RuleFor(u => u.Email, faker => faker.Internet.Email())
-            .RuleFor(u => u.Password, faker => faker.Internet.Password().ToSHA256())
             .RuleFor(u => u.TelegramChatId, faker => faker.Random.Long(1))
             .RuleFor(u => u.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
             .RuleFor(u => u.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
@@ -64,7 +63,6 @@ public sealed class LoginEndpointTests
 
         var expectedUser = _userViewModelFaker
             .Clone()
-            .RuleFor(u => u.Password, password.ToSHA256())
             .Generate();
 
         var loginRequest = new LoginRequest
@@ -80,10 +78,10 @@ public sealed class LoginEndpointTests
             Expiration = DateTime.UtcNow.AddMinutes(60)
         };
 
-        _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _ = _userAppService.ValidateUserPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<UserViewModel>.Success(expectedUser));
 
-        _ = _jwtProvider.Generate(Arg.Any<UserViewModel>()).Returns(expectedJwtObject);
+        _ = _jwtProvider.Generate(Arg.Any<UserClaims>()).Returns(expectedJwtObject);
 
         // Act
         request.Content = JsonContent.Create(loginRequest);
@@ -91,8 +89,10 @@ public sealed class LoginEndpointTests
         var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationToken);
 
         // Assert
-        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        _ = _jwtProvider.Received(1).Generate(Arg.Any<UserViewModel>());
+        _ = _userAppService.Received(1)
+            .ValidateUserPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+        _ = _jwtProvider.Received(1).Generate(Arg.Any<UserClaims>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
@@ -118,7 +118,7 @@ public sealed class LoginEndpointTests
             AuthenticationToken = null
         };
 
-        _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _ = _userAppService.ValidateUserPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<UserViewModel>.Failure("User not found"));
 
         // Act
@@ -127,8 +127,10 @@ public sealed class LoginEndpointTests
         var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationToken);
 
         // Assert
-        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserViewModel>());
+        _ = _userAppService.Received(1)
+            .ValidateUserPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+        _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserClaims>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
 
@@ -146,11 +148,9 @@ public sealed class LoginEndpointTests
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
 
-        var expectedUser = _userViewModelFaker.Generate();
-
         var loginRequest = new LoginRequest
         {
-            Email = expectedUser.Email,
+            Email = _faker.Internet.Email(),
             Password = _faker.Internet.Password()
         };
 
@@ -160,8 +160,8 @@ public sealed class LoginEndpointTests
             AuthenticationToken = null
         };
 
-        _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<UserViewModel>.Success(expectedUser));
+        _ = _userAppService.ValidateUserPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<UserViewModel>.Failure("User not Found."));
 
         // Act
         request.Content = JsonContent.Create(loginRequest);
@@ -169,8 +169,10 @@ public sealed class LoginEndpointTests
         var result = await response.Content.ReadFromJsonAsync<JwtObject>(TestContext.CancellationToken);
 
         // Assert
-        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserViewModel>());
+        _ = _userAppService.Received(1)
+            .ValidateUserPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+        _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserClaims>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
 
@@ -201,7 +203,7 @@ public sealed class LoginEndpointTests
 
         // Assert
         _ = _userAppService.DidNotReceive().GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserViewModel>());
+        _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserClaims>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
@@ -221,7 +223,7 @@ public sealed class LoginEndpointTests
 
         var loginRequest = _loginRequestFaker.Generate();
 
-        _ = _userAppService.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _ = _userAppService.ValidateUserPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new Exception("Service error"));
 
         // Act
@@ -230,8 +232,10 @@ public sealed class LoginEndpointTests
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _userAppService.Received(1).GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserViewModel>());
+        _ = _userAppService.Received(1)
+            .ValidateUserPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+        _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserClaims>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
 

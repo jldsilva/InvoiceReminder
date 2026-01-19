@@ -93,7 +93,6 @@ public sealed class SendMessageServiceTests
             .RuleFor(u => u.Id, faker => faker.Random.Guid())
             .RuleFor(u => u.Name, faker => faker.Person.FullName)
             .RuleFor(u => u.Email, faker => faker.Internet.Email())
-            .RuleFor(u => u.Password, faker => faker.Internet.Password())
             .RuleFor(u => u.TelegramChatId, faker => faker.Random.Long(1))
             .RuleFor(u => u.Invoices, [])
             .RuleFor(u => u.JobSchedules, [])

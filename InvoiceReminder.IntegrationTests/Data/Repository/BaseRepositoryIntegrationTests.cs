@@ -590,7 +590,7 @@ public sealed class BaseRepositoryIntegrationTests
 
     #region Helper Methods
 
-    private BaseRepository<CoreDbContext, T> CreateFreshRepository<T>() where T : class
+    private static BaseRepository<CoreDbContext, T> CreateFreshRepository<T>() where T : class
     {
         var options = new DbContextOptionsBuilder<CoreDbContext>()
             .UseNpgsql(DatabaseFixture.ConnectionString)
