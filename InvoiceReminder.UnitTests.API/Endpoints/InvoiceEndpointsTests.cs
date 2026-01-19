@@ -18,9 +18,10 @@ using System.Security.Claims;
 namespace InvoiceReminder.UnitTests.API.Endpoints;
 
 [TestClass]
-public sealed class InvoiceEndpointsTests
+public sealed class InvoiceEndpointsTests : IDisposable
 {
     private readonly HttpClient _client;
+    private readonly CustomWebApplicationFactory<Program> _factory;
     private readonly IAuthorizationService _authorizationService;
     private readonly IInvoiceAppService _invoiceAppService;
     private readonly Faker<InvoiceViewModel> _invoiceViewModelFaker;
@@ -31,12 +32,10 @@ public sealed class InvoiceEndpointsTests
 
     public InvoiceEndpointsTests()
     {
-        var factory = new CustomWebApplicationFactory<Program>();
-        var serviceProvider = factory.Services;
-
-        _client = factory.CreateClient();
-        _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
-        _invoiceAppService = serviceProvider.GetRequiredService<IInvoiceAppService>();
+        _factory = new CustomWebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+        _authorizationService = _factory.Services.GetRequiredService<IAuthorizationService>();
+        _invoiceAppService = _factory.Services.GetRequiredService<IInvoiceAppService>();
         _faker = new Faker();
 
         _invoiceViewModelFaker = new Faker<InvoiceViewModel>()
@@ -632,4 +631,10 @@ public sealed class InvoiceEndpointsTests
         _ = result.ShouldBeOfType<ProblemDetails>();
     }
     #endregion
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
+    }
 }

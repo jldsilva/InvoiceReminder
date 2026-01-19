@@ -17,9 +17,10 @@ using System.Security.Claims;
 namespace InvoiceReminder.UnitTests.API.Endpoints;
 
 [TestClass]
-public sealed class UserPasswordEndpointsTests
+public sealed class UserPasswordEndpointsTests : IDisposable
 {
     private readonly HttpClient _client;
+    private readonly CustomWebApplicationFactory<Program> _factory;
     private readonly IAuthorizationService _authorizationService;
     private readonly IUserPasswordAppService _userPasswordAppService;
     private readonly Faker<UserPasswordViewModel> _userPasswordViewModelFaker;
@@ -29,12 +30,10 @@ public sealed class UserPasswordEndpointsTests
 
     public UserPasswordEndpointsTests()
     {
-        var factory = new CustomWebApplicationFactory<Program>();
-        var serviceProvider = factory.Services;
-
-        _client = factory.CreateClient();
-        _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
-        _userPasswordAppService = serviceProvider.GetRequiredService<IUserPasswordAppService>();
+        _factory = new CustomWebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+        _authorizationService = _factory.Services.GetRequiredService<IAuthorizationService>();
+        _userPasswordAppService = _factory.Services.GetRequiredService<IUserPasswordAppService>();
 
         _userPasswordViewModelFaker = new Faker<UserPasswordViewModel>()
             .RuleFor(u => u.Id, faker => faker.Random.Guid())
@@ -368,4 +367,10 @@ public sealed class UserPasswordEndpointsTests
     }
 
     #endregion
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
+    }
 }

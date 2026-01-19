@@ -29,6 +29,11 @@ public class UserPasswordAppService : BaseAppService<UserPassword, UserPasswordV
             return Result<UserPasswordViewModel>.Failure("The provided obejct data was Null.");
         }
 
+        if (string.IsNullOrWhiteSpace(viewModel.PasswordHash))
+        {
+            return Result<UserPasswordViewModel>.Failure("Password is required.");
+        }
+
         (var pHash, var pSalt) = viewModel.PasswordHash.HashPassword();
 
         viewModel.PasswordHash = pHash;
@@ -48,11 +53,16 @@ public class UserPasswordAppService : BaseAppService<UserPassword, UserPasswordV
     {
         if (viewModelCollection is null or { Count: 0 })
         {
-            return Result<int>.Failure("The provided obejct data was Null or Empty.");
+            return Result<int>.Failure("The provided object data was Null or Empty.");
         }
 
         foreach (var viewModel in viewModelCollection)
         {
+            if (string.IsNullOrWhiteSpace(viewModel.PasswordHash))
+            {
+                return Result<int>.Failure("Password is required.");
+            }
+
             (var pHash, var pSalt) = viewModel.PasswordHash.HashPassword();
 
             viewModel.PasswordHash = pHash;
@@ -82,7 +92,7 @@ public class UserPasswordAppService : BaseAppService<UserPassword, UserPasswordV
     {
         if (viewModel is null)
         {
-            return Result<UserPasswordViewModel>.Failure("The provided obejct data was Null.");
+            return Result<UserPasswordViewModel>.Failure("The provided object data was Null.");
         }
 
         (var pHash, var pSalt) = viewModel.PasswordHash.HashPassword();

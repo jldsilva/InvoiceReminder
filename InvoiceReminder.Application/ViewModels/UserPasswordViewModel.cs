@@ -7,7 +7,7 @@ public class UserPasswordViewModel : ViewModelDefaults
     [JsonPropertyOrder(2)]
     public Guid UserId { get; set; }
 
-    [JsonIgnore]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)]
     public string PasswordHash { get; set; }
 
     [JsonIgnore]

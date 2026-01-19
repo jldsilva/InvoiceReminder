@@ -17,7 +17,7 @@ public class UserViewModel : ViewModelDefaults
     [JsonPropertyOrder(4)]
     public string Email { get; set; }
 
-    [JsonIgnore]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)]
     public virtual UserPasswordViewModel UserPassword { get; set; }
 
     [JsonPropertyOrder(5)]

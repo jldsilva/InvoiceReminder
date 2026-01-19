@@ -15,6 +15,9 @@ internal class UserPasswordConfig : IEntityTypeConfiguration<UserPassword>
 
         _ = builder.HasKey(x => x.Id);
 
+        _ = builder.HasIndex(x => x.UserId)
+            .IsUnique();
+
         _ = builder.Property(x => x.Id)
             .HasColumnName("id")
             .HasColumnType("uuid")
@@ -44,6 +47,12 @@ internal class UserPasswordConfig : IEntityTypeConfiguration<UserPassword>
         _ = builder.Property(x => x.UpdatedAt)
             .HasColumnName("updated_at")
             .HasColumnType("timestamp with time zone")
+            .IsRequired();
+
+        _ = builder.HasOne<User>()
+            .WithOne(x => x.UserPassword)
+            .HasForeignKey<UserPassword>(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
     }
 }

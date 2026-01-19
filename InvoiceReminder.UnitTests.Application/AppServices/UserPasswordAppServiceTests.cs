@@ -74,7 +74,7 @@ public sealed class UserPasswordAppServiceTests
         var plainPassword = viewModel.PasswordHash;
 
         _ = _repository.AddAsync(Arg.Any<UserPassword>(), Arg.Any<CancellationToken>())
-            .Returns(viewModel.Adapt<UserPassword>());
+            .Returns(x => x.Arg<UserPassword>());
 
         _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
@@ -176,7 +176,7 @@ public sealed class UserPasswordAppServiceTests
             result.IsSuccess.ShouldBeTrue();
             result.Value.ShouldBe(3);
             // All original passwords should have been hashed (changed)
-            viewModels.All(v => plainPasswords.Contains(v.PasswordHash)).ShouldBeFalse();
+            viewModels.Any(v => plainPasswords.Contains(v.PasswordHash)).ShouldBeFalse();
         });
     }
 
@@ -194,7 +194,7 @@ public sealed class UserPasswordAppServiceTests
         {
             result.IsSuccess.ShouldBeFalse();
             result.Value.ShouldBe(0);
-            result.Error.ShouldBe("The provided obejct data was Null or Empty.");
+            result.Error.ShouldBe("The provided object data was Null or Empty.");
         });
     }
 
@@ -212,7 +212,7 @@ public sealed class UserPasswordAppServiceTests
         {
             result.IsSuccess.ShouldBeFalse();
             result.Value.ShouldBe(0);
-            result.Error.ShouldBe("The provided obejct data was Null or Empty.");
+            result.Error.ShouldBe("The provided object data was Null or Empty.");
         });
     }
 
@@ -265,7 +265,7 @@ public sealed class UserPasswordAppServiceTests
         {
             result.IsSuccess.ShouldBeFalse();
             result.Value.ShouldBeNull();
-            result.Error.ShouldBe("The provided obejct data was Null.");
+            result.Error.ShouldBe("The provided object data was Null.");
         });
     }
 

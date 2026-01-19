@@ -18,9 +18,10 @@ using System.Security.Claims;
 namespace InvoiceReminder.UnitTests.API.Endpoints;
 
 [TestClass]
-public sealed class JobScheduleEndPointsTests
+public sealed class JobScheduleEndPointsTests : IDisposable
 {
     private readonly HttpClient _client;
+    private readonly CustomWebApplicationFactory<Program> _factory;
     private readonly IAuthorizationService _authorizationService;
     private readonly IJobScheduleAppService _jobScheduleAppService;
     private readonly Faker<JobScheduleViewModel> _jobScheduleViewModelFaker;
@@ -30,12 +31,10 @@ public sealed class JobScheduleEndPointsTests
 
     public JobScheduleEndPointsTests()
     {
-        var factory = new CustomWebApplicationFactory<Program>();
-        var serviceProvider = factory.Services;
-
-        _client = factory.CreateClient();
-        _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
-        _jobScheduleAppService = serviceProvider.GetRequiredService<IJobScheduleAppService>();
+        _factory = new CustomWebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+        _authorizationService = _factory.Services.GetRequiredService<IAuthorizationService>();
+        _jobScheduleAppService = _factory.Services.GetRequiredService<IJobScheduleAppService>();
 
         _jobScheduleViewModelFaker = new Faker<JobScheduleViewModel>()
             .RuleFor(j => j.Id, faker => faker.Random.Guid())
@@ -632,4 +631,10 @@ public sealed class JobScheduleEndPointsTests
         _ = result.ShouldBeOfType<ProblemDetails>();
     }
     #endregion
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
+    }
 }

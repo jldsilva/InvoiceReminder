@@ -88,7 +88,7 @@ public sealed class JwtProviderTests
     }
 
     [TestMethod]
-    public void JwtProvider_Generate_ShouldThrowArgumentNullExceptionWhenUserViewModelIsNull()
+    public void JwtProvider_Generate_ShouldThrowArgumentNullExceptionWhenUserClaimsIsNull()
     {
         // Arrange
         var jwtProvider = new JwtProvider(_jwtOptions);

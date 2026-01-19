@@ -24,10 +24,20 @@ public class JwtProvider : IJwtProvider
     {
         ArgumentNullException.ThrowIfNull(user);
 
+        if (user.Id == Guid.Empty)
+        {
+            throw new ArgumentException("User Id cannot be empty.", nameof(user));
+        }
+
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            throw new ArgumentException("User Email cannot be null or empty.", nameof(user));
+        }
+
         var claims = new Claim[]
         {
-                new (JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new (JwtRegisteredClaimNames.Email, user.Email)
+            new (JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new (JwtRegisteredClaimNames.Email, user.Email)
         };
 
         var symmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
