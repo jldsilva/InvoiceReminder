@@ -25,24 +25,22 @@ public partial class Initial_Create : Migration
                 telegram_chat_id = table.Column<long>(type: "bigint", nullable: false, defaultValue: 0L),
                 name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                 email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                password = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                 created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
             },
-            constraints: table => _ = table.PrimaryKey("PK_user", x => x.id));
+            constraints: table => table.PrimaryKey("PK_user", x => x.id));
 
         _ = migrationBuilder.InsertData(
             table: "user",
             schema: "invoice_reminder",
-            columns: ["id", "telegram_chat_id", "name", "email", "password", "created_at", "updated_at"],
+            columns: ["id", "telegram_chat_id", "name", "email", "created_at", "updated_at"],
             values: new object[,]
             {
                 {
                     "0d77a03d-ac35-480c-b409-a08133409c7c",
                     0,
                     "John Doe",
-                    "john.doe@notmail.com",
-                    "8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92",
+                    "john.doe@fakemail.com",
                     new DateTime(2025, 05, 06, 0, 0, 0, DateTimeKind.Utc),
                     new DateTime(2025, 05, 06, 0, 0, 0, DateTimeKind.Utc)
                 },
@@ -50,8 +48,55 @@ public partial class Initial_Create : Migration
                     "59918776-f6c6-4def-93b1-95d7a7717942",
                     0,
                     "Jane Doe",
-                    "jane.doe@notmail.com",
-                    "8D969EEF6ECAD3C29A3A629280E686CF0C3F5D5A86AFF3CA12020C923ADC6C92",
+                    "jane.doe@fakemail.com",
+                    new DateTime(2025, 05, 06, 0, 0, 0, DateTimeKind.Utc),
+                    new DateTime(2025, 05, 06, 0, 0, 0, DateTimeKind.Utc)
+                }
+            });
+
+        _ = migrationBuilder.CreateTable(
+            name: "user_password",
+            schema: "invoice_reminder",
+            columns: table => new
+            {
+                id = table.Column<Guid>(type: "uuid", nullable: false),
+                user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                password_hash = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                password_salt = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+            },
+            constraints: table =>
+            {
+                _ = table.PrimaryKey("PK_user_password", x => x.id);
+                _ = table.ForeignKey(
+                    name: "FK_user_password_user_user_id",
+                    column: x => x.user_id,
+                    principalSchema: "invoice_reminder",
+                    principalTable: "user",
+                    principalColumn: "id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        _ = migrationBuilder.InsertData(
+            table: "user_password",
+            schema: "invoice_reminder",
+            columns: ["id", "user_id", "password_hash", "password_salt", "created_at", "updated_at"],
+            values: new object[,]
+            {
+                {
+                    "7ac11c2e-eb20-4eba-9aa2-b1ff7f66c534",
+                    "0d77a03d-ac35-480c-b409-a08133409c7c",
+                    "A1jP0sC5JeSdn9+FMlmf0hATixlmtPyKnTYSkyGq44I=",
+                    "jGw9jaT87q29CxlBTTpTQw==",
+                    new DateTime(2025, 05, 06, 0, 0, 0, DateTimeKind.Utc),
+                    new DateTime(2025, 05, 06, 0, 0, 0, DateTimeKind.Utc)
+                },
+                {
+                    "ceb8ed4f-88ef-43c5-9ddd-2f3bd03dd01b",
+                    "59918776-f6c6-4def-93b1-95d7a7717942",
+                    "epSsrxJtxqrON9hTo9TONf7o4abblXl2E9hnGQojdNA=",
+                    "Cj4bofNoOjj6aDwp4Sbq1w==",
                     new DateTime(2025, 05, 06, 0, 0, 0, DateTimeKind.Utc),
                     new DateTime(2025, 05, 06, 0, 0, 0, DateTimeKind.Utc)
                 }
@@ -186,10 +231,17 @@ public partial class Initial_Create : Migration
             column: "user_id");
 
         _ = migrationBuilder.CreateIndex(
-            name: "idx_user_email",
+            name: "IX_user_email",
             schema: "invoice_reminder",
             table: "user",
             column: "email",
+            unique: true);
+
+        _ = migrationBuilder.CreateIndex(
+            name: "IX_user_password_user_id",
+            schema: "invoice_reminder",
+            table: "user_password",
+            column: "user_id",
             unique: true);
     }
 
@@ -210,6 +262,10 @@ public partial class Initial_Create : Migration
 
         _ = migrationBuilder.DropTable(
             name: "scan_email_definition",
+            schema: "invoice_reminder");
+
+        _ = migrationBuilder.DropTable(
+            name: "user_password",
             schema: "invoice_reminder");
 
         _ = migrationBuilder.DropTable(

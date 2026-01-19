@@ -1,4 +1,4 @@
-using InvoiceReminder.Application.ViewModels;
+using InvoiceReminder.Authentication.Abstractions;
 using InvoiceReminder.Authentication.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -20,7 +20,7 @@ public class JwtProvider : IJwtProvider
         _jwtOptions = jwtOptions.Value;
     }
 
-    public JwtObject Generate(UserViewModel user)
+    public JwtObject Generate(UserClaims user)
     {
         ArgumentNullException.ThrowIfNull(user);
 

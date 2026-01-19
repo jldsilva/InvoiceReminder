@@ -35,15 +35,15 @@ public class BaseAppService<TEntity, TEntityViewModel> : IBaseAppService<TEntity
     }
 
     public virtual async Task<Result<int>> BulkInsertAsync(
-        ICollection<TEntityViewModel> viewModels,
+        ICollection<TEntityViewModel> viewModelCollection,
         CancellationToken cancellationToken = default)
     {
-        if (viewModels is null || viewModels.Count == 0)
+        if (viewModelCollection is null || viewModelCollection.Count == 0)
         {
-            return Result<int>.Failure($"Parameter {nameof(viewModels)} was Null or Empty.");
+            return Result<int>.Failure($"Parameter {nameof(viewModelCollection)} was Null or Empty.");
         }
 
-        var result = await _repository.BulkInsertAsync(viewModels.Adapt<ICollection<TEntity>>(), cancellationToken);
+        var result = await _repository.BulkInsertAsync(viewModelCollection.Adapt<ICollection<TEntity>>(), cancellationToken);
 
         return Result<int>.Success(result);
     }

@@ -32,7 +32,6 @@ public sealed class UserAppServiceTests
             .RuleFor(u => u.Id, faker => faker.Random.Guid())
             .RuleFor(u => u.Name, faker => faker.Person.FullName)
             .RuleFor(u => u.Email, faker => faker.Internet.Email())
-            .RuleFor(u => u.Password, faker => faker.Internet.Password())
             .RuleFor(u => u.TelegramChatId, faker => faker.Random.Long(100000000, long.MaxValue))
             .RuleFor(u => u.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
             .RuleFor(u => u.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime())

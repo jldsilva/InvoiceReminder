@@ -1,6 +1,5 @@
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
-using InvoiceReminder.Authentication.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvoiceReminder.API.Endpoints;
@@ -24,9 +23,9 @@ public class UserEndpoints : IEndpointDefinition
 
     private static void MapGetUsers(RouteGroupBuilder endpoint)
     {
-        _ = endpoint.MapGet("/", (IUserAppService userAppService) =>
+        _ = endpoint.MapGet("/", (IUserAppService appService) =>
             {
-                var result = userAppService.GetAll();
+                var result = appService.GetAll();
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -41,9 +40,9 @@ public class UserEndpoints : IEndpointDefinition
 
     private static void MapGetUser(RouteGroupBuilder endpoint)
     {
-        _ = endpoint.MapGet("/{id}", async (IUserAppService userAppService, CancellationToken ct, Guid id) =>
+        _ = endpoint.MapGet("/{id}", async (IUserAppService appService, Guid id, CancellationToken ct) =>
             {
-                var result = await userAppService.GetByIdAsync(id, ct);
+                var result = await appService.GetByIdAsync(id, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -59,9 +58,9 @@ public class UserEndpoints : IEndpointDefinition
     private static void MapGetUserByEmail(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapGet("/getby-email/{value}",
-            async (IUserAppService userAppService, CancellationToken ct, string value) =>
+            async (IUserAppService appService, string value, CancellationToken ct) =>
             {
-                var result = await userAppService.GetByEmailAsync(value, ct);
+                var result = await appService.GetByEmailAsync(value, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -77,11 +76,9 @@ public class UserEndpoints : IEndpointDefinition
     private static void MapCreateUser(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapPost("/",
-            async (IUserAppService userAppService, CancellationToken ct, [FromBody] UserViewModel userViewModel) =>
+            async (IUserAppService appService, [FromBody] UserViewModel viewModel, CancellationToken ct) =>
             {
-                userViewModel.Password = userViewModel.Password.ToSHA256();
-
-                var result = await userAppService.AddAsync(userViewModel, ct);
+                var result = await appService.AddAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Created($"{basepath}/{result.Value.Id}", result.Value)
@@ -97,14 +94,10 @@ public class UserEndpoints : IEndpointDefinition
     private static void MapCreateUsers(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapPost("/bulk-insert",
-            async (IUserAppService userAppService, CancellationToken ct, [FromBody] ICollection<UserViewModel> usersViewModel) =>
+            async (IUserAppService appService, [FromBody] ICollection<UserViewModel> viewModelCollection,
+            CancellationToken ct) =>
             {
-                foreach (var user in usersViewModel)
-                {
-                    user.Password = user.Password.ToSHA256();
-                }
-
-                var result = await userAppService.BulkInsertAsync(usersViewModel, ct);
+                var result = await appService.BulkInsertAsync(viewModelCollection, ct);
 
                 return result.IsSuccess
                     ? Results.Created($"{basepath}", result.Value)
@@ -120,9 +113,9 @@ public class UserEndpoints : IEndpointDefinition
     private static void MapUpdateUser(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapPut("/",
-            async (IUserAppService userAppService, CancellationToken ct, [FromBody] UserViewModel userViewModel) =>
+            async (IUserAppService appService, [FromBody] UserViewModel viewModel, CancellationToken ct) =>
             {
-                var result = await userAppService.UpdateAsync(userViewModel, ct);
+                var result = await appService.UpdateAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
@@ -138,9 +131,9 @@ public class UserEndpoints : IEndpointDefinition
     private static void MapDeleteUser(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapDelete("/",
-            async (IUserAppService userAppService, CancellationToken ct, [FromBody] UserViewModel userViewModel) =>
+            async (IUserAppService appService, [FromBody] UserViewModel viewModel, CancellationToken ct) =>
             {
-                var result = await userAppService.RemoveAsync(userViewModel, ct);
+                var result = await appService.RemoveAsync(viewModel, ct);
 
                 return result.IsSuccess
                     ? Results.NoContent()

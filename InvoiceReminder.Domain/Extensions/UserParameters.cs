@@ -6,6 +6,7 @@ public record UserParameters
 {
     public Invoice Invoice { get; set; }
     public JobSchedule JobSchedule { get; set; }
+    public UserPassword UserPassword { get; set; }
     public ScanEmailDefinition ScanEmailDefinition { get; set; }
     public EmailAuthToken EmailAuthToken { get; set; }
 }

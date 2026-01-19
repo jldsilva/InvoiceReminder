@@ -35,7 +35,7 @@ public class GoogleOAuthEndpoints : IEndpointDefinition
     private static void MapAuthorize(RouteGroupBuilder endpoint)
     {
         _ = endpoint.MapGet("/authorize",
-            async (IGoogleOAuthService oAuthService, CancellationToken ct, Guid state, string code) =>
+            async (IGoogleOAuthService oAuthService, Guid state, string code, CancellationToken ct) =>
             {
                 var result = await oAuthService.GrantAuthorizationAsync(state, code, ct);
 
@@ -52,7 +52,7 @@ public class GoogleOAuthEndpoints : IEndpointDefinition
 
     private static void MapRevoke(RouteGroupBuilder endpoint)
     {
-        _ = endpoint.MapDelete("/revoke", async (IGoogleOAuthService oAuthService, CancellationToken ct, Guid id) =>
+        _ = endpoint.MapDelete("/revoke", async (IGoogleOAuthService oAuthService, Guid id, CancellationToken ct) =>
             {
                 var result = await oAuthService.RevokeAuthorizationAsync(id, ct);
 

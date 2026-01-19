@@ -15,8 +15,7 @@ public class SendMessageEndpoints : IEndpointDefinition
 
     private static void MapSendMessage(RouteGroupBuilder endpoint)
     {
-        _ = endpoint.MapGet("/{id}",
-            async (ISendMessageService messageService, CancellationToken ct, Guid id) =>
+        _ = endpoint.MapGet("/{id}", async (ISendMessageService messageService, Guid id, CancellationToken ct) =>
             {
                 var result = await messageService.SendMessage(id, ct);
 
