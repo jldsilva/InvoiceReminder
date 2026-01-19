@@ -14,9 +14,10 @@ using System.Security.Claims;
 namespace InvoiceReminder.UnitTests.API.Endpoints;
 
 [TestClass]
-public sealed class SendMessageEndpointsTests
+public sealed class SendMessageEndpointsTests : IDisposable
 {
     private readonly HttpClient _client;
+    private readonly CustomWebApplicationFactory<Program> _factory;
     private readonly IAuthorizationService _authorizationService;
     private readonly ISendMessageService _sendMessageService;
     private const string basepath = "/api/send_message";
@@ -25,12 +26,10 @@ public sealed class SendMessageEndpointsTests
 
     public SendMessageEndpointsTests()
     {
-        var factory = new CustomWebApplicationFactory<Program>();
-        var serviceProvider = factory.Services;
-
-        _client = factory.CreateClient();
-        _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
-        _sendMessageService = serviceProvider.GetRequiredService<ISendMessageService>();
+        _factory = new CustomWebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+        _authorizationService = _factory.Services.GetRequiredService<IAuthorizationService>();
+        _sendMessageService = _factory.Services.GetRequiredService<ISendMessageService>();
     }
 
     #region MapGet Tests
@@ -278,4 +277,10 @@ public sealed class SendMessageEndpointsTests
     }
 
     #endregion
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
+    }
 }

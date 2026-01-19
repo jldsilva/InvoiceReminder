@@ -19,9 +19,10 @@ using System.Net.Http.Json;
 namespace InvoiceReminder.UnitTests.API.Endpoints;
 
 [TestClass]
-public sealed class LoginEndpointTests
+public sealed class LoginEndpointTests : IDisposable
 {
     private readonly HttpClient _client;
+    private readonly CustomWebApplicationFactory<Program> _factory;
     private readonly IJwtProvider _jwtProvider;
     private readonly IUserAppService _userAppService;
     private readonly Faker<UserViewModel> _userViewModelFaker;
@@ -33,12 +34,10 @@ public sealed class LoginEndpointTests
 
     public LoginEndpointTests()
     {
-        var factory = new CustomWebApplicationFactory<Program>();
-        var serviceProvider = factory.Services;
-
-        _client = factory.CreateClient();
-        _jwtProvider = serviceProvider.GetRequiredService<IJwtProvider>();
-        _userAppService = serviceProvider.GetRequiredService<IUserAppService>();
+        _factory = new CustomWebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+        _jwtProvider = _factory.Services.GetRequiredService<IJwtProvider>();
+        _userAppService = _factory.Services.GetRequiredService<IUserAppService>();
         _faker = new Faker();
 
         _userViewModelFaker = new Faker<UserViewModel>()
@@ -202,7 +201,9 @@ public sealed class LoginEndpointTests
         var result = await response.Content.ReadFromJsonAsync<string>(TestContext.CancellationToken);
 
         // Assert
-        _ = _userAppService.DidNotReceive().GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        _ = _userAppService.DidNotReceive()
+            .ValidateUserPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
         _ = _jwtProvider.DidNotReceive().Generate(Arg.Any<UserClaims>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -244,5 +245,11 @@ public sealed class LoginEndpointTests
             _ = result.ShouldNotBeNull();
             _ = result.ShouldBeOfType<ProblemDetails>();
         });
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
     }
 }

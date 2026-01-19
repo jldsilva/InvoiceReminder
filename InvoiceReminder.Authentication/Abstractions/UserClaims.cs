@@ -2,6 +2,6 @@ namespace InvoiceReminder.Authentication.Abstractions;
 
 public record UserClaims
 {
-    public Guid Id { get; init; }
-    public string Email { get; init; }
+    public required Guid Id { get; init; }
+    public required string Email { get; init; }
 }

@@ -13,19 +13,19 @@ public class InvoiceViewModel : ViewModelDefaults
     [JsonPropertyOrder(3)]
     public string Bank { get; set; }
 
-    [JsonPropertyOrder(3)]
+    [JsonPropertyOrder(4)]
     public string Beneficiary { get; set; }
 
     [Required]
-    [JsonPropertyOrder(4)]
+    [JsonPropertyOrder(5)]
     public decimal Amount { get; set; }
 
     [Required]
-    [JsonPropertyOrder(5)]
+    [JsonPropertyOrder(6)]
     public string Barcode { get; set; }
 
     [Required]
-    [JsonPropertyOrder(6)]
+    [JsonPropertyOrder(7)]
     public DateTime DueDate { get; set; }
 
     public InvoiceViewModel()

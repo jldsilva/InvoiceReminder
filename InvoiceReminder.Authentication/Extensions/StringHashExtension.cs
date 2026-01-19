@@ -13,7 +13,7 @@ public static class StringHashExtension
 
         var salt = RandomNumberGenerator.GetBytes(16);
 
-        var argon2 = new Argon2id(Encoding.UTF8.GetBytes(inputString))
+        using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(inputString))
         {
             Salt = salt,
             DegreeOfParallelism = 8,
@@ -34,7 +34,7 @@ public static class StringHashExtension
 
         var salt = Convert.FromBase64String(storedSalt);
 
-        var argon2 = new Argon2id(Encoding.UTF8.GetBytes(inputString))
+        using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(inputString))
         {
             Salt = salt,
             DegreeOfParallelism = 8,

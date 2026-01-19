@@ -18,9 +18,10 @@ using System.Security.Claims;
 namespace InvoiceReminder.UnitTests.API.Endpoints;
 
 [TestClass]
-public sealed class ScanEmailDefinitionEndpointsTests
+public sealed class ScanEmailDefinitionEndpointsTests : IDisposable
 {
     private readonly HttpClient _client;
+    private readonly CustomWebApplicationFactory<Program> _factory;
     private readonly IAuthorizationService _authorizationService;
     private readonly IScanEmailDefinitionAppService _scanEmailDefinitionAppService;
     private readonly Faker<ScanEmailDefinitionViewModel> _scanEmailDefinitionViewModelFaker;
@@ -31,12 +32,10 @@ public sealed class ScanEmailDefinitionEndpointsTests
 
     public ScanEmailDefinitionEndpointsTests()
     {
-        var factory = new CustomWebApplicationFactory<Program>();
-        var serviceProvider = factory.Services;
-
-        _client = factory.CreateClient();
-        _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
-        _scanEmailDefinitionAppService = serviceProvider.GetRequiredService<IScanEmailDefinitionAppService>();
+        _factory = new CustomWebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+        _authorizationService = _factory.Services.GetRequiredService<IAuthorizationService>();
+        _scanEmailDefinitionAppService = _factory.Services.GetRequiredService<IScanEmailDefinitionAppService>();
         _faker = new Faker();
 
         _scanEmailDefinitionViewModelFaker = new Faker<ScanEmailDefinitionViewModel>()
@@ -398,7 +397,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
         // Arrange
         var id = Guid.NewGuid();
         var email = _faker.Internet.Email();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{email}/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-sender/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.Success(
@@ -430,7 +429,8 @@ public sealed class ScanEmailDefinitionEndpointsTests
     public async Task GetScanEmailDefinitionBySenderEmailAddressAndUserId_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
     {
         // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{Guid.NewGuid()}/{Guid.NewGuid()}");
+        var email = _faker.Internet.Email;
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-sender/{email}/{Guid.NewGuid()}");
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
             Arg.Any<IEnumerable<IAuthorizationRequirement>>())
@@ -449,7 +449,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
         // Arrange
         var id = Guid.NewGuid();
         var email = _faker.Internet.Email();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{email}/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-sender/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         _ = _scanEmailDefinitionAppService
@@ -479,7 +479,7 @@ public sealed class ScanEmailDefinitionEndpointsTests
         // Arrange
         var id = Guid.NewGuid();
         var email = _faker.Internet.Email();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{email}/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/getby-sender/{email}/{id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var expectedResult = Result<ScanEmailDefinitionViewModel>.
@@ -752,4 +752,10 @@ public sealed class ScanEmailDefinitionEndpointsTests
         _ = result.ShouldBeOfType<ProblemDetails>();
     }
     #endregion
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
+    }
 }

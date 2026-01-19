@@ -18,9 +18,10 @@ using System.Security.Claims;
 namespace InvoiceReminder.UnitTests.API.Endpoints;
 
 [TestClass]
-public sealed class GoogleOAuthEndpointsTests
+public sealed class GoogleOAuthEndpointsTests : IDisposable
 {
     private readonly HttpClient _client;
+    private readonly CustomWebApplicationFactory<Program> _factory;
     private readonly IAuthorizationService _authorizationService;
     private readonly IGoogleOAuthService _oAuthService;
     private const string basepath = "/api/google_oauth";
@@ -29,12 +30,10 @@ public sealed class GoogleOAuthEndpointsTests
 
     public GoogleOAuthEndpointsTests()
     {
-        var factory = new CustomWebApplicationFactory<Program>();
-        var serviceProvider = factory.Services;
-
-        _client = factory.CreateClient();
-        _authorizationService = serviceProvider.GetRequiredService<IAuthorizationService>();
-        _oAuthService = serviceProvider.GetRequiredService<IGoogleOAuthService>();
+        _factory = new CustomWebApplicationFactory<Program>();
+        _client = _factory.CreateClient();
+        _authorizationService = _factory.Services.GetRequiredService<IAuthorizationService>();
+        _oAuthService = _factory.Services.GetRequiredService<IGoogleOAuthService>();
     }
 
     #region GetAuthUrl Tests
@@ -511,4 +510,10 @@ public sealed class GoogleOAuthEndpointsTests
     }
 
     #endregion
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
+    }
 }

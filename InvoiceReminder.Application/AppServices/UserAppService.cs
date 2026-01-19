@@ -28,8 +28,7 @@ public sealed class UserAppService : BaseAppService<User, UserViewModel>, IUserA
             return Result<UserViewModel>.Failure($"Parameter {nameof(viewModel)} was Null.");
         }
 
-        var tempPassword = DateTime.Now.ToString("ddMMyyyy");
-        (var pHash, var pSalt) = tempPassword.HashPassword();
+        (var pHash, var pSalt) = viewModel.UserPassword.PasswordHash.HashPassword();
 
         viewModel.UserPassword.UserId = viewModel.Id;
         viewModel.UserPassword.PasswordHash = pHash;
@@ -43,7 +42,9 @@ public sealed class UserAppService : BaseAppService<User, UserViewModel>, IUserA
         return Result<UserViewModel>.Success(entity.Adapt<UserViewModel>());
     }
 
-    public async Task<Result<UserViewModel>> GetByEmailAsync(string value, CancellationToken cancellationToken = default)
+    public async Task<Result<UserViewModel>> GetByEmailAsync(
+        string value,
+        CancellationToken cancellationToken = default)
     {
         var entity = await _repository.GetByEmailAsync(value, cancellationToken);
 
@@ -52,8 +53,9 @@ public sealed class UserAppService : BaseAppService<User, UserViewModel>, IUserA
             : Result<UserViewModel>.Success(entity.Adapt<UserViewModel>());
     }
 
-    public async Task<Result<UserViewModel>> ValidateUserPasswordAsync(string email, string password,
-    CancellationToken cancellationToken = default)
+    public async Task<Result<UserViewModel>> ValidateUserPasswordAsync(
+        string email, string password,
+        CancellationToken cancellationToken = default)
     {
         var entity = await _repository.GetByEmailAsync(email, cancellationToken);
         var isValid = entity is not null &&

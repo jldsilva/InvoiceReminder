@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using System.Diagnostics.CodeAnalysis;
 
 #nullable disable
+#pragma warning disable S1192
 
 namespace InvoiceReminder.Data.Migrations;
 
@@ -273,3 +274,4 @@ public partial class Initial_Create : Migration
             schema: "invoice_reminder");
     }
 }
+#pragma warning restore S1192

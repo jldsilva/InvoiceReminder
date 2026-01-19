@@ -78,7 +78,7 @@ public class ScanEmailDefinitionEndpoints : IEndpointDefinition
 
     private static void MapGetBySenderEmailAddress(RouteGroupBuilder endpoint)
     {
-        _ = endpoint.MapGet("/{email}/{id}",
+        _ = endpoint.MapGet("/getby-sender/{email}/{id}",
             async (IScanEmailDefinitionAppService appService, string email, Guid id, CancellationToken ct) =>
             {
                 var result = await appService.GetBySenderEmailAddressAsync(email, id, ct);
