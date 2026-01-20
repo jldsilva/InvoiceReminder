@@ -4,6 +4,7 @@ using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Domain.Entities;
+using InvoiceReminder.Domain.Services.Configuration;
 using Mapster;
 using NSubstitute;
 using Shouldly;
@@ -13,6 +14,7 @@ namespace InvoiceReminder.UnitTests.Application.AppServices;
 [TestClass]
 public sealed class UserPasswordAppServiceTests
 {
+    private readonly IConfigurationService _configuration;
     private readonly IUserPasswordRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly Faker _faker;
@@ -21,9 +23,12 @@ public sealed class UserPasswordAppServiceTests
 
     public UserPasswordAppServiceTests()
     {
+        _configuration = Substitute.For<IConfigurationService>();
         _repository = Substitute.For<IUserPasswordRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _faker = new Faker();
+
+        _ = _configuration.GetValue<int>("Security:ParallelismFactor").Returns(2);
     }
 
     private static Faker<UserPassword> CreateUserPasswordFaker()
@@ -52,7 +57,7 @@ public sealed class UserPasswordAppServiceTests
     public void UserPasswordAppService_ShouldBeAssignableToItsInterface_And_GenericInterface_And_GenericAppService()
     {
         // Arrange && Act
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
 
         // Assert
         appService.ShouldSatisfyAllConditions(() =>
@@ -69,7 +74,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task AddAsync_Should_Hash_Password_Before_Adding()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
         var viewModel = CreateUserPasswordViewModelFaker().Generate();
         var plainPassword = viewModel.PasswordHash;
 
@@ -101,7 +106,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task AddAsync_Should_Return_Failure_When_ViewModel_Is_Null()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
 
         // Act
         var result = await appService.AddAsync(null, TestContext.CancellationToken);
@@ -119,7 +124,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task AddAsync_Should_Generate_Different_Hash_For_Same_Password()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
         var password = _faker.Internet.Password(12, false, "[A-Z]", "abc123");
 
         var viewModel1 = CreateUserPasswordViewModelFaker()
@@ -158,7 +163,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task BulkInsertAsync_Should_Hash_All_Passwords_Before_Inserting()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
         var viewModels = CreateUserPasswordViewModelFaker().Generate(3).ToList();
         var plainPasswords = viewModels.Select(v => v.PasswordHash).ToList();
 
@@ -184,7 +189,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task BulkInsertAsync_Should_Return_Failure_When_ViewModels_Are_Null()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
 
         // Act
         var result = await appService.BulkInsertAsync(null, TestContext.CancellationToken);
@@ -202,7 +207,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task BulkInsertAsync_Should_Return_Failure_When_ViewModels_Are_Empty()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
 
         // Act
         var result = await appService.BulkInsertAsync([], TestContext.CancellationToken);
@@ -224,7 +229,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task UpdateAsync_Should_Hash_Password_Before_Updating()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
         var viewModel = CreateUserPasswordViewModelFaker().Generate();
         var plainPassword = viewModel.PasswordHash;
 
@@ -255,7 +260,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task UpdateAsync_Should_Return_Failure_When_ViewModel_Is_Null()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
 
         // Act
         var result = await appService.UpdateAsync(null, TestContext.CancellationToken);
@@ -277,7 +282,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task GetByUserIdAsync_Should_Return_Success_When_UserPassword_Exists()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
         var userId = Guid.NewGuid();
         var userPassword = CreateUserPasswordFaker()
             .RuleFor(u => u.UserId, _ => userId)
@@ -306,7 +311,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task GetByUserIdAsync_Should_Return_Failure_When_UserPassword_NotExists()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
         var userId = Guid.NewGuid();
 
         _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -330,7 +335,7 @@ public sealed class UserPasswordAppServiceTests
     public async Task GetByUserIdAsync_Should_Adapt_Entity_To_ViewModel()
     {
         // Arrange
-        var appService = new UserPasswordAppService(_repository, _unitOfWork);
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
         var userPassword = CreateUserPasswordFaker().Generate();
 
         _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())

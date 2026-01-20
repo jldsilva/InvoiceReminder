@@ -7,7 +7,7 @@ namespace InvoiceReminder.Authentication.Extensions;
 
 public static class StringHashExtension
 {
-    public static (string Hash, string Salt) HashPassword(this string inputString)
+    public static (string Hash, string Salt) HashPassword(this string inputString, int parallelismFactor = 2)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(inputString);
 
@@ -16,7 +16,7 @@ public static class StringHashExtension
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(inputString))
         {
             Salt = salt,
-            DegreeOfParallelism = 8,
+            DegreeOfParallelism = GetMaxDegreeOfParallelism(parallelismFactor),
             Iterations = 4,
             MemorySize = 1024 * 64
         };
@@ -28,7 +28,7 @@ public static class StringHashExtension
         return (hash, saltBase64);
     }
 
-    public static bool VerifyPassword(this string inputString, string storedHash, string storedSalt)
+    public static bool VerifyPassword(this string inputString, string storedHash, string storedSalt, int parallelismFactor = 2)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(inputString);
 
@@ -37,7 +37,7 @@ public static class StringHashExtension
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(inputString))
         {
             Salt = salt,
-            DegreeOfParallelism = 8,
+            DegreeOfParallelism = GetMaxDegreeOfParallelism(parallelismFactor),
             Iterations = 4,
             MemorySize = 1024 * 64
         };
@@ -85,5 +85,10 @@ public static class StringHashExtension
         }
 
         return result.ToString();
+    }
+
+    private static int GetMaxDegreeOfParallelism(int parallelismFactor)
+    {
+        return Math.Max(1, Environment.ProcessorCount / parallelismFactor);
     }
 }
