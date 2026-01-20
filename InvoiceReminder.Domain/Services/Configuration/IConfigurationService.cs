@@ -9,4 +9,5 @@ public interface IConfigurationService
     string GetSecret(string key, string secretName, string defaultValue);
     T GetSection<T>(string sectionName) where T : class;
     T GetSection<T>(string sectionName, T defaultValue) where T : class;
+    T GetValue<T>(string key) where T : struct;
 }

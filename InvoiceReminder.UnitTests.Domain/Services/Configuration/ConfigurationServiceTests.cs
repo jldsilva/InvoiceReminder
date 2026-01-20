@@ -242,6 +242,78 @@ public class ConfigurationServiceTests
     }
 
     #endregion
+
+    #region GetValue
+
+    [TestMethod]
+    public void GetValue_IntKey_Exists_ReturnsValue()
+    {
+        var service = CreateService(new() { ["MyIntValue"] = "42" });
+
+        var result = service.GetValue<int>("MyIntValue");
+
+        result.ShouldBe(42);
+    }
+
+    [TestMethod]
+    public void GetValue_BoolKey_Exists_ReturnsValue()
+    {
+        var service = CreateService(new() { ["MyBoolValue"] = "true" });
+
+        var result = service.GetValue<bool>("MyBoolValue");
+
+        result.ShouldBeTrue();
+    }
+
+    [TestMethod]
+    public void GetValue_DoubleKey_Exists_ReturnsValue()
+    {
+        var service = CreateService(new() { ["MyDoubleValue"] = "3.14" });
+
+        var result = service.GetValue<double>("MyDoubleValue");
+
+        result.ShouldBe(3.14);
+    }
+
+    [TestMethod]
+    public void GetValue_LongKey_Exists_ReturnsValue()
+    {
+        var service = CreateService(new() { ["MyLongValue"] = "9223372036854775807" });
+
+        var result = service.GetValue<long>("MyLongValue");
+
+        result.ShouldBe(9223372036854775807);
+    }
+
+    [TestMethod]
+    public void GetValue_IntKey_Missing_ReturnsDefaultValue()
+    {
+        var service = CreateService();
+
+        var result = service.GetValue<int>("MissingIntValue");
+
+        result.ShouldBe(0);
+    }
+
+    [TestMethod]
+    public void GetValue_BoolKey_Missing_ReturnsDefaultValue()
+    {
+        var service = CreateService();
+
+        var result = service.GetValue<bool>("MissingBoolValue");
+
+        result.ShouldBeFalse();
+    }
+
+    [TestMethod]
+    public void GetValue_InvalidFormat_ThrowsException()
+    {
+        var service = CreateService(new() { ["InvalidInt"] = "NotAnInteger" });
+
+        _ = Should.Throw<InvalidOperationException>(() => service.GetValue<int>("InvalidInt"));
+    }
+
+    #endregion
 }
 
 public class MyTestSection

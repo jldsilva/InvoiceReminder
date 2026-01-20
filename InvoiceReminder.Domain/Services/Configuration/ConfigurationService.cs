@@ -61,4 +61,9 @@ public class ConfigurationService : IConfigurationService
     {
         return GetSection<T>(sectionName) ?? defaultValue;
     }
+
+    public T GetValue<T>(string key) where T : struct
+    {
+        return _configuration.GetValue<T>(key);
+    }
 }

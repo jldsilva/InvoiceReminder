@@ -4,6 +4,7 @@ using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Domain.Entities;
+using InvoiceReminder.Domain.Services.Configuration;
 using Mapster;
 using NSubstitute;
 using Shouldly;
@@ -13,6 +14,7 @@ namespace InvoiceReminder.UnitTests.Application.AppServices;
 [TestClass]
 public sealed class UserAppServiceTests
 {
+    private readonly IConfigurationService _configuration;
     private readonly IUserRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly Faker _faker;
@@ -21,6 +23,7 @@ public sealed class UserAppServiceTests
 
     public UserAppServiceTests()
     {
+        _configuration = Substitute.For<IConfigurationService>();
         _repository = Substitute.For<IUserRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _faker = new Faker();
@@ -45,7 +48,7 @@ public sealed class UserAppServiceTests
     public void UserAppService_ShouldBeAssignableToItsInterface_And_GenericInterface_And_GenericAppService()
     {
         // Arrange && Act
-        var appService = new UserAppService(_repository, _unitOfWork);
+        var appService = new UserAppService(_configuration, _repository, _unitOfWork);
 
         // Assert
         appService.ShouldSatisfyAllConditions(() =>
@@ -60,7 +63,7 @@ public sealed class UserAppServiceTests
     public async Task GetByEmaildAsync_WhenUserEmailExists_ShouldReturnSuccess_WhithResultFound()
     {
         // Arrange
-        var appService = new UserAppService(_repository, _unitOfWork);
+        var appService = new UserAppService(_configuration, _repository, _unitOfWork);
         var user = CreateFaker().Generate();
         var email = user.Email;
 
@@ -86,7 +89,7 @@ public sealed class UserAppServiceTests
     public async Task GetByEmaildAsync_WhenUserEmailNotExists_ShouldReturnFailure_WhithNoResult()
     {
         // Arrange
-        var appService = new UserAppService(_repository, _unitOfWork);
+        var appService = new UserAppService(_configuration, _repository, _unitOfWork);
         var email = _faker.Internet.Email();
 
         _ = _repository.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((User)null);

@@ -4,18 +4,21 @@ using InvoiceReminder.Authentication.Extensions;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Domain.Abstractions;
 using InvoiceReminder.Domain.Entities;
+using InvoiceReminder.Domain.Services.Configuration;
 using Mapster;
 
 namespace InvoiceReminder.Application.AppServices;
 
 public class UserPasswordAppService : BaseAppService<UserPassword, UserPasswordViewModel>, IUserPasswordAppService
 {
+    private readonly int _parallelismFactor;
     private readonly IUserPasswordRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public UserPasswordAppService(IUserPasswordRepository repository, IUnitOfWork unitOfWork)
+    public UserPasswordAppService(IConfigurationService configuration, IUserPasswordRepository repository, IUnitOfWork unitOfWork)
         : base(repository, unitOfWork)
     {
+        _parallelismFactor = configuration.GetValue<int>("Security:ParallelismFactor");
         _repository = repository;
         _unitOfWork = unitOfWork;
     }
@@ -34,7 +37,7 @@ public class UserPasswordAppService : BaseAppService<UserPassword, UserPasswordV
             return Result<UserPasswordViewModel>.Failure("Password is required.");
         }
 
-        (var pHash, var pSalt) = viewModel.PasswordHash.HashPassword();
+        (var pHash, var pSalt) = viewModel.PasswordHash.HashPassword(_parallelismFactor);
 
         viewModel.PasswordHash = pHash;
         viewModel.PasswordSalt = pSalt;
@@ -63,7 +66,7 @@ public class UserPasswordAppService : BaseAppService<UserPassword, UserPasswordV
                 return Result<int>.Failure("Password is required.");
             }
 
-            (var pHash, var pSalt) = viewModel.PasswordHash.HashPassword();
+            (var pHash, var pSalt) = viewModel.PasswordHash.HashPassword(_parallelismFactor);
 
             viewModel.PasswordHash = pHash;
             viewModel.PasswordSalt = pSalt;
@@ -95,7 +98,7 @@ public class UserPasswordAppService : BaseAppService<UserPassword, UserPasswordV
             return Result<UserPasswordViewModel>.Failure("The provided object data was Null.");
         }
 
-        (var pHash, var pSalt) = viewModel.PasswordHash.HashPassword();
+        (var pHash, var pSalt) = viewModel.PasswordHash.HashPassword(_parallelismFactor);
 
         viewModel.PasswordHash = pHash;
         viewModel.PasswordSalt = pSalt;
