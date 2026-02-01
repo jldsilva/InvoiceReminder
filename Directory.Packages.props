@@ -31,7 +31,7 @@
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="EFCore.BulkExtensions.Dotnet10" Version="10.0.0" />
     <PackageVersion Include="EFCore.BulkExtensions.Dotnet10.PostgreSql" Version="10.0.0" />
-    <PackageVersion Include="Google.Apis.Gmail.v1" Version="1.73.0.3987" />
+    <PackageVersion Include="Google.Apis.Gmail.v1" Version="1.73.0.4029" />
     <PackageVersion Include="itext" Version="9.5.0" />
     <PackageVersion Include="itext.bouncy-castle-adapter" Version="9.5.0" />
     <PackageVersion Include="itext.bouncy-castle-fips-adapter" Version="9.5.0" />
