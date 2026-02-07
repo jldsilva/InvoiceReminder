@@ -7,6 +7,7 @@ namespace InvoiceReminder.Application.Interfaces;
 public interface IUserAppService : IBaseAppService<User, UserViewModel>
 {
     Task<Result<UserViewModel>> GetByEmailAsync(string value, CancellationToken cancellationToken = default);
+    Task<Result<bool>> UpdateBasicUserInfoAsync(UserViewModel viewModel, CancellationToken cancellationToken = default);
     Task<Result<UserViewModel>> ValidateUserPasswordAsync(string email, string password,
-    CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default);
 }

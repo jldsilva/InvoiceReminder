@@ -11,6 +11,14 @@ builder.Services.AddAuthorization();
 builder.Services.AddExceptionHandler();
 builder.Services.AddInfrastructure();
 builder.Services.AddOpenApi(opt => opt.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
+builder.Services.AddCors(opt =>
+    opt.AddPolicy("CorsPolicy", builder =>
+        builder.WithOrigins("http://localhost:4200")
+        .AllowAnyMethod()
+        .AllowCredentials()
+        .WithHeaders("Content-Type", "Authorization")
+    )
+);
 builder.Services.AddHealthChecks().AddNpgSql
 (
     connectionString: builder.Configuration.GetConnectionString("DataBaseConnection"),
@@ -32,6 +40,7 @@ if (app.Environment.IsDevelopment())
     _ = app.UseHsts();
 }
 
+app.UseCors("CorsPolicy");
 app.RegisterEndpoints();
 app.UseExceptionHandler();
 app.UseStatusCodePages();

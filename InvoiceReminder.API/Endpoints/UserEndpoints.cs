@@ -18,6 +18,7 @@ public class UserEndpoints : IEndpointDefinition
         MapCreateUser(endpoint);
         MapCreateUsers(endpoint);
         MapUpdateUser(endpoint);
+        MapUpdateBasicUserInfo(endpoint);
         MapDeleteUser(endpoint);
     }
 
@@ -35,6 +36,7 @@ public class UserEndpoints : IEndpointDefinition
             .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 
@@ -51,6 +53,8 @@ public class UserEndpoints : IEndpointDefinition
             .WithName("GetUser")
             .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status500InternalServerError);
     }
@@ -69,6 +73,8 @@ public class UserEndpoints : IEndpointDefinition
             .WithName("GetUserByEmail")
             .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status500InternalServerError);
     }
@@ -85,7 +91,7 @@ public class UserEndpoints : IEndpointDefinition
                     : Results.Problem(result.Error);
             })
             .WithName("CreateUser")
-            .RequireAuthorization()
+            .AllowAnonymous()
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
@@ -107,6 +113,7 @@ public class UserEndpoints : IEndpointDefinition
             .RequireAuthorization()
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 
@@ -125,6 +132,26 @@ public class UserEndpoints : IEndpointDefinition
             .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status500InternalServerError);
+    }
+
+    private static void MapUpdateBasicUserInfo(RouteGroupBuilder endpoint)
+    {
+        _ = endpoint.MapPatch("/",
+            async (IUserAppService appService, [FromBody] UserViewModel viewModel, CancellationToken ct) =>
+            {
+                var result = await appService.UpdateBasicUserInfoAsync(viewModel, ct);
+
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.Problem(result.Error);
+            })
+            .WithName("UpdateBasicUserInfo")
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 
@@ -143,6 +170,7 @@ public class UserEndpoints : IEndpointDefinition
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 }

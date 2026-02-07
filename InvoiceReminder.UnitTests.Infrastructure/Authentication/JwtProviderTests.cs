@@ -71,7 +71,9 @@ public sealed class JwtProviderTests
         var user = new UserClaims
         {
             Id = Guid.NewGuid(),
-            Email = "user@test.com"
+            Name = "Test User",
+            Email = "user@test.com",
+            TelegramChatId = 1234567890
         };
 
         // Act

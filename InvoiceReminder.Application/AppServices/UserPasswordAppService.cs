@@ -15,8 +15,10 @@ public class UserPasswordAppService : BaseAppService<UserPassword, UserPasswordV
     private readonly IUserPasswordRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public UserPasswordAppService(IConfigurationService configuration, IUserPasswordRepository repository, IUnitOfWork unitOfWork)
-        : base(repository, unitOfWork)
+    public UserPasswordAppService(
+        IConfigurationService configuration,
+        IUserPasswordRepository repository,
+        IUnitOfWork unitOfWork) : base(repository, unitOfWork)
     {
         _parallelismFactor = configuration.GetValue<int>("Security:ParallelismFactor");
         _repository = repository;
@@ -76,6 +78,36 @@ public class UserPasswordAppService : BaseAppService<UserPassword, UserPasswordV
             .BulkInsertAsync(viewModelCollection.Adapt<ICollection<UserPassword>>(), cancellationToken);
 
         return Result<int>.Success(result);
+    }
+
+    public async Task<Result<bool>> ChangePasswordAsync(
+        UserPasswordViewModel viewModel,
+        CancellationToken cancellationToken = default)
+    {
+        if (viewModel is null)
+        {
+            return Result<bool>.Failure("The provided object data was Null.");
+        }
+
+        if (string.IsNullOrWhiteSpace(viewModel.PasswordHash))
+        {
+            return Result<bool>.Failure("Password is required.");
+        }
+
+        (var pHash, var pSalt) = viewModel.PasswordHash.HashPassword(_parallelismFactor);
+        viewModel.PasswordHash = pHash;
+        viewModel.PasswordSalt = pSalt;
+
+        var result = await _repository.ChangePasswordAsync(viewModel.Adapt<UserPassword>(), cancellationToken);
+
+        if (!result)
+        {
+            return Result<bool>.Failure("Failed to change the password.");
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result<bool>.Success(result);
     }
 
     public async Task<Result<UserPasswordViewModel>> GetByUserIdAsync(

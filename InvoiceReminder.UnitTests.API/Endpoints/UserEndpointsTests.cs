@@ -385,21 +385,16 @@ public sealed class UserEndpointsTests : IDisposable
 
     #region MapPost Tests
     [TestMethod]
-    public async Task CreateUser_WhenUserIsAuthenticated_ShouldReturnCreated()
+    public async Task CreateUser_ShouldReturnCreated()
     {
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var userViewModel = _userViewModelFaker.Generate();
         var expectedResult = Result<UserViewModel>.Success(userViewModel);
 
         _ = _userAppService.AddAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
-
-        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
-            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
-            .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
         request.Content = JsonContent.Create(userViewModel);
@@ -415,38 +410,16 @@ public sealed class UserEndpointsTests : IDisposable
     }
 
     [TestMethod]
-    public async Task CreateUser_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
+    public async Task CreateUser_WhenServiceFails_ShouldReturnInternalServerError()
     {
         // Arrange
         var request = new HttpRequestMessage(HttpMethod.Post, basepath);
-
-        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
-            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
-            .Returns(Task.FromResult(AuthorizationResult.Failed()));
-
-        // Act
-        var response = await _client.SendAsync(request, TestContext.CancellationToken);
-
-        // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
-    }
-
-    [TestMethod]
-    public async Task CreateUser_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
-    {
-        // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, basepath);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
         var userViewModel = _userViewModelFaker.Generate();
         var expectedResult = Result<UserViewModel>.Failure("Service error");
 
         _ = _userAppService.AddAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>())
             .Returns(expectedResult);
-
-        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
-            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
-            .Returns(Task.FromResult(AuthorizationResult.Success()));
 
         // Act
         request.Content = JsonContent.Create(userViewModel);

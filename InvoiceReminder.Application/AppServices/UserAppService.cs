@@ -74,4 +74,19 @@ public sealed class UserAppService : BaseAppService<User, UserViewModel>, IUserA
             ? Result<UserViewModel>.Failure("User not Found.")
             : Result<UserViewModel>.Success(entity.Adapt<UserViewModel>());
     }
+
+    public async Task<Result<bool>> UpdateBasicUserInfoAsync(
+        UserViewModel viewModel,
+        CancellationToken cancellationToken = default)
+    {
+        if (viewModel is null)
+        {
+            return Result<bool>.Failure($"Parameter {nameof(viewModel)} was Null.");
+        }
+
+        var entity = viewModel.Adapt<User>();
+        var result = await _repository.UpdateBasicUserInfoAsync(entity, cancellationToken);
+
+        return Result<bool>.Success(result);
+    }
 }

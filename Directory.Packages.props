@@ -31,7 +31,7 @@
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="EFCore.BulkExtensions.Dotnet10" Version="10.0.0" />
     <PackageVersion Include="EFCore.BulkExtensions.Dotnet10.PostgreSql" Version="10.0.0" />
-    <PackageVersion Include="Google.Apis.Gmail.v1" Version="1.73.0.3987" />
+    <PackageVersion Include="Google.Apis.Gmail.v1" Version="1.73.0.4029" />
     <PackageVersion Include="itext" Version="9.5.0" />
     <PackageVersion Include="itext.bouncy-castle-adapter" Version="9.5.0" />
     <PackageVersion Include="itext.bouncy-castle-fips-adapter" Version="9.5.0" />
@@ -39,13 +39,13 @@
     <PackageVersion Include="Mapster" Version="7.4.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Abstractions" Version="2.3.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.9" />
-    <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
     <PackageVersion Include="Npgsql" Version="10.0.1" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageVersion Include="Quartz" Version="3.15.1" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.11" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.12.36" />
     <PackageVersion Include="Scrutor" Version="7.0.0" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.18.0.131500" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.19.0.132793" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
     <PackageVersion Include="Telegram.Bot" Version="22.8.1" />
   </ItemGroup>
@@ -63,8 +63,8 @@
   </ItemGroup>
     
   <ItemGroup Label="Unit Tests Packages: Essentials">
-    <PackageVersion Update="MSTest.Analyzers" Version="4.0.2" />
-    <PackageVersion Update="MSTest.TestAdapter" Version="4.0.2" />
-    <PackageVersion Update="MSTest.TestFramework" Version="4.0.2" />
+    <PackageVersion Update="MSTest.Analyzers" Version="4.1.0" />
+    <PackageVersion Update="MSTest.TestAdapter" Version="4.1.0" />
+    <PackageVersion Update="MSTest.TestFramework" Version="4.1.0" />
   </ItemGroup>
 </Project>
