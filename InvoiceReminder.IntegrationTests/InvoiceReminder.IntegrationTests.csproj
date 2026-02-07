@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSTest.Sdk/4.0.2">
+﻿<Project Sdk="MSTest.Sdk/4.1.0">
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>CA1873</NoWarn>

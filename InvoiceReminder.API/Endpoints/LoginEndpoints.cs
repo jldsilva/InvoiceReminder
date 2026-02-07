@@ -31,7 +31,13 @@ public class LoginEndpoints : IEndpointDefinition
                 var result = await appService.ValidateUserPasswordAsync(request.Email, request.Password, ct);
 
                 return result.IsSuccess
-                    ? Results.Ok(jwtProvider.Generate(new UserClaims { Id = result.Value.Id, Email = result.Value.Email }))
+                    ? Results.Ok(jwtProvider.Generate(new UserClaims
+                    {
+                        Id = result.Value.Id,
+                        Name = result.Value.Name,
+                        Email = result.Value.Email,
+                        TelegramChatId = result.Value.TelegramChatId
+                    }))
                     : Results.Unauthorized();
             })
             .WithName("Login")

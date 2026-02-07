@@ -29,6 +29,7 @@ public class GoogleOAuthEndpoints : IEndpointDefinition
             .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 
@@ -64,6 +65,7 @@ public class GoogleOAuthEndpoints : IEndpointDefinition
             .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 }

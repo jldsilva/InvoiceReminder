@@ -14,6 +14,7 @@ public class UserPasswordEndpoints : IEndpointDefinition
 
         MapCreateUserPassword(endpoint);
         MapCreateUsersPassword(endpoint);
+        MapChangeUserPassword(endpoint);
         MapDeleteUserPassword(endpoint);
         MapUpdateUserPassword(endpoint);
     }
@@ -33,6 +34,7 @@ public class UserPasswordEndpoints : IEndpointDefinition
             .RequireAuthorization()
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 
@@ -52,6 +54,27 @@ public class UserPasswordEndpoints : IEndpointDefinition
             .RequireAuthorization()
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status500InternalServerError);
+    }
+
+    private static void MapChangeUserPassword(RouteGroupBuilder endpoint)
+    {
+        _ = endpoint.MapPatch("/",
+            async (IUserPasswordAppService appService, [FromBody] UserPasswordViewModel viewModel,
+            CancellationToken ct) =>
+            {
+                var result = await appService.ChangePasswordAsync(viewModel, ct);
+
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.Problem(result.Error);
+            })
+            .WithName("ChangeUserPassword")
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 
@@ -71,6 +94,7 @@ public class UserPasswordEndpoints : IEndpointDefinition
             .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 
@@ -90,6 +114,7 @@ public class UserPasswordEndpoints : IEndpointDefinition
             .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 }

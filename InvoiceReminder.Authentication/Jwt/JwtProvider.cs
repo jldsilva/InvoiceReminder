@@ -56,8 +56,12 @@ public class JwtProvider : IJwtProvider
 
         return new JwtObject
         {
+            UserId = user.Id,
+            Name = user.Name,
+            Email = user.Email,
             AuthenticationToken = tokenHandler.WriteToken(token),
             Authenticated = true,
+            TelegramChatId = user.TelegramChatId,
             Expiration = token.ValidTo
         };
     }

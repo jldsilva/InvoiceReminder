@@ -145,4 +145,51 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
 
         return result.FirstOrDefault().Value;
     }
+
+    public async Task<bool> UpdateBasicUserInfoAsync(User user, CancellationToken cancellationToken = default)
+    {
+        var result = false;
+        var query = """
+            update invoice_reminder.user
+            set name = @Name,
+                email = @Email,
+                telegram_chat_id = @TelegramChatId,
+                updated_at = now()
+            where id = @Id
+            """;
+
+        try
+        {
+            var parameters = new DynamicParameters(new { user.Name, user.Email, user.TelegramChatId, user.Id });
+            var command = new CommandDefinition(query, parameters, cancellationToken: cancellationToken);
+
+            result = await _dbConnection.ExecuteAsync(command) > 0;
+        }
+        catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
+        {
+            var method = $"{nameof(UserRepository)}.{nameof(UpdateBasicUserInfoAsync)}";
+            var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
+
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
+
+            throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            var method = $"{nameof(UserRepository)}.{nameof(UpdateBasicUserInfoAsync)}";
+            var contextualInfo = $"Exception raised while updating Entity >> {method}(...)";
+
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
+
+            throw new DataLayerException(contextualInfo, ex);
+        }
+
+        return result;
+    }
 }
