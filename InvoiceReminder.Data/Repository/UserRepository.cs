@@ -7,6 +7,7 @@ using InvoiceReminder.Domain.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Data;
+using System.Data.Common;
 
 namespace InvoiceReminder.Data.Repository;
 
@@ -177,7 +178,7 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
 
             throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
-        catch (DbUpdateException ex)
+        catch (DbException ex)
         {
             var method = $"{nameof(UserRepository)}.{nameof(UpdateBasicUserInfoAsync)}";
             var contextualInfo = $"Database update failed while executing >> {method}(...)";
