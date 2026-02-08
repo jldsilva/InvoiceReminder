@@ -100,14 +100,9 @@ public class UserPasswordAppService : BaseAppService<UserPassword, UserPasswordV
 
         var result = await _repository.ChangePasswordAsync(viewModel.Adapt<UserPassword>(), cancellationToken);
 
-        if (!result)
-        {
-            return Result<bool>.Failure("Failed to change the password.");
-        }
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return Result<bool>.Success(result);
+        return result
+            ? Result<bool>.Failure("Failed to change the password.")
+            : Result<bool>.Success(result);
     }
 
     public async Task<Result<UserPasswordViewModel>> GetByUserIdAsync(

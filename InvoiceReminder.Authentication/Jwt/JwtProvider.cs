@@ -37,7 +37,9 @@ public class JwtProvider : IJwtProvider
         var claims = new Claim[]
         {
             new (JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new (JwtRegisteredClaimNames.Email, user.Email)
+            new (JwtRegisteredClaimNames.Name, user.Name),
+            new (JwtRegisteredClaimNames.Email, user.Email),
+            new ("telegramChatId", user.TelegramChatId.ToString())
         };
 
         var symmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
@@ -56,12 +58,8 @@ public class JwtProvider : IJwtProvider
 
         return new JwtObject
         {
-            UserId = user.Id,
-            Name = user.Name,
-            Email = user.Email,
             AuthenticationToken = tokenHandler.WriteToken(token),
             Authenticated = true,
-            TelegramChatId = user.TelegramChatId,
             Expiration = token.ValidTo
         };
     }
