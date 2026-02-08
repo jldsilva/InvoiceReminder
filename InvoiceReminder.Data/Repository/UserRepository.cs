@@ -177,6 +177,18 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
 
             throw new OperationCanceledException(contextualInfo, ex, cancellationToken);
         }
+        catch (DbUpdateException ex)
+        {
+            var method = $"{nameof(UserRepository)}.{nameof(UpdateBasicUserInfoAsync)}";
+            var contextualInfo = $"Database update failed while executing >> {method}(...)";
+
+            if (_logger.IsEnabled(LogLevel.Error))
+            {
+                _logger.LogError(ex, LogExceptionMessage, contextualInfo, ex.Message);
+            }
+
+            throw new DataLayerException(contextualInfo, ex);
+        }
         catch (Exception ex)
         {
             var method = $"{nameof(UserRepository)}.{nameof(UpdateBasicUserInfoAsync)}";
