@@ -125,6 +125,8 @@ public sealed class UserPasswordEndpointsTests : IDisposable
 
     #endregion
 
+    //##################################################################################################################
+
     #region MapPost Tests - BulkCreateUserPassword
 
     [TestMethod]
@@ -206,6 +208,89 @@ public sealed class UserPasswordEndpointsTests : IDisposable
 
     #endregion
 
+    //##################################################################################################################
+
+    #region MapPatch Tests - ChangeUserPassword
+
+    [TestMethod]
+    public async Task ChangeUserPassword_WhenUserIsAuthenticated_ShouldReturnOk()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Patch, basepath);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+
+        var userPasswordViewModel = _userPasswordViewModelFaker.Generate();
+        var expectedResult = Result<bool>.Success(true);
+
+        _ = _userPasswordAppService.ChangePasswordAsync(Arg.Any<UserPasswordViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Success()));
+
+        // Act
+        request.Content = JsonContent.Create(userPasswordViewModel);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<bool>(TestContext.CancellationToken);
+
+        // Assert
+        _ = _userPasswordAppService.Received(1).ChangePasswordAsync(Arg.Any<UserPasswordViewModel>(), Arg.Any<CancellationToken>());
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.ShouldBeTrue();
+        _ = result.ShouldBeOfType<bool>();
+    }
+
+    [TestMethod]
+    public async Task ChangeUserPassword_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Patch, basepath);
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Failed()));
+
+        // Act
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [TestMethod]
+    public async Task ChangeUserPassword_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Patch, basepath);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+
+        var userPasswordViewModel = _userPasswordViewModelFaker.Generate();
+        var expectedResult = Result<bool>.Failure("Service error");
+
+        _ = _userPasswordAppService.ChangePasswordAsync(Arg.Any<UserPasswordViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Success()));
+
+        // Act
+        request.Content = JsonContent.Create(userPasswordViewModel);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
+
+        // Assert
+        _ = _userPasswordAppService.Received(1).ChangePasswordAsync(Arg.Any<UserPasswordViewModel>(), Arg.Any<CancellationToken>());
+        response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
+        _ = result.ShouldNotBeNull();
+        _ = result.ShouldBeOfType<ProblemDetails>();
+    }
+
+    #endregion
+
+    //##################################################################################################################
+
     #region MapPut Tests - UpdateUserPassword
 
     [TestMethod]
@@ -286,6 +371,8 @@ public sealed class UserPasswordEndpointsTests : IDisposable
     }
 
     #endregion
+
+    //##################################################################################################################
 
     #region MapDelete Tests - DeleteUserPassword
 

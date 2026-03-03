@@ -260,6 +260,138 @@ public sealed class UserRepositoryIntegrationTests
 
     #endregion
 
+    #region UpdateBasicUserInfoAsync Tests
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfoAsync_Should_Update_User_Basic_Info()
+    {
+        // Arrange
+        var user = await CreateAndSaveUserAsync();
+        var originalCreatedAt = user.CreatedAt;
+
+        user.Name = "Updated Name";
+        user.Email = "updated_email@example.com";
+        user.TelegramChatId = 987654321;
+
+        // Act
+        var result = await _repository.UpdateBasicUserInfoAsync(user, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldBeTrue();
+
+        var updatedUser = await _repository.GetByIdAsync(user.Id, TestContext.CancellationToken);
+        updatedUser.ShouldSatisfyAllConditions(() =>
+        {
+            updatedUser.Name.ShouldBe(user.Name);
+            updatedUser.Email.ShouldBe(user.Email);
+            updatedUser.TelegramChatId.ShouldBe(user.TelegramChatId);
+            // Allow 1 millisecond tolerance for DateTime precision differences from database
+            var timeDifference = Math.Abs((updatedUser.CreatedAt - originalCreatedAt).TotalMilliseconds);
+            timeDifference.ShouldBeLessThan(1);
+            updatedUser.UpdatedAt.ShouldBeGreaterThan(originalCreatedAt);
+        });
+    }
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfoAsync_Should_Return_False_When_User_NotExists()
+    {
+        // Arrange
+        var nonExistentUser = TestData.UserFaker()
+            .RuleFor(u => u.Id, _ => Guid.NewGuid())
+            .Generate();
+
+        // Act
+        var result = await _repository.UpdateBasicUserInfoAsync(nonExistentUser, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldBeFalse();
+    }
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfoAsync_Should_Update_Only_Basic_Fields()
+    {
+        // Arrange
+        var originalUser = await CreateAndSaveUserAsync();
+        var originalInvoiceCount = originalUser.Invoices.Count;
+        var originalJobScheduleCount = originalUser.JobSchedules.Count;
+
+        var userToUpdate = TestData.UserFaker()
+            .RuleFor(u => u.Id, _ => originalUser.Id)
+            .RuleFor(u => u.Name, _ => "New Name")
+            .RuleFor(u => u.Email, _ => "newemail@example.com")
+            .RuleFor(u => u.TelegramChatId, _ => 111222333)
+            .Generate();
+
+        // Act
+        var result = await _repository.UpdateBasicUserInfoAsync(userToUpdate, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldBeTrue();
+
+        var updatedUser = await _repository.GetByIdAsync(originalUser.Id, TestContext.CancellationToken);
+        updatedUser.ShouldSatisfyAllConditions(() =>
+        {
+            updatedUser.Name.ShouldBe("New Name");
+            updatedUser.Email.ShouldBe("newemail@example.com");
+            updatedUser.TelegramChatId.ShouldBe(111222333);
+            updatedUser.Invoices.Count.ShouldBe(originalInvoiceCount);
+            updatedUser.JobSchedules.Count.ShouldBe(originalJobScheduleCount);
+        });
+    }
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfoAsync_Should_Update_Email_To_NewValue()
+    {
+        // Arrange
+        var user = await CreateAndSaveUserAsync();
+        var newEmail = "newuniqueemail@example.com";
+
+        user.Email = newEmail;
+
+        // Act
+        var result = await _repository.UpdateBasicUserInfoAsync(user, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldBeTrue();
+
+        var updatedUser = await _repository.GetByEmailAsync(newEmail, TestContext.CancellationToken);
+        _ = updatedUser.ShouldNotBeNull();
+        updatedUser.Id.ShouldBe(user.Id);
+        updatedUser.Email.ShouldBe(newEmail);
+    }
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfoAsync_Should_Throw_Exception_On_Database_Error()
+    {
+        // Arrange
+        var user = await CreateAndSaveUserAsync();
+        var disposedContext = new CoreDbContext(new DbContextOptionsBuilder<CoreDbContext>()
+            .UseNpgsql(DatabaseFixture.ConnectionString)
+            .Options);
+
+        var logger = Substitute.For<ILogger<UserRepository>>();
+        var repository = new UserRepository(disposedContext, logger);
+
+        _ = logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+        await disposedContext.DisposeAsync();
+
+        // Act & Assert
+        _ = await Should.ThrowAsync<DataLayerException>(
+            async () => await repository.UpdateBasicUserInfoAsync(user, TestContext.CancellationToken)
+        );
+
+        logger.Received(1).Log(
+            LogLevel.Error,
+            Arg.Any<EventId>(),
+            Arg.Any<object>(),
+            Arg.Any<Exception>(),
+            Arg.Any<Func<object, Exception, string>>()
+        );
+    }
+
+    #endregion
+
     #region CancellationToken Tests
 
     [TestMethod]
@@ -297,6 +429,30 @@ public sealed class UserRepositoryIntegrationTests
         // Act & Assert
         _ = await Should.ThrowAsync<OperationCanceledException>(
             async () => await _repository.GetByEmailAsync("any@mail.com", cts.Token)
+        );
+
+        _repositoryLogger.Received(1).Log(
+            LogLevel.Warning,
+            Arg.Any<EventId>(),
+            Arg.Any<object>(),
+            Arg.Any<OperationCanceledException>(),
+            Arg.Any<Func<object, Exception, string>>()
+        );
+    }
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfoAsync_Should_Handle_Cancellation_Request()
+    {
+        // Arrange
+        var user = await CreateAndSaveUserAsync();
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        _ = _repositoryLogger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+        // Act & Assert
+        _ = await Should.ThrowAsync<OperationCanceledException>(
+            async () => await _repository.UpdateBasicUserInfoAsync(user, cts.Token)
         );
 
         _repositoryLogger.Received(1).Log(

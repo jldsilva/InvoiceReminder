@@ -223,6 +223,161 @@ public sealed class UserPasswordAppServiceTests
 
     #endregion
 
+    #region ChangePasswordAsync Tests
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Return_Success_When_Password_Changed()
+    {
+        // Arrange
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
+        var viewModel = CreateUserPasswordViewModelFaker().Generate();
+        var plainPassword = viewModel.PasswordHash;
+
+        _ = _repository.ChangePasswordAsync(Arg.Any<UserPassword>(), Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        // Act
+        var result = await appService.ChangePasswordAsync(viewModel, TestContext.CancellationToken);
+
+        // Assert
+        _ = _repository.Received(1).ChangePasswordAsync(Arg.Any<UserPassword>(), Arg.Any<CancellationToken>());
+
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeTrue();
+            result.Value.ShouldBeTrue();
+            // Verify that password was hashed (different from original)
+            viewModel.PasswordHash.ShouldNotBe(plainPassword);
+        });
+    }
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Return_Failure_When_ViewModel_Is_Null()
+    {
+        // Arrange
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
+
+        // Act
+        var result = await appService.ChangePasswordAsync(null, TestContext.CancellationToken);
+
+        // Assert
+        _ = _repository.DidNotReceive().ChangePasswordAsync(Arg.Any<UserPassword>(), Arg.Any<CancellationToken>());
+
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeFalse();
+            result.Value.ShouldBeFalse();
+            result.Error.ShouldBe("The provided object data was Null.");
+        });
+    }
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Return_Failure_When_Password_Is_Null()
+    {
+        // Arrange
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
+        var viewModel = CreateUserPasswordViewModelFaker()
+            .RuleFor(u => u.PasswordHash, _ => null)
+            .Generate();
+
+        // Act
+        var result = await appService.ChangePasswordAsync(viewModel, TestContext.CancellationToken);
+
+        // Assert
+        _ = _repository.DidNotReceive().ChangePasswordAsync(Arg.Any<UserPassword>(), Arg.Any<CancellationToken>());
+
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeFalse();
+            result.Value.ShouldBeFalse();
+            result.Error.ShouldBe("Password is required.");
+        });
+    }
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Return_Failure_When_Password_Is_Empty()
+    {
+        // Arrange
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
+        var viewModel = CreateUserPasswordViewModelFaker()
+            .RuleFor(u => u.PasswordHash, _ => string.Empty)
+            .Generate();
+
+        // Act
+        var result = await appService.ChangePasswordAsync(viewModel, TestContext.CancellationToken);
+
+        // Assert
+        _ = _repository.DidNotReceive().ChangePasswordAsync(Arg.Any<UserPassword>(), Arg.Any<CancellationToken>());
+
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeFalse();
+            result.Value.ShouldBeFalse();
+            result.Error.ShouldBe("Password is required.");
+        });
+    }
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Return_Failure_When_Repository_Returns_False()
+    {
+        // Arrange
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
+        var viewModel = CreateUserPasswordViewModelFaker().Generate();
+
+        _ = _repository.ChangePasswordAsync(Arg.Any<UserPassword>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        // Act
+        var result = await appService.ChangePasswordAsync(viewModel, TestContext.CancellationToken);
+
+        // Assert
+        _ = _repository.Received(1).ChangePasswordAsync(Arg.Any<UserPassword>(), Arg.Any<CancellationToken>());
+
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeFalse();
+            result.Value.ShouldBeFalse();
+            result.Error.ShouldBe("Failed to change the password.");
+        });
+    }
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Hash_Password_With_Different_Salt_Each_Time()
+    {
+        // Arrange
+        var appService = new UserPasswordAppService(_configuration, _repository, _unitOfWork);
+        var password = _faker.Internet.Password(12, false, "[A-Z]", "abc123");
+
+        var viewModel1 = CreateUserPasswordViewModelFaker()
+            .RuleFor(u => u.PasswordHash, _ => password)
+            .Generate();
+
+        var viewModel2 = CreateUserPasswordViewModelFaker()
+            .RuleFor(u => u.PasswordHash, _ => password)
+            .Generate();
+
+        _ = _repository.ChangePasswordAsync(Arg.Any<UserPassword>(), Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        // Act
+        var result1 = await appService.ChangePasswordAsync(viewModel1, TestContext.CancellationToken);
+        var result2 = await appService.ChangePasswordAsync(viewModel2, TestContext.CancellationToken);
+
+        // Assert
+        result1.ShouldSatisfyAllConditions(() =>
+        {
+            result1.IsSuccess.ShouldBeTrue();
+            result2.IsSuccess.ShouldBeTrue();
+            // Argon2id should produce different hashes even for the same password
+            viewModel1.PasswordHash.ShouldNotBe(viewModel2.PasswordHash);
+            // Both should have salt set
+            viewModel1.PasswordSalt.ShouldNotBeNullOrEmpty();
+            viewModel2.PasswordSalt.ShouldNotBeNullOrEmpty();
+        });
+    }
+
+    #endregion
+
     #region UpdateAsync Tests
 
     [TestMethod]

@@ -184,7 +184,172 @@ public sealed class UserPasswordRepositoryIntegrationTests
 
     #endregion
 
+    #region ChangePasswordAsync Tests
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Update_Password_Successfully()
+    {
+        // Arrange
+        var userPassword = await CreateAndSaveUserPasswordAsync();
+        var originalPasswordHash = userPassword.PasswordHash;
+        var originalPasswordSalt = userPassword.PasswordSalt;
+        var originalUpdatedAt = userPassword.UpdatedAt;
+
+        userPassword.PasswordHash = "new_hash_" + Guid.NewGuid().ToString();
+        userPassword.PasswordSalt = "new_salt_" + Guid.NewGuid().ToString();
+
+        // Act
+        var result = await _repository.ChangePasswordAsync(userPassword, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldBeTrue();
+
+        var updatedUserPassword = await _repository.GetByUserIdAsync(userPassword.UserId, TestContext.CancellationToken);
+        updatedUserPassword.ShouldSatisfyAllConditions(() =>
+        {
+            updatedUserPassword.PasswordHash.ShouldBe(userPassword.PasswordHash);
+            updatedUserPassword.PasswordSalt.ShouldBe(userPassword.PasswordSalt);
+            updatedUserPassword.PasswordHash.ShouldNotBe(originalPasswordHash);
+            updatedUserPassword.PasswordSalt.ShouldNotBe(originalPasswordSalt);
+            updatedUserPassword.UpdatedAt.ShouldBeGreaterThanOrEqualTo(originalUpdatedAt);
+        });
+    }
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Return_False_When_UserId_NotExists()
+    {
+        // Arrange
+        var nonExistentUserId = Guid.NewGuid();
+        var userPassword = new UserPassword
+        {
+            Id = Guid.NewGuid(),
+            UserId = nonExistentUserId,
+            PasswordHash = "new_hash_" + Guid.NewGuid().ToString(),
+            PasswordSalt = "new_salt_" + Guid.NewGuid().ToString(),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        // Act
+        var result = await _repository.ChangePasswordAsync(userPassword, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldBeFalse();
+    }
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Update_Only_PasswordHash_And_PasswordSalt()
+    {
+        // Arrange
+        var userPassword = await CreateAndSaveUserPasswordAsync();
+        var originalId = userPassword.Id;
+        var originalUserId = userPassword.UserId;
+        var originalCreatedAt = userPassword.CreatedAt;
+
+        userPassword.PasswordHash = "updated_hash_" + Guid.NewGuid().ToString();
+        userPassword.PasswordSalt = "updated_salt_" + Guid.NewGuid().ToString();
+
+        // Act
+        var result = await _repository.ChangePasswordAsync(userPassword, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldBeTrue();
+
+        var updatedUserPassword = await _repository.GetByUserIdAsync(userPassword.UserId, TestContext.CancellationToken);
+        updatedUserPassword.ShouldSatisfyAllConditions(() =>
+        {
+            updatedUserPassword.Id.ShouldBe(originalId);
+            updatedUserPassword.UserId.ShouldBe(originalUserId);
+            var timeDifference = Math.Abs((updatedUserPassword.CreatedAt - originalCreatedAt).TotalMilliseconds);
+            timeDifference.ShouldBeLessThan(1);
+        });
+    }
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Update_Multiple_Passwords_Independently()
+    {
+        // Arrange
+        var userPassword1 = await CreateAndSaveUserPasswordAsync();
+        var userPassword2 = await CreateAndSaveUserPasswordAsync();
+        var originalHash1 = userPassword1.PasswordHash;
+        var originalHash2 = userPassword2.PasswordHash;
+
+        userPassword1.PasswordHash = "new_hash1_" + Guid.NewGuid().ToString();
+        userPassword1.PasswordSalt = "new_salt1_" + Guid.NewGuid().ToString();
+
+        // Act
+        var result = await _repository.ChangePasswordAsync(userPassword1, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldBeTrue();
+
+        var updated1 = await _repository.GetByUserIdAsync(userPassword1.UserId, TestContext.CancellationToken);
+        var updated2 = await _repository.GetByUserIdAsync(userPassword2.UserId, TestContext.CancellationToken);
+
+        updated1.ShouldSatisfyAllConditions(() =>
+        {
+            updated1.PasswordHash.ShouldNotBe(originalHash1);
+            updated2.PasswordHash.ShouldBe(originalHash2);
+        });
+    }
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Throw_Exception_On_Database_Error()
+    {
+        // Arrange
+        var userPassword = await CreateAndSaveUserPasswordAsync();
+        var disposedContext = new CoreDbContext(new DbContextOptionsBuilder<CoreDbContext>()
+            .UseNpgsql(DatabaseFixture.ConnectionString)
+            .Options);
+
+        var logger = Substitute.For<ILogger<UserPasswordRepository>>();
+        var repository = new UserPasswordRepository(disposedContext, logger);
+
+        _ = logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+        await disposedContext.DisposeAsync();
+
+        // Act & Assert
+        _ = await Should.ThrowAsync<DataLayerException>(
+            async () => await repository.ChangePasswordAsync(userPassword, TestContext.CancellationToken)
+        );
+
+        logger.Received(1).Log(
+            LogLevel.Error,
+            Arg.Any<EventId>(),
+            Arg.Any<object>(),
+            Arg.Any<Exception>(),
+            Arg.Any<Func<object, Exception, string>>()
+        );
+    }
+
+    #endregion
+
     #region CancellationToken Tests
+
+    [TestMethod]
+    public async Task ChangePasswordAsync_Should_Handle_Cancellation_Request()
+    {
+        // Arrange
+        var userPassword = await CreateAndSaveUserPasswordAsync();
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        _ = _repositoryLogger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+        // Act & Assert
+        _ = await Should.ThrowAsync<OperationCanceledException>(
+            async () => await _repository.ChangePasswordAsync(userPassword, cts.Token)
+        );
+
+        _repositoryLogger.Received(1).Log(
+            LogLevel.Warning,
+            Arg.Any<EventId>(),
+            Arg.Any<object>(),
+            Arg.Any<OperationCanceledException>(),
+            Arg.Any<Func<object, Exception, string>>()
+        );
+    }
 
     [TestMethod]
     public async Task GetByUserIdAsync_Should_Handle_Cancellation_Request()

@@ -1,0 +1,53 @@
+<Solution>
+  <Folder Name="/1 - Presentation/">
+    <Project Path="InvoiceReminder.API/InvoiceReminder.API.csproj" />
+  </Folder>
+  <Folder Name="/2 - Services/" />
+  <Folder Name="/2 - Services/2.1 - Application/">
+    <Project Path="InvoiceReminder.Application/InvoiceReminder.Application.csproj" />
+  </Folder>
+  <Folder Name="/2 - Services/2.2 - JobScheduler/">
+    <Project Path="InvoiceReminder.JobScheduler/InvoiceReminder.JobScheduler.csproj" />
+  </Folder>
+  <Folder Name="/2 - Services/2.3 - External Services/">
+    <Project Path="InvoiceReminder.ExternalServices/InvoiceReminder.ExternalServices.csproj" />
+  </Folder>
+  <Folder Name="/3 - Domain/">
+    <Project Path="InvoiceReminder.Domain/InvoiceReminder.Domain.csproj" />
+  </Folder>
+  <Folder Name="/4 - Infrastructure/" />
+  <Folder Name="/4 - Infrastructure/4.1 - Authentication/">
+    <Project Path="InvoiceReminder.Authentication/InvoiceReminder.Authentication.csproj" />
+  </Folder>
+  <Folder Name="/4 - Infrastructure/4.2 - Data/">
+    <Project Path="InvoiceReminder.Data/InvoiceReminder.Data.csproj" />
+  </Folder>
+  <Folder Name="/4 - Infrastructure/4.3 - Crosscutting/">
+    <Project Path="InvoiceReminder.CrossCutting.IoC/InvoiceReminder.CrossCutting.IoC.csproj" />
+  </Folder>
+  <Folder Name="/5 - Tests/" />
+  <Folder Name="/5 - Tests/5.1 - Architecture Tests/">
+    <Project Path="InvoiceReminder.ArchitectureTests/InvoiceReminder.ArchitectureTests.csproj" />
+  </Folder>
+  <Folder Name="/5 - Tests/5.2 - Integration Tests/">
+    <Project Path="InvoiceReminder.IntegrationTests/InvoiceReminder.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/5 - Tests/5.3 - Unit Tests/">
+    <Project Path="InvoiceReminder.UnitTests.API/InvoiceReminder.UnitTests.API.csproj" />
+    <Project Path="InvoiceReminder.UnitTests.Application/InvoiceReminder.UnitTests.Application.csproj" />
+    <Project Path="InvoiceReminder.UnitTests.Domain/InvoiceReminder.UnitTests.Domain.csproj" />
+    <Project Path="InvoiceReminder.UnitTests.ExternalServices/InvoiceReminder.UnitTests.ExternalServices.csproj" />
+    <Project Path="InvoiceReminder.UnitTests.Infrastructure/InvoiceReminder.UnitTests.Infrastructure.csproj" />
+    <Project Path="InvoiceReminder.UnitTests.JobScheduler/InvoiceReminder.UnitTests.JobScheduler.csproj" />
+    <Project Path="InvoiceReminder.UnitTests.SUT.Assets/InvoiceReminder.UnitTests.SUT.Assets.csproj" />
+  </Folder>
+  <Folder Name="/Itens de Solução/">
+    <File Path=".editorconfig" />
+    <File Path=".env" />
+    <File Path="CodeCoverage.runsettings" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="docker-compose.yml" />
+    <File Path="global.json" />
+  </Folder>
+</Solution>

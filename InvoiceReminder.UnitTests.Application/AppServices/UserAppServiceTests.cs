@@ -109,4 +109,80 @@ public sealed class UserAppServiceTests
             result.Error.ShouldBe("User not Found.");
         });
     }
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfoAsync_WhenViewModelIsValid_ShouldReturnSuccess()
+    {
+        // Arrange
+        var appService = new UserAppService(_configuration, _repository, _unitOfWork);
+        var user = CreateFaker().Generate();
+        var userViewModel = user.Adapt<UserViewModel>();
+
+        _ = _repository.UpdateBasicUserInfoAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var result = await appService.UpdateBasicUserInfoAsync(userViewModel, TestContext.CancellationToken);
+
+        // Assert
+        _ = _repository.Received(1).UpdateBasicUserInfoAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
+        _ = _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeTrue();
+            _ = result.ShouldNotBeNull();
+            _ = result.Value.ShouldNotBeNull();
+            _ = result.Value.ShouldBeOfType<UserViewModel>();
+            result.Value.ShouldBeEquivalentTo(userViewModel);
+        });
+    }
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfoAsync_WhenViewModelIsNull_ShouldReturnFailure()
+    {
+        // Arrange
+        var appService = new UserAppService(_configuration, _repository, _unitOfWork);
+
+        // Act
+        var result = await appService.UpdateBasicUserInfoAsync(null, TestContext.CancellationToken);
+
+        // Assert
+        _ = _repository.DidNotReceive().UpdateBasicUserInfoAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
+
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeFalse();
+            _ = result.ShouldNotBeNull();
+            result.Value.ShouldBeNull();
+            result.Error.ShouldNotBeNullOrEmpty();
+            result.Error.ShouldContain("Parameter");
+            result.Error.ShouldContain("was Null");
+        });
+    }
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfoAsync_WhenUserNotFound_ShouldReturnFailure()
+    {
+        // Arrange
+        var appService = new UserAppService(_configuration, _repository, _unitOfWork);
+        var user = CreateFaker().Generate();
+        var userViewModel = user.Adapt<UserViewModel>();
+
+        _ = _repository.UpdateBasicUserInfoAsync(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(false);
+
+        // Act
+        var result = await appService.UpdateBasicUserInfoAsync(userViewModel, TestContext.CancellationToken);
+
+        // Assert
+        _ = _repository.Received(1).UpdateBasicUserInfoAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
+
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeFalse();
+            _ = result.ShouldNotBeNull();
+            result.Value.ShouldBeNull();
+            result.Error.ShouldNotBeNullOrEmpty();
+            result.Error.ShouldBe("User not Found!");
+        });
+    }
 }

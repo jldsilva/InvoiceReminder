@@ -514,6 +514,84 @@ public sealed class UserEndpointsTests : IDisposable
 
     //##################################################################################################################
 
+    #region MapPatch Tests
+    [TestMethod]
+    public async Task UpdateBasicUserInfo_WhenUserIsAuthenticated_ShouldReturnOk()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Patch, basepath);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+
+        var userViewModel = _userViewModelFaker.Generate();
+        var expectedResult = Result<UserViewModel>.Success(userViewModel);
+
+        _ = _userAppService.UpdateBasicUserInfoAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Success()));
+
+        // Act
+        request.Content = JsonContent.Create(userViewModel);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<UserViewModel>(TestContext.CancellationToken);
+
+        // Assert
+        _ = _userAppService.Received(1).UpdateBasicUserInfoAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>());
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        _ = result.ShouldNotBeNull();
+        _ = result.ShouldBeOfType<UserViewModel>();
+    }
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfo_WhenUserIsNotAuthenticated_ShouldReturnUnauthorized()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Patch, basepath);
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Failed()));
+
+        // Act
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [TestMethod]
+    public async Task UpdateBasicUserInfo_WhenUserIsAuthenticatedButServiceFails_ShouldReturnInternalServerError()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Patch, basepath);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
+
+        var userViewModel = _userViewModelFaker.Generate();
+        var expectedResult = Result<UserViewModel>.Failure("Service error");
+
+        _ = _userAppService.UpdateBasicUserInfoAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>())
+            .Returns(expectedResult);
+
+        _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
+            Arg.Any<IEnumerable<IAuthorizationRequirement>>())
+            .Returns(Task.FromResult(AuthorizationResult.Success()));
+
+        // Act
+        request.Content = JsonContent.Create(userViewModel);
+        var response = await _client.SendAsync(request, TestContext.CancellationToken);
+        var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
+
+        // Assert
+        _ = _userAppService.Received(1).UpdateBasicUserInfoAsync(Arg.Any<UserViewModel>(), Arg.Any<CancellationToken>());
+        response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
+        _ = result.ShouldNotBeNull();
+        _ = result.ShouldBeOfType<ProblemDetails>();
+    }
+    #endregion
+
+    //##################################################################################################################
+
     #region MapPut Tests
     [TestMethod]
     public async Task UpdateUser_WhenUserIsAuthenticated_ShouldReturnOk()
