@@ -254,6 +254,7 @@ public sealed class UserPasswordRepositoryIntegrationTests
 
         // Assert
         result.ShouldBeTrue();
+        _dbContext.ChangeTracker.Clear();
 
         var updatedUserPassword = await _repository.GetByUserIdAsync(userPassword.UserId, TestContext.CancellationToken);
         updatedUserPassword.ShouldSatisfyAllConditions(() =>
@@ -272,7 +273,9 @@ public sealed class UserPasswordRepositoryIntegrationTests
         var userPassword1 = await CreateAndSaveUserPasswordAsync();
         var userPassword2 = await CreateAndSaveUserPasswordAsync();
         var originalHash1 = userPassword1.PasswordHash;
+        var originalSalt1 = userPassword1.PasswordSalt;
         var originalHash2 = userPassword2.PasswordHash;
+        var originalSalt2 = userPassword2.PasswordSalt;
 
         userPassword1.PasswordHash = "new_hash1_" + Guid.NewGuid().ToString();
         userPassword1.PasswordSalt = "new_salt1_" + Guid.NewGuid().ToString();
@@ -282,14 +285,19 @@ public sealed class UserPasswordRepositoryIntegrationTests
 
         // Assert
         result.ShouldBeTrue();
+        _dbContext.ChangeTracker.Clear();
 
         var updated1 = await _repository.GetByUserIdAsync(userPassword1.UserId, TestContext.CancellationToken);
         var updated2 = await _repository.GetByUserIdAsync(userPassword2.UserId, TestContext.CancellationToken);
 
         updated1.ShouldSatisfyAllConditions(() =>
         {
+            _ = updated1.ShouldNotBeNull();
             updated1.PasswordHash.ShouldNotBe(originalHash1);
+            updated1.PasswordSalt.ShouldNotBe(originalSalt1);
+            _ = updated2.ShouldNotBeNull();
             updated2.PasswordHash.ShouldBe(originalHash2);
+            updated2.PasswordSalt.ShouldBe(originalSalt2);
         });
     }
 
