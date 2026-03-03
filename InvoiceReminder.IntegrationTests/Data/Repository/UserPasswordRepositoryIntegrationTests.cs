@@ -207,6 +207,7 @@ public sealed class UserPasswordRepositoryIntegrationTests
         var updatedUserPassword = await _repository.GetByUserIdAsync(userPassword.UserId, TestContext.CancellationToken);
         updatedUserPassword.ShouldSatisfyAllConditions(() =>
         {
+            _ = updatedUserPassword.ShouldNotBeNull();
             updatedUserPassword.PasswordHash.ShouldBe(userPassword.PasswordHash);
             updatedUserPassword.PasswordSalt.ShouldBe(userPassword.PasswordSalt);
             updatedUserPassword.PasswordHash.ShouldNotBe(originalPasswordHash);
@@ -245,6 +246,7 @@ public sealed class UserPasswordRepositoryIntegrationTests
         var originalId = userPassword.Id;
         var originalUserId = userPassword.UserId;
         var originalCreatedAt = userPassword.CreatedAt;
+        var originalUpdatedAt = userPassword.UpdatedAt;
 
         userPassword.PasswordHash = "updated_hash_" + Guid.NewGuid().ToString();
         userPassword.PasswordSalt = "updated_salt_" + Guid.NewGuid().ToString();
@@ -259,8 +261,12 @@ public sealed class UserPasswordRepositoryIntegrationTests
         var updatedUserPassword = await _repository.GetByUserIdAsync(userPassword.UserId, TestContext.CancellationToken);
         updatedUserPassword.ShouldSatisfyAllConditions(() =>
         {
+            _ = updatedUserPassword.ShouldNotBeNull();
             updatedUserPassword.Id.ShouldBe(originalId);
             updatedUserPassword.UserId.ShouldBe(originalUserId);
+            updatedUserPassword.PasswordHash.ShouldBe(userPassword.PasswordHash);
+            updatedUserPassword.PasswordSalt.ShouldBe(userPassword.PasswordSalt);
+            updatedUserPassword.UpdatedAt.ShouldBeGreaterThanOrEqualTo(originalUpdatedAt);
             var timeDifference = Math.Abs((updatedUserPassword.CreatedAt - originalCreatedAt).TotalMilliseconds);
             timeDifference.ShouldBeLessThan(1000);
         });
