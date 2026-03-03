@@ -47,13 +47,13 @@ if (app.Environment.IsDevelopment())
     _ = app.UseHsts();
 }
 
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.RegisterEndpoints();
-app.UseExceptionHandler();
-app.UseStatusCodePages();
 app.MapHealthChecks("/healthz");
 
 await app.RunAsync();

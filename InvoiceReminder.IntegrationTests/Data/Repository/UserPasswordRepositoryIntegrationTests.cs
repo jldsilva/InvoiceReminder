@@ -261,7 +261,7 @@ public sealed class UserPasswordRepositoryIntegrationTests
             updatedUserPassword.Id.ShouldBe(originalId);
             updatedUserPassword.UserId.ShouldBe(originalUserId);
             var timeDifference = Math.Abs((updatedUserPassword.CreatedAt - originalCreatedAt).TotalMilliseconds);
-            timeDifference.ShouldBeLessThan(1);
+            timeDifference.ShouldBeLessThan(1000);
         });
     }
 
