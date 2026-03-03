@@ -19,7 +19,9 @@ public class GmailServiceWrapper : IGmailServiceWrapper
         _oAuthProvider = oAuthProvider;
     }
 
-    public async Task<IDictionary<string, byte[]>> GetAttachmentsAsync(User user, CancellationToken cancellationToken = default)
+    public async Task<IDictionary<string, byte[]>> GetAttachmentsAsync(
+        User user,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(user);
 
@@ -55,7 +57,9 @@ public class GmailServiceWrapper : IGmailServiceWrapper
 
                 if (senderAddresses.Any(from.Contains))
                 {
-                    var beneficiary = user.ScanEmailDefinitions.First(x => from.Contains(x.SenderEmailAddress)).Beneficiary;
+                    var beneficiary = user.ScanEmailDefinitions
+                        .First(x => from.Contains(x.SenderEmailAddress))
+                        .Beneficiary;
 
                     var msgPart = email.Payload.Parts
                         .First(p => !string.IsNullOrWhiteSpace(p.Filename)

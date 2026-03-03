@@ -47,7 +47,8 @@ public class GoogleOAuthService : IGoogleOAuthService
     }
 
     public async Task<UserCredential> AuthenticateAsync(
-        EmailAuthToken authToken, CancellationToken cancellationToken = default)
+        EmailAuthToken authToken,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(authToken);
 
@@ -82,7 +83,9 @@ public class GoogleOAuthService : IGoogleOAuthService
     }
 
     public async Task<Result<UserCredential>> GrantAuthorizationAsync(
-        Guid userId, string authCode, CancellationToken cancellationToken = default)
+        Guid userId,
+        string authCode,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -123,7 +126,8 @@ public class GoogleOAuthService : IGoogleOAuthService
     }
 
     public async Task<Result<string>> RevokeAuthorizationAsync(
-        Guid userId, CancellationToken cancellationToken = default)
+        Guid userId,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -154,7 +158,8 @@ public class GoogleOAuthService : IGoogleOAuthService
     }
 
     private async Task<TokenResponse> RefreshAuthTokenAsync(
-        EmailAuthToken authToken, CancellationToken cancellationToken = default)
+        EmailAuthToken authToken,
+        CancellationToken cancellationToken = default)
     {
         try
         {
