@@ -67,7 +67,10 @@ public static class DependencyInjectionConfig
                 var config = sp.GetRequiredService<IConfiguration>();
 
                 _ = options.UseNpgsql(config.GetConnectionString("DatabaseConnection"),
-                        b => b.MigrationsHistoryTable("__EFMigrationsHistory", "invoice_reminder")
+                        b => b.MigrationsHistoryTable(
+                            tableName: "__EFMigrationsHistory",
+                            schema: "invoice_reminder"
+                        )
                     );
             });
 
