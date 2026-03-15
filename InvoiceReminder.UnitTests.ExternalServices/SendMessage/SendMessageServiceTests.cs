@@ -129,7 +129,7 @@ public sealed class SendMessageServiceTests
             .Returns(invoice);
 
         // Act
-        var result = await _sendMessageService.SendMessage(user.Id, TestContext.CancellationToken);
+        var result = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
 
         // Assert
         _ = _userRepository.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
@@ -182,7 +182,7 @@ public sealed class SendMessageServiceTests
             .Returns(invoice2);
 
         // Act
-        var result = await _sendMessageService.SendMessage(user.Id, TestContext.CancellationToken);
+        var result = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
 
         // Assert
         _ = _barcodeReader.Received(2).ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
@@ -211,7 +211,7 @@ public sealed class SendMessageServiceTests
             .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
 
         // Act
-        var result = await _sendMessageService.SendMessage(user.Id, TestContext.CancellationToken);
+        var result = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
 
         // Assert
         _ = _barcodeReader.DidNotReceive().ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
@@ -245,7 +245,7 @@ public sealed class SendMessageServiceTests
             .Returns(generatedInvoice);
 
         // Act
-        _ = await _sendMessageService.SendMessage(user.Id, TestContext.CancellationToken);
+        _ = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
 
         // Assert
         _ = _invoiceRepository.Received(1).BulkInsertAsync(
@@ -273,7 +273,7 @@ public sealed class SendMessageServiceTests
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
         // Act
-        var result = await _sendMessageService.SendMessage(userId, TestContext.CancellationToken);
+        var result = await _sendMessageService.SendMessageAsync(userId, TestContext.CancellationToken);
 
         // Assert
         result.ShouldBe("User not found!");
@@ -307,7 +307,7 @@ public sealed class SendMessageServiceTests
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
         // Act
-        var result = await _sendMessageService.SendMessage(user.Id, TestContext.CancellationToken);
+        var result = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
 
         // Assert
         result.ShouldBe($"No Authentication Token found for userId: {user.Id}");
@@ -339,7 +339,7 @@ public sealed class SendMessageServiceTests
 
         // Act && Assert
         _ = await Should.ThrowAsync<InvalidOperationException>(async () =>
-            await _sendMessageService.SendMessage(userId, TestContext.CancellationToken)
+            await _sendMessageService.SendMessageAsync(userId, TestContext.CancellationToken)
         );
 
         _logger.Received(1).Log(
@@ -371,7 +371,7 @@ public sealed class SendMessageServiceTests
 
         // Act && Assert
         _ = await Should.ThrowAsync<InvalidOperationException>(async () =>
-            await _sendMessageService.SendMessage(user.Id, TestContext.CancellationToken)
+            await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken)
         );
 
         _logger.Received(1).Log(
@@ -410,7 +410,7 @@ public sealed class SendMessageServiceTests
 
         // Act && Assert
         _ = await Should.ThrowAsync<InvalidOperationException>(async () =>
-            await _sendMessageService.SendMessage(user.Id, TestContext.CancellationToken)
+            await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken)
         );
 
         _logger.Received(1).Log(
@@ -438,7 +438,7 @@ public sealed class SendMessageServiceTests
 
         // Act && Assert
         _ = await Should.ThrowAsync<OperationCanceledException>(async () =>
-            await _sendMessageService.SendMessage(userId, cts.Token)
+            await _sendMessageService.SendMessageAsync(userId, cts.Token)
         );
 
         _logger.Received(1).Log(
@@ -481,7 +481,7 @@ public sealed class SendMessageServiceTests
 
         // Act && Assert
         _ = await Should.ThrowAsync<InvalidOperationException>(async () =>
-            await _sendMessageService.SendMessage(user.Id, TestContext.CancellationToken)
+            await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken)
         );
 
         _ = _invoiceRepository.DidNotReceive()

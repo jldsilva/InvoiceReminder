@@ -17,7 +17,7 @@ public class SendMessageEndpoints : IEndpointDefinition
     {
         _ = endpoint.MapGet("/{id}", async (ISendMessageService messageService, Guid id, CancellationToken ct) =>
             {
-                var result = await messageService.SendMessage(id, ct);
+                var result = await messageService.SendMessageAsync(id, ct);
 
                 return !string.IsNullOrEmpty(result)
                     ? Results.Ok(result)

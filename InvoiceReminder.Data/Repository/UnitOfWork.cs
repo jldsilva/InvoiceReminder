@@ -30,7 +30,7 @@ public class UnitOfWork : IUnitOfWork
 
         try
         {
-            await OpenConnection(cancellationToken);
+            await OpenConnectionAsync(cancellationToken);
 
             transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
@@ -67,11 +67,11 @@ public class UnitOfWork : IUnitOfWork
         finally
         {
             transaction?.Dispose();
-            await CloseConnection();
+            await CloseConnectionAsync();
         }
     }
 
-    private async Task OpenConnection(CancellationToken cancellationToken = default)
+    private async Task OpenConnectionAsync(CancellationToken cancellationToken = default)
     {
         if (_connection.State == ConnectionState.Closed)
         {
@@ -79,7 +79,7 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    private async Task CloseConnection()
+    private async Task CloseConnectionAsync()
     {
         if (_connection.State == ConnectionState.Open)
         {

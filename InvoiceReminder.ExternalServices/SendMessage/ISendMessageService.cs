@@ -2,5 +2,5 @@ namespace InvoiceReminder.ExternalServices.SendMessage;
 
 public interface ISendMessageService
 {
-    Task<string> SendMessage(Guid userId, CancellationToken cancellationToken = default);
+    Task<string> SendMessageAsync(Guid userId, CancellationToken cancellationToken = default);
 }
