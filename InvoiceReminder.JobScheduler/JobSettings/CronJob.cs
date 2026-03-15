@@ -31,6 +31,6 @@ public class CronJob : IJob
         }
 
         // possível uso de um agendamento de envio de mensagem para lembrete no dia do vencimento?...
-        _ = await service.SendMessage(id);
+        _ = await service.SendMessageAsync(id);
     }
 }

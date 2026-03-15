@@ -57,7 +57,7 @@ public sealed class CronJobTests
         // Assert
         _ = _serviceScopeFactory.Received(1).CreateScope();
 
-        _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        _ = _sendMessageService.Received(1).SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         _logger.Received(1).Log(
              LogLevel.Information,
@@ -95,7 +95,7 @@ public sealed class CronJobTests
         // Arrange
         var cronJob = new CronJob(_logger, _serviceScopeFactory);
 
-        _ = _sendMessageService.SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _ = _sendMessageService.SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns("Total messages sent: 0");
 
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
@@ -105,7 +105,7 @@ public sealed class CronJobTests
 
         // Assert
         _ = _serviceScopeFactory.Received(1).CreateScope();
-        _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        _ = _sendMessageService.Received(1).SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         _logger.Received(1).Log(
             LogLevel.Information,

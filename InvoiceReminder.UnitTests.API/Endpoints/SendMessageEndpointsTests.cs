@@ -44,7 +44,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
 
         var expectedResult = "Total messages sent: 1";
 
-        _ = _sendMessageService.SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _ = _sendMessageService.SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(expectedResult));
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -56,7 +56,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
         var result = await response.Content.ReadAsStringAsync(TestContext.CancellationToken);
 
         // Assert
-        _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        _ = _sendMessageService.Received(1).SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
@@ -94,7 +94,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
         var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{userId}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _sendMessageService.SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _ = _sendMessageService.SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(string.Empty));
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -106,7 +106,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        _ = _sendMessageService.Received(1).SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
 
@@ -127,7 +127,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
         var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{userId}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _sendMessageService.SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _ = _sendMessageService.SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<string>(null));
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -139,7 +139,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        _ = _sendMessageService.Received(1).SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
 
@@ -158,7 +158,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
         var request = new HttpRequestMessage(HttpMethod.Get, $"{basepath}/{userId}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "test_token");
 
-        _ = _sendMessageService.SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _ = _sendMessageService.SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(new Exception("Service error"));
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -170,7 +170,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
         var result = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.CancellationToken);
 
         // Assert
-        _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        _ = _sendMessageService.Received(1).SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
 
@@ -191,7 +191,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
 
         var expectedResult = "Total messages sent: 3";
 
-        _ = _sendMessageService.SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _ = _sendMessageService.SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(expectedResult));
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -202,7 +202,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
         var response = await _client.SendAsync(request, TestContext.CancellationToken);
 
         // Assert
-        _ = _sendMessageService.Received(1).SendMessage(
+        _ = _sendMessageService.Received(1).SendMessageAsync(
             Arg.Is<Guid>(id => id == userId),
             Arg.Any<CancellationToken>()
         );
@@ -220,7 +220,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
 
         var expectedResult = "Total messages sent: 0";
 
-        _ = _sendMessageService.SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _ = _sendMessageService.SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(expectedResult));
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -232,7 +232,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
         var result = await response.Content.ReadAsStringAsync(TestContext.CancellationToken);
 
         // Assert
-        _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        _ = _sendMessageService.Received(1).SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
@@ -253,7 +253,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
 
         var expectedResult = $"No Authentication Token found for userId: {userId}";
 
-        _ = _sendMessageService.SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _ = _sendMessageService.SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(expectedResult));
 
         _ = _authorizationService.AuthorizeAsync(Arg.Any<ClaimsPrincipal>(), Arg.Any<object>(),
@@ -265,7 +265,7 @@ public sealed class SendMessageEndpointsTests : IDisposable
         var result = await response.Content.ReadAsStringAsync(TestContext.CancellationToken);
 
         // Assert
-        _ = _sendMessageService.Received(1).SendMessage(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        _ = _sendMessageService.Received(1).SendMessageAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 

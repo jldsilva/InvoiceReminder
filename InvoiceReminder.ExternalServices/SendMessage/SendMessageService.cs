@@ -33,7 +33,7 @@ public class SendMessageService : ISendMessageService
         _logger = logger;
     }
 
-    public async Task<string> SendMessage(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<string> SendMessageAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         IDictionary<string, byte[]> attachments;
 
@@ -77,7 +77,7 @@ public class SendMessageService : ISendMessageService
         }
         catch (OperationCanceledException ex) when (cancellationToken.IsCancellationRequested)
         {
-            var method = $"{nameof(SendMessageService)}.{nameof(SendMessage)}";
+            var method = $"{nameof(SendMessageService)}.{nameof(SendMessageAsync)}";
             var contextualInfo = $"Method {method} execution was interrupted by a CancellationToken Request...";
 
             if (_logger.IsEnabled(LogLevel.Warning))
