@@ -102,12 +102,10 @@ public static class DependencyInjectionConfig
 
     private static IServiceCollection AddHealthCheck(this IServiceCollection services)
     {
-        using var scope = services.BuildServiceProvider().CreateScope();
-        var configuration = scope.ServiceProvider.GetRequiredService<IConfigurationService>();
-
         _ = services.AddHealthChecks().AddNpgSql
         (
-            connectionString: configuration.GetConnectionString("DataBaseConnection"),
+            connectionStringFactory: sp => sp.GetRequiredService<IConfigurationService>()
+                                             .GetConnectionString("DatabaseConnection"),
             name: "postgres",
             healthQuery: "SELECT 1;",
             tags: ["db", "sql", "critical"],
