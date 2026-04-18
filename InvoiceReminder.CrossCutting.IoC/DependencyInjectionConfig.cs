@@ -11,6 +11,7 @@ using InvoiceReminder.JobScheduler.JobSettings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
@@ -35,12 +36,13 @@ public static class DependencyInjectionConfig
 
         _ = services.AddHostedService<TelegramBotBackgroundService>();
 
-        _ = services.AddAppServices()
-                    .AddDbContext()
+        _ = services.AddDbContext()
+                    .AddRepositories()
+                    .AddAppServices()
                     .AddExternalServices()
                     .AddQuartzJobService()
-                    .AddRepositories()
-                    .AddScheduledJobs();
+                    .AddScheduledJobs()
+                    .AddHealthCheck();
 
         return services;
     }
@@ -93,6 +95,23 @@ public static class DependencyInjectionConfig
                 .UsingRegistrationStrategy(RegistrationStrategy.Skip)
                 .AsImplementedInterfaces()
                 .WithScopedLifetime()
+        );
+
+        return services;
+    }
+
+    private static IServiceCollection AddHealthCheck(this IServiceCollection services)
+    {
+        using var scope = services.BuildServiceProvider().CreateScope();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfigurationService>();
+
+        _ = services.AddHealthChecks().AddNpgSql
+        (
+            connectionString: configuration.GetConnectionString("DataBaseConnection"),
+            name: "postgres",
+            healthQuery: "SELECT 1;",
+            tags: ["db", "sql", "critical"],
+            failureStatus: HealthStatus.Unhealthy
         );
 
         return services;

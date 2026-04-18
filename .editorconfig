@@ -215,6 +215,16 @@ dotnet_naming_symbols.async_methods.required_modifiers = async
 dotnet_naming_style.end_in_async.required_suffix = Async
 dotnet_naming_style.end_in_async.capitalization = pascal_case
 
+# Async Naming Rules Exceptions
+[*ArchitectureTests/**/*.cs]
+dotnet_naming_rule.async_methods_end_in_async.severity = silent
+
+[*IntegrationTests/**/*.cs]
+dotnet_naming_rule.async_methods_end_in_async.severity = silent
+
+[*UnitTests*/**/*.cs]
+dotnet_naming_rule.async_methods_end_in_async.severity = silent
+
 # Symbol specifications
 
 dotnet_naming_symbols.interface.applicable_kinds = interface

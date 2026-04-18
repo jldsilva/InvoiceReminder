@@ -89,6 +89,6 @@ public sealed class UserAppService : BaseAppService<User, UserViewModel>, IUserA
 
         return result
             ? Result<UserViewModel>.Success(viewModel)
-            : Result<UserViewModel>.Failure("User not Found!");
+            : Result<UserViewModel>.Failure("Failure on updating User");
     }
 }
