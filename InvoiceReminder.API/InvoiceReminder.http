@@ -41,15 +41,14 @@ Authorization: Bearer your_jwt_token_here
 ### Create User
 POST {{InvoiceReminder_HostAddress}}/api/user
 Content-Type: application/json
-Authorization: Bearer your_jwt_token_here
 
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "name": "João Silva",
   "email": "joao@example.com",
-  "password": "password123",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "userPassword": {
+    "passwordHash": "123456"
+  }
 }
 
 ###
@@ -64,17 +63,17 @@ Authorization: Bearer your_jwt_token_here
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "João Silva",
     "email": "joao@example.com",
-    "password": "password123",
-    "createdAt": "2025-11-25T00:00:00Z",
-    "updatedAt": "2025-11-25T00:00:00Z"
+    "userPassword": {
+      "passwordHash": "123456"
+    }
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440001",
     "name": "Maria Santos",
     "email": "maria@example.com",
-    "password": "password123",
-    "createdAt": "2025-11-25T00:00:00Z",
-    "updatedAt": "2025-11-25T00:00:00Z"
+    "userPassword": {
+      "passwordHash": "123456"
+    }
   }
 ]
 
@@ -89,9 +88,22 @@ Authorization: Bearer your_jwt_token_here
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "name": "João Silva Updated",
   "email": "joao.updated@example.com",
-  "password": "newpassword123",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "userPassword": {
+    "passwordHash": "newPassword123456"
+  }
+}
+
+###
+
+### Update Basic User Info
+PATCH {{InvoiceReminder_HostAddress}}/api/user
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "João Silva Updated",
+  "email": "joao.updated@example.com"
 }
 
 ###
@@ -104,10 +116,7 @@ Authorization: Bearer your_jwt_token_here
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "name": "João Silva",
-  "email": "joao@example.com",
-  "password": "password123",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "email": "joao@example.com"
 }
 
 ###
@@ -131,7 +140,7 @@ Authorization: Bearer your_jwt_token_here
 ###
 
 ### Get Invoice by Barcode
-GET {{InvoiceReminder_HostAddress}}/api/invoice/getby-barcode/12345678901234567890123456789012345678901234
+GET {{InvoiceReminder_HostAddress}}/api/invoice/getby-barcode/12345678901234567890123456789012345678901244
 Accept: application/json
 Authorization: Bearer your_jwt_token_here
 
@@ -147,10 +156,8 @@ Authorization: Bearer your_jwt_token_here
   "bank": "Banco do Brasil",
   "beneficiary": "João da Silva",
   "amount": 100.00,
-  "barcode": "12345678901234567890123456789012345678901234",
-  "dueDate": "2025-12-25T00:00:00Z",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "barcode": "12345678901234567890123456789012345678901244",
+  "dueDate": "2025-12-25T00:00:00Z"
 }
 
 ###
@@ -167,8 +174,6 @@ Authorization: Bearer your_jwt_token_here
   "amount": 150.00,
   "barcode": "12345678901234567890123456789012345678901244",
   "dueDate": "2025-12-25T00:00:00Z",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
 }
 
 ###
@@ -184,9 +189,7 @@ Authorization: Bearer your_jwt_token_here
   "beneficiary": "João da Silva",
   "amount": 100.00,
   "barcode": "12345678901234567890123456789012345678901244",
-  "dueDate": "2025-12-25T00:00:00Z",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "dueDate": "2025-12-25T00:00:00Z"
 }
 
 ###
@@ -224,9 +227,7 @@ Authorization: Bearer your_jwt_token_here
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "userId": "550e8400-e29b-41d4-a716-446655440000",
-  "cronExpression": "0 0 * * *",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "cronExpression": "0 0 * * *"
 }
 
 ###
@@ -239,9 +240,7 @@ Authorization: Bearer your_jwt_token_here
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "userId": "550e8400-e29b-41d4-a716-446655440000",
-  "cronExpression": "0 0 * * 1",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "cronExpression": "0 0 * * 1"
 }
 
 ###
@@ -254,9 +253,7 @@ Authorization: Bearer your_jwt_token_here
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "userId": "550e8400-e29b-41d4-a716-446655440000",
-  "cronExpression": "0 0 * * *",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "cronExpression": "0 0 * * *"
 }
 
 ###
@@ -287,7 +284,7 @@ Authorization: Bearer your_jwt_token_here
 ###
 
 ### Get Scan Email Definition by Sender Email Address
-GET {{InvoiceReminder_HostAddress}}/api/scan_email/sender@example.com/550e8400-e29b-41d4-a716-446655440000
+GET {{InvoiceReminder_HostAddress}}/api/scan_email/getby-sender/sender@example.com/550e8400-e29b-41d4-a716-446655440000
 Accept: application/json
 Authorization: Bearer your_jwt_token_here
 
@@ -301,9 +298,7 @@ Authorization: Bearer your_jwt_token_here
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "userId": "550e8400-e29b-41d4-a716-446655440000",
-  "senderEmailAddress": "sender@example.com",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "senderEmailAddress": "sender@example.com"
 }
 
 ###
@@ -316,9 +311,7 @@ Authorization: Bearer your_jwt_token_here
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "userId": "550e8400-e29b-41d4-a716-446655440000",
-  "senderEmailAddress": "newemail@example.com",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "senderEmailAddress": "newemail@example.com"
 }
 
 ###
@@ -331,9 +324,7 @@ Authorization: Bearer your_jwt_token_here
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "userId": "550e8400-e29b-41d4-a716-446655440000",
-  "senderEmailAddress": "sender@example.com",
-  "createdAt": "2025-11-25T00:00:00Z",
-  "updatedAt": "2025-11-25T00:00:00Z"
+  "senderEmailAddress": "sender@example.com"
 }
 
 ###

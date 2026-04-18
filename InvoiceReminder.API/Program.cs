@@ -1,7 +1,6 @@
 using InvoiceReminder.API.AuthenticationSetup;
 using InvoiceReminder.API.Extensions;
 using InvoiceReminder.CrossCutting.IoC;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,32 +10,20 @@ builder.Services.AddAuthorization();
 builder.Services.AddExceptionHandler();
 builder.Services.AddInfrastructure();
 builder.Services.AddOpenApi(opt => opt.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
-
-builder.Services.AddCors(opt =>
-    opt.AddPolicy("CorsPolicy", policy =>
-        {
-            var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-
-            _ = policy
-                .AllowAnyMethod()
-                .AllowCredentials()
-                .WithOrigins(allowedOrigins)
-                .WithHeaders("Content-Type", "Authorization");
-        }
-    )
-);
-
-builder.Services.AddHealthChecks().AddNpgSql
-(
-    connectionString: builder.Configuration.GetConnectionString("DataBaseConnection"),
-    name: "postgres",
-    healthQuery: "SELECT 1;",
-    tags: ["db", "sql", "critical"],
-    failureStatus: HealthStatus.Unhealthy
-);
-
 builder.Services.ConfigureOptions<JwtOptionsSetup>();
 builder.Services.ConfigureOptions<JwtBearerOptionsSetup>();
+builder.Services.AddCors(opt =>
+    opt.AddPolicy("CorsPolicy", policy =>
+    {
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
+        _ = policy
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .WithOrigins(allowedOrigins)
+            .WithHeaders("Content-Type", "Authorization");
+    })
+);
 
 var app = builder.Build();
 

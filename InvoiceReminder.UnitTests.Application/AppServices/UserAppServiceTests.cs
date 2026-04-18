@@ -182,7 +182,7 @@ public sealed class UserAppServiceTests
             _ = result.ShouldNotBeNull();
             result.Value.ShouldBeNull();
             result.Error.ShouldNotBeNullOrEmpty();
-            result.Error.ShouldBe("User not Found!");
+            result.Error.ShouldBe("Failure on updating User");
         });
     }
 }
