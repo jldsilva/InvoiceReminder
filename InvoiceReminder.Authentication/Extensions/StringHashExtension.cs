@@ -57,7 +57,7 @@ public static class StringHashExtension
 
     public static string X509_Encrypt(this string inputString, string thumbPrint)
     {
-        using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+        using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
         store.Open(OpenFlags.ReadOnly);
 
         var certs = store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false);
@@ -74,7 +74,7 @@ public static class StringHashExtension
 
     public static string X509_Decrypt(this string encryptedString, string thumbPrint)
     {
-        using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+        using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
         store.Open(OpenFlags.ReadOnly);
 
         var certs = store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false);
