@@ -30,6 +30,9 @@ public class ScanEmailDefinitionViewModel : ViewModelDefaults
     [JsonPropertyOrder(7)]
     public string AttachmentFileName { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)]
+    public string FilePassword { get; set; }
+
     public ScanEmailDefinitionViewModel()
     {
         Id = Guid.NewGuid();

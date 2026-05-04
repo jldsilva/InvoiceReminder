@@ -58,12 +58,13 @@ public sealed class BarcodeReaderServiceTests
         // Arrange
         var invalidPdfData = Array.Empty<byte>();
         var beneficiary = _faker.Company.CompanyName();
+        var password = string.Empty;
 
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
         // Act && Assert
         _ = Should.Throw<ArgumentException>(() =>
-            _barcodeReaderService.ReadTextContentFromPdf(invalidPdfData, beneficiary, InvoiceType.BankInvoice));
+            _barcodeReaderService.ReadTextContentFromPdf(invalidPdfData, beneficiary, password, InvoiceType.BankInvoice));
 
         _logger.Received(1).Log(
             LogLevel.Error,
@@ -80,6 +81,7 @@ public sealed class BarcodeReaderServiceTests
         // Arrange
         var pdfData = CreatePdfInMemory(InvoiceType.AccountInvoice);
         var expectedInvoice = _invoiceFaker.Generate();
+        var password = string.Empty;
 
         _ = _barcodeHandler.CreateInvoice(Arg.Any<string>(), Arg.Any<string>())
             .Returns(expectedInvoice);
@@ -88,6 +90,7 @@ public sealed class BarcodeReaderServiceTests
         var invoice = _barcodeReaderService.ReadTextContentFromPdf(
             pdfData,
             expectedInvoice.Beneficiary,
+            password,
             InvoiceType.AccountInvoice);
 
         // Assert
@@ -106,6 +109,7 @@ public sealed class BarcodeReaderServiceTests
         // Arrange
         var pdfData = CreatePdfInMemory(InvoiceType.BankInvoice);
         var expectedInvoice = _invoiceFaker.Generate();
+        var password = string.Empty;
 
         _ = _barcodeHandler.CreateInvoice(Arg.Any<string>(), Arg.Any<string>())
             .Returns(expectedInvoice);
@@ -114,6 +118,7 @@ public sealed class BarcodeReaderServiceTests
         var invoice = _barcodeReaderService.ReadTextContentFromPdf(
             pdfData,
             expectedInvoice.Beneficiary,
+            password,
             InvoiceType.BankInvoice);
 
         // Assert

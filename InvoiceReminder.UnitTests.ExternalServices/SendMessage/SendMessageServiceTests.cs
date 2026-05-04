@@ -2,6 +2,7 @@ using Bogus;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.Domain.Enums;
+using InvoiceReminder.Domain.Services.Configuration;
 using InvoiceReminder.ExternalServices.BarcodeReader;
 using InvoiceReminder.ExternalServices.Gmail;
 using InvoiceReminder.ExternalServices.SendMessage;
@@ -18,6 +19,7 @@ public sealed class SendMessageServiceTests
 {
     private readonly ILogger<SendMessageService> _logger;
     private readonly IBarcodeReaderService _barcodeReader;
+    private readonly IConfigurationService _configuration;
     private readonly IGmailServiceWrapper _gmailService;
     private readonly ITelegramMessageService _telegramMessageService;
     private readonly IInvoiceRepository _invoiceRepository;
@@ -34,6 +36,7 @@ public sealed class SendMessageServiceTests
     {
         _logger = Substitute.For<ILogger<SendMessageService>>();
         _barcodeReader = Substitute.For<IBarcodeReaderService>();
+        _configuration = Substitute.For<IConfigurationService>();
         _gmailService = Substitute.For<IGmailServiceWrapper>();
         _telegramMessageService = Substitute.For<ITelegramMessageService>();
         _invoiceRepository = Substitute.For<IInvoiceRepository>();
@@ -41,6 +44,7 @@ public sealed class SendMessageServiceTests
 
         _sendMessageService = new SendMessageService(
             _barcodeReader,
+            _configuration,
             _gmailService,
             _telegramMessageService,
             _invoiceRepository,
@@ -125,7 +129,7 @@ public sealed class SendMessageServiceTests
         _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
 
-        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
+        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(invoice);
 
         // Act
@@ -134,7 +138,7 @@ public sealed class SendMessageServiceTests
         // Assert
         _ = _userRepository.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         _ = _gmailService.Received(1).GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
-        _ = _barcodeReader.Received(1).ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
+        _ = _barcodeReader.Received(1).ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
         _ = _telegramMessageService.Received(1).SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         _ = _invoiceRepository.Received(1).BulkInsertAsync(Arg.Any<ICollection<Invoice>>(), Arg.Any<CancellationToken>());
 
@@ -175,17 +179,17 @@ public sealed class SendMessageServiceTests
         _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
 
-        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), scanEmailDefinition1.Beneficiary, Arg.Any<InvoiceType>())
+        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), scanEmailDefinition1.Beneficiary, Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(invoice1);
 
-        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), scanEmailDefinition2.Beneficiary, Arg.Any<InvoiceType>())
+        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), scanEmailDefinition2.Beneficiary, Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(invoice2);
 
         // Act
         var result = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
 
         // Assert
-        _ = _barcodeReader.Received(2).ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
+        _ = _barcodeReader.Received(2).ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
         _ = _telegramMessageService.Received(2).SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         result.ShouldBe($"Total messages sent: {attachments.Count}");
@@ -214,7 +218,7 @@ public sealed class SendMessageServiceTests
         var result = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
 
         // Assert
-        _ = _barcodeReader.DidNotReceive().ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
+        _ = _barcodeReader.DidNotReceive().ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
         _ = _telegramMessageService.DidNotReceive().SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         result.ShouldBe("Total messages sent: 0");
@@ -241,7 +245,7 @@ public sealed class SendMessageServiceTests
         _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
 
-        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
+        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(generatedInvoice);
 
         // Act
@@ -279,7 +283,7 @@ public sealed class SendMessageServiceTests
         result.ShouldBe("User not found!");
 
         _ = _gmailService.DidNotReceive().GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
-        _ = _barcodeReader.DidNotReceive().ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
+        _ = _barcodeReader.DidNotReceive().ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
         _ = _telegramMessageService.DidNotReceive().SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         _logger.Received(1).Log(
@@ -403,7 +407,7 @@ public sealed class SendMessageServiceTests
         _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
 
-        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
+        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Throws(new Exception("Barcode reader error"));
 
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
@@ -471,7 +475,7 @@ public sealed class SendMessageServiceTests
         _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
 
-        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
+        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(invoice);
 
         _ = _telegramMessageService.SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>())

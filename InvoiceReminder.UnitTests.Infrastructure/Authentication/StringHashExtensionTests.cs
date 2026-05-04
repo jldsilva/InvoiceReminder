@@ -1,5 +1,6 @@
 using InvoiceReminder.Authentication.Extensions;
 using Shouldly;
+using System.Text;
 
 namespace InvoiceReminder.UnitTests.Infrastructure.Authentication;
 
@@ -388,6 +389,171 @@ public sealed class StringHashExtensionTests
         var exception = Should.Throw<ArgumentException>(() => password.VerifyPassword(hash, salt));
 
         exception.ParamName.ShouldBe("inputString");
+    }
+
+    #endregion
+
+    #region X509_Encrypt Tests
+
+    [TestMethod]
+    public void X509_Encrypt_WithInvalidThumbPrint_ShouldThrowFileNotFoundException()
+    {
+        // Arrange
+        var input = "TestString";
+        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+
+        // Act & Assert
+        var exception = Should.Throw<FileNotFoundException>(() => input.X509_Encrypt(invalidThumbPrint));
+        exception.Message.ShouldContain("Certificado");
+    }
+
+    [TestMethod]
+    public void X509_Encrypt_WithNullInput_ShouldThrowFileNotFoundExceptionBeforeCrashing()
+    {
+        // Arrange
+        var thumbPrint = "0000000000000000000000000000000000000000";
+
+        // Act & Assert
+        // The method will throw FileNotFoundException when certificate is not found
+        // before it can process the null input
+        _ = Should.Throw<FileNotFoundException>(() => ((string)null!).X509_Encrypt(thumbPrint));
+    }
+
+    [TestMethod]
+    [DataRow("")]
+    [DataRow(" ")]
+    [DataRow("\t")]
+    public void X509_Encrypt_WithEmptyOrWhitespaceInput_ShouldThrowFileNotFoundExceptionWhenNoCertificate(string input)
+    {
+        // Arrange
+        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+
+        // Act & Assert
+        // The method will throw FileNotFoundException when certificate is not found
+        // The input validation does not happen before certificate lookup
+        _ = Should.Throw<FileNotFoundException>(() => input.X509_Encrypt(invalidThumbPrint));
+    }
+
+    [TestMethod]
+    [DataRow("a")]
+    [DataRow("P@ssw0rd!#$%&*()[]{}")]
+    [DataRow("複雑なパスワード")]
+    [DataRow("VeryLongStringForEncryption1234567890!@#$%^&*()_+-=[]{}|;:,.<>?")]
+    public void X509_Encrypt_WithVariousValidInputs_ShouldThrowFileNotFoundWhenNoCertificate(string input)
+    {
+        // Arrange
+        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+
+        // Act & Assert
+        var exception = Should.Throw<FileNotFoundException>(() => input.X509_Encrypt(invalidThumbPrint));
+        exception.Message.ShouldContain("Certificado");
+    }
+
+    [TestMethod]
+    public void X509_Encrypt_CertificateValidation_ShouldOccurBeforeEncryption()
+    {
+        // Arrange
+        var input = "TestString";
+        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+
+        // Act & Assert
+        // Demonstrates that certificate validation happens first
+        var exception = Should.Throw<FileNotFoundException>(() => input.X509_Encrypt(invalidThumbPrint));
+        exception.Message.ShouldBe("Certificado de segurança não encontrado no servidor.");
+    }
+
+    #endregion
+
+    #region X509_Decrypt Tests
+
+    [TestMethod]
+    public void X509_Decrypt_WithInvalidThumbPrint_ShouldThrowFileNotFoundException()
+    {
+        // Arrange
+        var encryptedInput = "QmFzZTY0RW5jb2RlZFN0cmluZw==";
+        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+
+        // Act & Assert
+        var exception = Should.Throw<FileNotFoundException>(() => encryptedInput.X509_Decrypt(invalidThumbPrint));
+        exception.Message.ShouldContain("Certificado");
+    }
+
+    [TestMethod]
+    public void X509_Decrypt_WithValidBase64ButInvalidThumbPrint_ShouldThrowFileNotFoundException()
+    {
+        // Arrange
+        var validBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("TestString"));
+        var invalidThumbPrint = "0000000000000000000000000000000000000000";
+
+        // Act & Assert
+        var exception = Should.Throw<FileNotFoundException>(() => validBase64.X509_Decrypt(invalidThumbPrint));
+        exception.Message.ShouldContain("Certificado");
+    }
+
+    [TestMethod]
+    public void X509_Decrypt_WithNullInput_ShouldThrowFileNotFoundExceptionBeforeCrashing()
+    {
+        // Arrange
+        var thumbPrint = "0000000000000000000000000000000000000000";
+
+        // Act & Assert
+        // The method will throw FileNotFoundException when certificate is not found
+        // before it can process the null input
+        _ = Should.Throw<FileNotFoundException>(() => ((string)null!).X509_Decrypt(thumbPrint));
+    }
+
+    [TestMethod]
+    [DataRow("")]
+    [DataRow(" ")]
+    [DataRow("\t")]
+    public void X509_Decrypt_WithEmptyOrWhitespaceInput_ShouldThrowFileNotFoundExceptionWhenNoCertificate(string input)
+    {
+        // Arrange
+        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+
+        // Act & Assert
+        // The method will throw FileNotFoundException when certificate is not found
+        // The input validation does not happen before certificate lookup
+        _ = Should.Throw<FileNotFoundException>(() => input.X509_Decrypt(invalidThumbPrint));
+    }
+
+    [TestMethod]
+    [DataRow("QmFzZTY0")]
+    [DataRow("VmFsaWRCYXNlNjRFbmNvZGVkU3RyaW5n")]
+    [DataRow("QmFzZTY0RW5jb2RlZFN0cmluZ3dpdGhSYW5kb21EYXRh")]
+    public void X509_Decrypt_WithValidBase64ButWrongCertificate_ShouldThrowFileNotFoundException(string encryptedInput)
+    {
+        // Arrange
+        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+
+        // Act & Assert
+        _ = Should.Throw<FileNotFoundException>(() => encryptedInput.X509_Decrypt(invalidThumbPrint));
+    }
+
+    [TestMethod]
+    [DataRow("InvalidBase64!@#$")]
+    [DataRow("NotValidBase64WithSpecialChars@#$%")]
+    public void X509_Decrypt_WithInvalidBase64Input_ShouldThrowFileNotFoundExceptionFirst(string encryptedInput)
+    {
+        // Arrange
+        var invalidThumbPrint = "0000000000000000000000000000000000000000";
+
+        // Act & Assert
+        // Certificate lookup happens before Base64 decoding, so FileNotFoundException is thrown first
+        _ = Should.Throw<FileNotFoundException>(() => encryptedInput.X509_Decrypt(invalidThumbPrint));
+    }
+
+    [TestMethod]
+    public void X509_Decrypt_CertificateValidation_ShouldOccurBeforeDecryption()
+    {
+        // Arrange
+        var encryptedInput = "QmFzZTY0RW5jb2RlZFN0cmluZw==";
+        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+
+        // Act & Assert
+        // Demonstrates that certificate validation happens first
+        var exception = Should.Throw<FileNotFoundException>(() => encryptedInput.X509_Decrypt(invalidThumbPrint));
+        exception.Message.ShouldBe("Certificado de segurança não encontrado no servidor.");
     }
 
     #endregion
