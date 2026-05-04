@@ -1,5 +1,7 @@
+using InvoiceReminder.Authentication.Extensions;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Domain.Entities;
+using InvoiceReminder.Domain.Services.Configuration;
 using InvoiceReminder.ExternalServices.BarcodeReader;
 using InvoiceReminder.ExternalServices.Gmail;
 using InvoiceReminder.ExternalServices.Telegram;
@@ -15,10 +17,12 @@ public class SendMessageService : ISendMessageService
     private readonly ITelegramMessageService _telegramMessageService;
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly IUserRepository _userRepository;
+    private readonly string _thumbPrint;
     private const string LogExceptionMessage = "{ContextualInfo} - Exception: {Message}";
 
     public SendMessageService(
         IBarcodeReaderService barcodeService,
+        IConfigurationService configuration,
         IGmailServiceWrapper gmailService,
         ITelegramMessageService telegramMessageService,
         IInvoiceRepository invoiceRepository,
@@ -31,6 +35,7 @@ public class SendMessageService : ISendMessageService
         _invoiceRepository = invoiceRepository;
         _userRepository = userRepository;
         _logger = logger;
+        _thumbPrint = configuration.GetAppSetting("Security:CertificateThumbprint");
     }
 
     public async Task<string> SendMessageAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -52,11 +57,16 @@ public class SendMessageService : ISendMessageService
 
             foreach (var attachment in attachments)
             {
-                var invoiceType = user.ScanEmailDefinitions?
-                    .FirstOrDefault(x => x.Beneficiary == attachment.Key)
-                    .InvoiceType;
+                var definitions = user.ScanEmailDefinitions?
+                    .FirstOrDefault(x => x.Beneficiary == attachment.Key);
 
-                var invoice = _barcodeService.ReadTextContentFromPdf(attachment.Value, attachment.Key, invoiceType.Value);
+                var filePassword = !string.IsNullOrWhiteSpace(definitions.FilePassword)
+                    ? definitions.FilePassword.X509_Decrypt(_thumbPrint)
+                    : null;
+
+                var invoice = _barcodeService.ReadTextContentFromPdf(attachment.Value, attachment.Key,
+                    filePassword, definitions.InvoiceType);
+
                 invoice.Id = Guid.NewGuid();
                 invoice.UserId = userId;
                 invoices.Add(invoice);

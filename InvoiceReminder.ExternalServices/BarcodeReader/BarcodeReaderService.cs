@@ -18,7 +18,7 @@ public class BarcodeReaderService : IBarcodeReaderService
         _logger = logger;
     }
 
-    public Invoice ReadTextContentFromPdf(byte[] byteStream, string beneficiary, InvoiceType invoiceType)
+    public Invoice ReadTextContentFromPdf(byte[] byteStream, string beneficiary, string password, InvoiceType invoiceType)
     {
         if (byteStream.Length == 0)
         {
@@ -32,14 +32,21 @@ public class BarcodeReaderService : IBarcodeReaderService
             throw exception;
         }
 
-        StringBuilder content = new();
+        ReaderProperties props = new();
+
+        if (!string.IsNullOrWhiteSpace(password))
+        {
+            _ = props.SetPassword(Encoding.UTF8.GetBytes(password));
+        }
+
         using MemoryStream memory = new(byteStream);
-        using PdfReader iTextReader = new(memory);
+        using PdfReader iTextReader = new(memory, props);
         using PdfDocument pdfDoc = new(iTextReader);
 
-        var numberofpages = pdfDoc.GetNumberOfPages();
+        StringBuilder content = new();
+        var numberOfPages = pdfDoc.GetNumberOfPages();
 
-        for (var page = 1; page <= numberofpages; page++)
+        for (var page = 1; page <= numberOfPages; page++)
         {
             ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
             var currentText = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(page), strategy);

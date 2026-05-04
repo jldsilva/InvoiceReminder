@@ -26,27 +26,27 @@ public class BankInvoiceBarcodeHandler : IInvoiceBarcodeHandler
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(content);
 
-        var barcode = FilterContent(content);
-        var bankId = int.Parse(barcode.Split("\n")[0][..3]);
-        var paymentCode = barcode.Split("\n")[1];
+        var (bankId, barcode) = FilterContent(content);
 
         return new Invoice
         {
-            Bank = $"[{bankId}] - {knowBanks[bankId]}",
+            Bank = $"[{bankId}] - {knowBanks[int.Parse(bankId[..3])]}",
             Beneficiary = beneficiary,
-            Amount = GetPaymentValue(paymentCode),
-            Barcode = paymentCode,
-            DueDate = GetPaymentDueDate(paymentCode)
+            Amount = GetPaymentValue(barcode),
+            Barcode = barcode,
+            DueDate = GetPaymentDueDate(barcode)
         };
     }
 
-    private static string FilterContent(string content)
+    private static (string, string) FilterContent(string content)
     {
-        var pattern = @"(\d{3}-\d)\s(\d+\.\d{5})\s(\d+\.\d{6})\s(\d+\.\d{6})\s(\d)\s(\d+)";
+        var bankIdPattern = @"(\d{3}-\d)";
+        var bankIdMatch = Regex.Match(content, bankIdPattern);
 
-        var match = Regex.Match(content, pattern);
+        var barcodePattern = @"(\d+\.\d{5})\s(\d+\.\d{6})\s(\d+\.\d{6})\s(\d)\s(\d+)";
+        var barcodeMatch = Regex.Match(content, barcodePattern);
 
-        return match.Groups[0].Value;
+        return (bankIdMatch.Groups[0].Value, barcodeMatch.Groups[0].Value);
     }
 
     private static DateTime GetPaymentDueDate(string content)

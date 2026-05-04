@@ -1,12 +1,16 @@
 using Konscious.Security.Cryptography;
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace InvoiceReminder.Authentication.Extensions;
 
 public static class StringHashExtension
 {
+    const string CERT_NOT_FOUND = "Certificado de segurança não encontrado no servidor.";
+    const string INVALID_RSA_KEY = "O certificado não possui uma chave RSA válida.";
+
     public static (string Hash, string Salt) HashPassword(this string inputString, int parallelismFactor = 2)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(inputString);
@@ -49,6 +53,40 @@ public static class StringHashExtension
             Convert.FromBase64String(storedHash),
             Convert.FromBase64String(hash)
         );
+    }
+
+    public static string X509_Encrypt(this string inputString, string thumbPrint)
+    {
+        using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+        store.Open(OpenFlags.ReadOnly);
+
+        var certs = store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false);
+        if (certs.Count == 0)
+        {
+            throw new FileNotFoundException(CERT_NOT_FOUND);
+        }
+
+        using var rsa = certs[0].GetRSAPrivateKey() ?? throw new InvalidDataException(INVALID_RSA_KEY);
+        var encryptedData = rsa.Encrypt(Encoding.UTF8.GetBytes(inputString), RSAEncryptionPadding.OaepSHA256);
+
+        return Convert.ToBase64String(encryptedData);
+    }
+
+    public static string X509_Decrypt(this string encryptedString, string thumbPrint)
+    {
+        using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+        store.Open(OpenFlags.ReadOnly);
+
+        var certs = store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false);
+        if (certs.Count == 0)
+        {
+            throw new FileNotFoundException(CERT_NOT_FOUND);
+        }
+
+        using var rsa = certs[0].GetRSAPrivateKey() ?? throw new InvalidDataException(INVALID_RSA_KEY);
+        var decryptedData = rsa.Decrypt(Convert.FromBase64String(encryptedString), RSAEncryptionPadding.OaepSHA256);
+
+        return Encoding.UTF8.GetString(decryptedData);
     }
 
     public static string ToSHA256(this string inputString)

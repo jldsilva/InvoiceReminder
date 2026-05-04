@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using System.Diagnostics.CodeAnalysis;
 
 #nullable disable
-#pragma warning disable S1192
 
 namespace InvoiceReminder.Data.Migrations;
 
@@ -192,6 +191,7 @@ public partial class Initial_Create : Migration
                 description = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                 sender_email_address = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                 attachment_filename = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                file_password = table.Column<string>(type: "character varying(512)", maxLength: 255, nullable: true),
                 created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
             },
@@ -274,4 +274,3 @@ public partial class Initial_Create : Migration
             schema: "invoice_reminder");
     }
 }
-#pragma warning restore S1192

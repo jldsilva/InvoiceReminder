@@ -10,4 +10,5 @@ public class ScanEmailDefinition : EntityDefaults
     public string Description { get; set; }
     public string SenderEmailAddress { get; set; }
     public string AttachmentFileName { get; set; }
+    public string FilePassword { get; set; }
 }

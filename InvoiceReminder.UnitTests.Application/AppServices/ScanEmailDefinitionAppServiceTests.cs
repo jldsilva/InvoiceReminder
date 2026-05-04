@@ -5,6 +5,7 @@ using InvoiceReminder.Application.ViewModels;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.Domain.Enums;
+using InvoiceReminder.Domain.Services.Configuration;
 using Mapster;
 using NSubstitute;
 using Shouldly;
@@ -14,6 +15,7 @@ namespace InvoiceReminder.UnitTests.Application.AppServices;
 [TestClass]
 public sealed class ScanEmailDefinitionAppServiceTests
 {
+    private readonly IConfigurationService _configuration;
     private readonly IScanEmailDefinitionRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly Faker _faker;
@@ -22,6 +24,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
 
     public ScanEmailDefinitionAppServiceTests()
     {
+        _configuration = Substitute.For<IConfigurationService>();
         _repository = Substitute.For<IScanEmailDefinitionRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _faker = new Faker();
@@ -45,7 +48,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
     public void ScanEmailDefinitionAppService_ShouldBeAssignableToItsInterface_And_GenericInterface_And_GenericAppService()
     {
         // Arrange && Act
-        var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
 
         // Assert
         appService.ShouldSatisfyAllConditions(() =>
@@ -60,7 +63,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
     public async Task GetBySenderBeneficiaryAsync_WhenSenderBeneficiaryExists_ShouldReturnSuccess_WithResultFound()
     {
         // Arrange
-        var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
         var userId = _faker.Random.Guid();
         var beneficiary = _faker.Person.FullName;
         var scanEmailDefinition = CreateScanEmailDefinitionFaker()
@@ -92,7 +95,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
     public async Task GetBySenderBeneficiaryAsync_WhenSenderBeneficiaryNotExists_ShouldReturnFailure_WithResultNotFound()
     {
         // Arrange
-        var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
         var beneficiary = _faker.Person.FullName;
         var userId = _faker.Random.Guid();
 
@@ -119,7 +122,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
     public async Task GetBySenderEmailAddressAsync_WhenSenderEmailAddressExists_ShouldReturnSuccess_WithResultFound()
     {
         // Arrange
-        var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
         var userId = _faker.Random.Guid();
         var senderEmail = _faker.Internet.Email();
         var scanEmailDefinition = CreateScanEmailDefinitionFaker()
@@ -151,7 +154,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
     public async Task GetBySenderEmailAddressAsync_WhenSenderEmailAddressNotExists_ShouldReturnFailure_WithResultNotFound()
     {
         // Arrange
-        var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
         var senderEmail = _faker.Internet.Email();
         var userId = _faker.Random.Guid();
 
@@ -178,7 +181,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
     public async Task GetByUserIdAsync_WhenUserIdExists_ShouldReturnSuccess_WithResultFound()
     {
         // Arrange
-        var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
         var userId = _faker.Random.Guid();
         var scanEmailDefinitions = CreateScanEmailDefinitionFaker()
             .RuleFor(s => s.UserId, userId)
@@ -207,7 +210,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
     public async Task GetByUserIdAsync_WhenUserIdNotExists_ShouldReturnFailure_WithResultNotFound()
     {
         // Arrange
-        var appService = new ScanEmailDefinitionAppService(_repository, _unitOfWork);
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
         var userId = _faker.Random.Guid();
         _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);
 

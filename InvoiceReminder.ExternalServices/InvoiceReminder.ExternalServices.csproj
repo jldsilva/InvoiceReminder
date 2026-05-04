@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\InvoiceReminder.Authentication\InvoiceReminder.Authentication.csproj" />
     <ProjectReference Include="..\InvoiceReminder.Data\InvoiceReminder.Data.csproj" />
   </ItemGroup>
     

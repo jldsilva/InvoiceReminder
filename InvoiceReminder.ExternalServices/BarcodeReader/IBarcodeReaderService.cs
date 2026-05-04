@@ -5,5 +5,5 @@ namespace InvoiceReminder.ExternalServices.BarcodeReader;
 
 public interface IBarcodeReaderService
 {
-    Invoice ReadTextContentFromPdf(byte[] byteStream, string beneficiary, InvoiceType invoiceType);
+    Invoice ReadTextContentFromPdf(byte[] byteStream, string beneficiary, string password, InvoiceType invoiceType);
 }

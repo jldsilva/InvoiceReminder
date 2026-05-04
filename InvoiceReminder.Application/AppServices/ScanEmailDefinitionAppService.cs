@@ -1,8 +1,10 @@
 using InvoiceReminder.Application.Interfaces;
 using InvoiceReminder.Application.ViewModels;
+using InvoiceReminder.Authentication.Extensions;
 using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Domain.Abstractions;
 using InvoiceReminder.Domain.Entities;
+using InvoiceReminder.Domain.Services.Configuration;
 using Mapster;
 
 namespace InvoiceReminder.Application.AppServices;
@@ -10,12 +12,50 @@ namespace InvoiceReminder.Application.AppServices;
 public class ScanEmailDefinitionAppService : BaseAppService<ScanEmailDefinition, ScanEmailDefinitionViewModel>,
     IScanEmailDefinitionAppService
 {
+    private readonly string _thumbPrint;
     private readonly IScanEmailDefinitionRepository _repository;
 
-    public ScanEmailDefinitionAppService(IScanEmailDefinitionRepository repository, IUnitOfWork unitOfWork)
-        : base(repository, unitOfWork)
+    public ScanEmailDefinitionAppService(
+        IConfigurationService configuration,
+        IScanEmailDefinitionRepository repository,
+        IUnitOfWork unitOfWork) : base(repository, unitOfWork)
     {
         _repository = repository;
+        _thumbPrint = configuration.GetAppSetting("Security:CertificateThumbprint");
+    }
+
+    public override async Task<Result<ScanEmailDefinitionViewModel>> AddAsync(
+        ScanEmailDefinitionViewModel viewModel,
+        CancellationToken cancellationToken = default)
+    {
+        if (viewModel is null)
+        {
+            return Result<ScanEmailDefinitionViewModel>.Failure($"Parameter {nameof(viewModel)} was Null.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(viewModel.FilePassword))
+        {
+            viewModel.FilePassword = viewModel.FilePassword.X509_Encrypt(_thumbPrint);
+        }
+
+        return await base.AddAsync(viewModel, cancellationToken);
+    }
+
+    public override async Task<Result<ScanEmailDefinitionViewModel>> UpdateAsync(
+        ScanEmailDefinitionViewModel viewModel,
+        CancellationToken cancellationToken = default)
+    {
+        if (viewModel is null)
+        {
+            return Result<ScanEmailDefinitionViewModel>.Failure($"Parameter {nameof(viewModel)} was Null.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(viewModel.FilePassword))
+        {
+            viewModel.FilePassword = viewModel.FilePassword.X509_Encrypt(_thumbPrint);
+        }
+
+        return await base.UpdateAsync(viewModel, cancellationToken);
     }
 
     public async Task<Result<ScanEmailDefinitionViewModel>> GetBySenderBeneficiaryAsync(
