@@ -53,7 +53,7 @@ internal class ScanEmailDefinitionConfig : IEntityTypeConfiguration<ScanEmailDef
 
         _ = builder.Property(x => x.FilePassword)
             .HasColumnName("file_password")
-            .HasMaxLength(512);
+            .HasMaxLength(1024);
 
         _ = builder.Property(x => x.CreatedAt)
             .HasColumnName("created_at")

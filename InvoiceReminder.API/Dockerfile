@@ -12,6 +12,9 @@ EXPOSE 8081
 USER root
 RUN apt-get update && apt-get install -y \
     libgssapi-krb5-2 \
+    locales \
+    && locale-gen pt_BR.UTF-8 \
+    && update-locale LANG=pt_BR.UTF-8 LC_ALL=pt_BR.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 USER ${APP_UID}
 
@@ -46,4 +49,11 @@ RUN dotnet publish "./InvoiceReminder.API.csproj" -c $BUILD_CONFIGURATION -o /ap
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+COPY ./InvoiceReminder.API/certificate.pfx /app/certs/certificate.pfx
+
+ENV LANG=pt_BR.UTF-8
+ENV LANGUAGE=pt_BR:pt
+ENV LC_ALL=pt_BR.UTF-8
+
 ENTRYPOINT ["dotnet", "InvoiceReminder.API.dll"]

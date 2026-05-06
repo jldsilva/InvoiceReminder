@@ -4,6 +4,8 @@ using Google.Apis.Services;
 using InvoiceReminder.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace InvoiceReminder.ExternalServices.Gmail;
 
@@ -52,16 +54,13 @@ public class GmailServiceWrapper : IGmailServiceWrapper
 
             foreach (var messageId in messages)
             {
-                var email = await messagesResource.Get("me", messageId).ExecuteAsync(cancellationToken);
-                var from = email.Payload.Headers.First(h => h.Name == "From").Value;
+                var emailMessage = await messagesResource.Get("me", messageId).ExecuteAsync(cancellationToken);
+                var emailAddress = FilterEmailAddress(emailMessage.Payload.Headers.First(h => h.Name == "From").Value);
+                var emailSentDate = emailMessage.Payload.Headers.First(h => h.Name == "Date").Value;
 
-                if (senderAddresses.Any(from.Contains))
+                if (IsEmailFromCurrentMonth(emailSentDate) && senderAddresses.Any(emailAddress.Contains))
                 {
-                    var beneficiary = user.ScanEmailDefinitions
-                        .First(x => from.Contains(x.SenderEmailAddress))
-                        .Beneficiary;
-
-                    var msgPart = email.Payload.Parts
+                    var msgPart = emailMessage.Payload.Parts
                         .First(p => !string.IsNullOrWhiteSpace(p.Filename)
                         && attachments.Any(p.Filename.ToLowerInvariant().Contains));
 
@@ -73,7 +72,7 @@ public class GmailServiceWrapper : IGmailServiceWrapper
                         RemoveLabelIds = ["UNREAD"]
                     };
 
-                    result.Add(beneficiary, Convert.FromBase64String(attachment.Data.Replace('-', '+')
+                    result.Add(emailAddress, Convert.FromBase64String(attachment.Data.Replace('-', '+')
                         .Replace('_', '/')));
 
                     _ = await service.Users.Messages.Modify(modifyMessage, "me", messageId)
@@ -83,5 +82,28 @@ public class GmailServiceWrapper : IGmailServiceWrapper
         }
 
         return result;
+    }
+
+    private static string FilterEmailAddress(string email)
+    {
+        var pattern = @"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}";
+        var match = Regex.Match(email, pattern);
+
+        return match.Value;
+    }
+
+    private static bool IsEmailFromCurrentMonth(string emailDateString)
+    {
+        try
+        {
+            var emailDate = DateTime.Parse(emailDateString, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var today = DateTime.UtcNow;
+
+            return emailDate.Year == today.Year && emailDate.Month == today.Month;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

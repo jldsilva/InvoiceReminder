@@ -17,7 +17,8 @@ public class SendMessageService : ISendMessageService
     private readonly ITelegramMessageService _telegramMessageService;
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly IUserRepository _userRepository;
-    private readonly string _thumbPrint;
+    private readonly string _certificateFilePath;
+    private readonly string _certificatePassword;
     private const string LogExceptionMessage = "{ContextualInfo} - Exception: {Message}";
 
     public SendMessageService(
@@ -29,13 +30,17 @@ public class SendMessageService : ISendMessageService
         IUserRepository userRepository,
         ILogger<SendMessageService> logger)
     {
+        var fileName = configuration.GetAppSetting("Security:CertificateFileName");
+        var filePath = configuration.GetAppSetting("Security:CertificateFilePath");
+
         _barcodeService = barcodeService;
         _gmailService = gmailService;
         _telegramMessageService = telegramMessageService;
         _invoiceRepository = invoiceRepository;
         _userRepository = userRepository;
         _logger = logger;
-        _thumbPrint = configuration.GetAppSetting("Security:CertificateThumbprint");
+        _certificateFilePath = Path.Combine(filePath, fileName);
+        _certificatePassword = configuration.GetAppSetting("Security:CertificatePassword");
     }
 
     public async Task<string> SendMessageAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -58,13 +63,23 @@ public class SendMessageService : ISendMessageService
             foreach (var attachment in attachments)
             {
                 var definitions = user.ScanEmailDefinitions?
-                    .FirstOrDefault(x => x.Beneficiary == attachment.Key);
+                    .FirstOrDefault(x => x.SenderEmailAddress == attachment.Key);
+
+                if (definitions is null)
+                {
+                    if (_logger.IsEnabled(LogLevel.Warning))
+                    {
+                        _logger.LogWarning("No ScanEmailDefinition found for attachment: {Beneficiary}", attachment.Key);
+                    }
+
+                    continue;
+                }
 
                 var filePassword = !string.IsNullOrWhiteSpace(definitions.FilePassword)
-                    ? definitions.FilePassword.X509_Decrypt(_thumbPrint)
+                    ? definitions.FilePassword.X509_Decrypt(_certificateFilePath, _certificatePassword)
                     : null;
 
-                var invoice = _barcodeService.ReadTextContentFromPdf(attachment.Value, attachment.Key,
+                var invoice = _barcodeService.ReadTextContentFromPdf(attachment.Value, definitions.Beneficiary,
                     filePassword, definitions.InvoiceType);
 
                 invoice.Id = Guid.NewGuid();

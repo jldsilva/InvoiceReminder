@@ -9,7 +9,7 @@ namespace InvoiceReminder.Authentication.Extensions;
 public static class StringHashExtension
 {
     const string CERT_NOT_FOUND = "Certificado de segurança não encontrado no servidor.";
-    const string INVALID_RSA_KEY = "O certificado não possui uma chave RSA válida.";
+    const string NO_RSA_KEY = "O certificado não possui uma chave RSA válida.";
 
     public static (string Hash, string Salt) HashPassword(this string inputString, int parallelismFactor = 2)
     {
@@ -55,38 +55,46 @@ public static class StringHashExtension
         );
     }
 
-    public static string X509_Encrypt(this string inputString, string thumbPrint)
+    public static string X509_Encrypt(this string inputString, string certFilePath, string password = null)
     {
-        using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-        store.Open(OpenFlags.ReadOnly);
+        ArgumentException.ThrowIfNullOrWhiteSpace(inputString);
+        ArgumentException.ThrowIfNullOrWhiteSpace(certFilePath);
 
-        var certs = store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false);
-        if (certs.Count == 0)
+        if (!File.Exists(certFilePath))
         {
-            throw new FileNotFoundException(CERT_NOT_FOUND);
+            throw new FileNotFoundException(CERT_NOT_FOUND, certFilePath);
         }
 
-        using var rsa = certs[0].GetRSAPrivateKey() ?? throw new InvalidDataException(INVALID_RSA_KEY);
+        using var cert = X509CertificateLoader.LoadPkcs12FromFile(certFilePath, password);
+        using var rsa = cert.GetRSAPublicKey() ?? throw new InvalidDataException(NO_RSA_KEY);
         var encryptedData = rsa.Encrypt(Encoding.UTF8.GetBytes(inputString), RSAEncryptionPadding.OaepSHA256);
 
         return Convert.ToBase64String(encryptedData);
     }
 
-    public static string X509_Decrypt(this string encryptedString, string thumbPrint)
+    public static string X509_Decrypt(this string encryptedString, string certFilePath, string password = null)
     {
-        using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-        store.Open(OpenFlags.ReadOnly);
+        ArgumentException.ThrowIfNullOrWhiteSpace(encryptedString);
+        ArgumentException.ThrowIfNullOrWhiteSpace(certFilePath);
 
-        var certs = store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false);
-        if (certs.Count == 0)
+        if (!File.Exists(certFilePath))
         {
-            throw new FileNotFoundException(CERT_NOT_FOUND);
+            throw new FileNotFoundException(CERT_NOT_FOUND, certFilePath);
         }
 
-        using var rsa = certs[0].GetRSAPrivateKey() ?? throw new InvalidDataException(INVALID_RSA_KEY);
-        var decryptedData = rsa.Decrypt(Convert.FromBase64String(encryptedString), RSAEncryptionPadding.OaepSHA256);
+        using var cert = X509CertificateLoader.LoadPkcs12FromFile(certFilePath, password);
+        using var rsa = cert.GetRSAPrivateKey() ?? throw new InvalidDataException(NO_RSA_KEY);
 
-        return Encoding.UTF8.GetString(decryptedData);
+        try
+        {
+            var decryptedData = rsa.Decrypt(Convert.FromBase64String(encryptedString), RSAEncryptionPadding.OaepSHA256);
+
+            return Encoding.UTF8.GetString(decryptedData);
+        }
+        catch (CryptographicException ex)
+        {
+            throw new CryptographicException("Falha ao descriptografar: chave incorreta ou dados corrompidos.", ex);
+        }
     }
 
     public static string ToSHA256(this string inputString)

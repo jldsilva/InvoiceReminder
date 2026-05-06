@@ -40,6 +40,7 @@ public sealed class ScanEmailDefinitionAppServiceTests
             .RuleFor(s => s.Description, faker => faker.Lorem.Sentence())
             .RuleFor(s => s.SenderEmailAddress, faker => faker.Internet.Email())
             .RuleFor(s => s.AttachmentFileName, faker => faker.System.FileName("pdf"))
+            .RuleFor(s => s.FilePassword, faker => faker.Internet.Password())
             .RuleFor(s => s.CreatedAt, faker => faker.Date.Past().ToUniversalTime())
             .RuleFor(s => s.UpdatedAt, faker => faker.Date.Recent().ToUniversalTime());
     }
@@ -227,5 +228,287 @@ public sealed class ScanEmailDefinitionAppServiceTests
             result.Value.ShouldBeNull();
             result.Error.ShouldBe("Empty Result.");
         });
+    }
+
+    [TestMethod]
+    public async Task AddAsync_WhenFilePasswordIsProvided_ShouldAttemptToEncryptPasswordBeforeSave()
+    {
+        // Arrange
+        var certificateFileName = "test_certificate.pfx";
+        var certificateFilePath = Path.Combine(Path.GetTempPath(), "nonexistent_cert_dir");
+        var certificatePassword = "test_password";
+        var plainPassword = "MySecurePassword123!@#";
+        var userId = _faker.Random.Guid();
+
+        _ = _configuration.GetAppSetting("Security:CertificateFileName").Returns(certificateFileName);
+        _ = _configuration.GetAppSetting("Security:CertificateFilePath").Returns(certificateFilePath);
+        _ = _configuration.GetAppSetting("Security:CertificatePassword").Returns(certificatePassword);
+
+        var viewModel = new ScanEmailDefinitionViewModel
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            InvoiceType = InvoiceType.AccountInvoice,
+            Beneficiary = _faker.Person.FullName,
+            Description = _faker.Lorem.Sentence(),
+            SenderEmailAddress = _faker.Internet.Email(),
+            AttachmentFileName = _faker.System.FileName("pdf"),
+            FilePassword = plainPassword
+        };
+
+        var entity = viewModel.Adapt<ScanEmailDefinition>();
+
+        _ = _repository.AddAsync(Arg.Any<ScanEmailDefinition>(), Arg.Any<CancellationToken>())
+            .Returns(entity);
+
+        _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
+
+        // Act & Assert
+        // The encryption will fail due to no certificate file in test environment,
+        // but we verify the app service attempts encryption by catching the expected exception
+        var exception = await Should.ThrowAsync<FileNotFoundException>(
+            async () => await appService.AddAsync(viewModel, TestContext.CancellationToken)
+        );
+
+        exception.Message.ShouldContain("Certificado de segurança não encontrado no servidor");
+
+        // Verify repository was not called since encryption failed
+        _ = _repository.Received(0)
+            .AddAsync(Arg.Any<ScanEmailDefinition>(), Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task AddAsync_WhenFilePasswordIsNull_ShouldNotEncryptAndSaveSuccessfully()
+    {
+        // Arrange
+        var fakeThumbPrint = "fake-thumbprint-12345";
+        var userId = _faker.Random.Guid();
+
+        _ = _configuration.GetAppSetting("Security:CertificateThumbprint").Returns(fakeThumbPrint);
+
+        var viewModel = new ScanEmailDefinitionViewModel
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            InvoiceType = InvoiceType.AccountInvoice,
+            Beneficiary = _faker.Person.FullName,
+            Description = _faker.Lorem.Sentence(),
+            SenderEmailAddress = _faker.Internet.Email(),
+            AttachmentFileName = _faker.System.FileName("pdf"),
+            FilePassword = null
+        };
+
+        var entity = viewModel.Adapt<ScanEmailDefinition>();
+
+        _ = _repository.AddAsync(Arg.Any<ScanEmailDefinition>(), Arg.Any<CancellationToken>())
+            .Returns(entity);
+
+        _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
+
+        // Act
+        var result = await appService.AddAsync(viewModel, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeTrue();
+            _ = result.ShouldNotBeNull();
+            _ = result.Value.ShouldNotBeNull();
+        });
+
+        _ = _repository.Received(1)
+            .AddAsync(Arg.Is<ScanEmailDefinition>(s => string.IsNullOrWhiteSpace(s.FilePassword)),
+            Arg.Any<CancellationToken>());
+
+        _ = _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task AddAsync_WhenFilePasswordIsEmptyString_ShouldNotEncryptAndSaveSuccessfully()
+    {
+        // Arrange
+        var fakeThumbPrint = "fake-thumbprint-12345";
+        var userId = _faker.Random.Guid();
+
+        _ = _configuration.GetAppSetting("Security:CertificateThumbprint").Returns(fakeThumbPrint);
+
+        var viewModel = new ScanEmailDefinitionViewModel
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            InvoiceType = InvoiceType.AccountInvoice,
+            Beneficiary = _faker.Person.FullName,
+            Description = _faker.Lorem.Sentence(),
+            SenderEmailAddress = _faker.Internet.Email(),
+            AttachmentFileName = _faker.System.FileName("pdf"),
+            FilePassword = string.Empty
+        };
+
+        var entity = viewModel.Adapt<ScanEmailDefinition>();
+
+        _ = _repository.AddAsync(Arg.Any<ScanEmailDefinition>(), Arg.Any<CancellationToken>())
+            .Returns(entity);
+
+        _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
+
+        // Act
+        var result = await appService.AddAsync(viewModel, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeTrue();
+            _ = result.ShouldNotBeNull();
+            _ = result.Value.ShouldNotBeNull();
+        });
+
+        _ = _repository.Received(1)
+            .AddAsync(Arg.Is<ScanEmailDefinition>(s => string.IsNullOrWhiteSpace(s.FilePassword)),
+            Arg.Any<CancellationToken>());
+
+        _ = _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task UpdateAsync_WhenFilePasswordIsProvided_ShouldAttemptToEncryptPasswordBeforeSave()
+    {
+        // Arrange
+        var certificateFileName = "test_certificate.pfx";
+        var certificateFilePath = Path.Combine(Path.GetTempPath(), "nonexistent_cert_dir");
+        var certificatePassword = "test_password";
+        var plainPassword = "UpdatedSecurePassword456!@#";
+        var userId = _faker.Random.Guid();
+
+        _ = _configuration.GetAppSetting("Security:CertificateFileName").Returns(certificateFileName);
+        _ = _configuration.GetAppSetting("Security:CertificateFilePath").Returns(certificateFilePath);
+        _ = _configuration.GetAppSetting("Security:CertificatePassword").Returns(certificatePassword);
+
+        var viewModel = new ScanEmailDefinitionViewModel
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            InvoiceType = InvoiceType.AccountInvoice,
+            Beneficiary = _faker.Person.FullName,
+            Description = _faker.Lorem.Sentence(),
+            SenderEmailAddress = _faker.Internet.Email(),
+            AttachmentFileName = _faker.System.FileName("pdf"),
+            FilePassword = plainPassword
+        };
+
+        var entity = viewModel.Adapt<ScanEmailDefinition>();
+
+        _ = _repository.Update(Arg.Any<ScanEmailDefinition>()).Returns(entity);
+        _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
+
+        // Act & Assert
+        // The encryption will fail due to no certificate file in test environment,
+        // but we verify the app service attempts encryption by catching the expected exception
+        var exception = await Should.ThrowAsync<FileNotFoundException>(
+            async () => await appService.UpdateAsync(viewModel, TestContext.CancellationToken)
+        );
+
+        exception.Message.ShouldContain("Certificado de segurança não encontrado no servidor");
+
+        // Verify repository was not called since encryption failed
+        _ = _repository.Received(0)
+            .Update(Arg.Any<ScanEmailDefinition>());
+    }
+
+    [TestMethod]
+    public async Task UpdateAsync_WhenFilePasswordIsNull_ShouldNotEncryptAndSaveSuccessfully()
+    {
+        // Arrange
+        var fakeThumbPrint = "fake-thumbprint-12345";
+        var userId = _faker.Random.Guid();
+
+        _ = _configuration.GetAppSetting("Security:CertificateThumbprint").Returns(fakeThumbPrint);
+
+        var viewModel = new ScanEmailDefinitionViewModel
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            InvoiceType = InvoiceType.AccountInvoice,
+            Beneficiary = _faker.Person.FullName,
+            Description = _faker.Lorem.Sentence(),
+            SenderEmailAddress = _faker.Internet.Email(),
+            AttachmentFileName = _faker.System.FileName("pdf"),
+            FilePassword = null
+        };
+
+        var entity = viewModel.Adapt<ScanEmailDefinition>();
+
+        _ = _repository.Update(Arg.Any<ScanEmailDefinition>()).Returns(entity);
+        _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
+
+        // Act
+        var result = await appService.UpdateAsync(viewModel, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeTrue();
+            _ = result.ShouldNotBeNull();
+            _ = result.Value.ShouldNotBeNull();
+        });
+
+        _ = _repository.Received(1)
+            .Update(Arg.Is<ScanEmailDefinition>(s => string.IsNullOrWhiteSpace(s.FilePassword)));
+
+        _ = _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task UpdateAsync_WhenFilePasswordIsEmptyString_ShouldNotEncryptAndSaveSuccessfully()
+    {
+        // Arrange
+        var fakeThumbPrint = "fake-thumbprint-12345";
+        var userId = _faker.Random.Guid();
+
+        _ = _configuration.GetAppSetting("Security:CertificateThumbprint").Returns(fakeThumbPrint);
+
+        var viewModel = new ScanEmailDefinitionViewModel
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            InvoiceType = InvoiceType.AccountInvoice,
+            Beneficiary = _faker.Person.FullName,
+            Description = _faker.Lorem.Sentence(),
+            SenderEmailAddress = _faker.Internet.Email(),
+            AttachmentFileName = _faker.System.FileName("pdf"),
+            FilePassword = string.Empty
+        };
+
+        var entity = viewModel.Adapt<ScanEmailDefinition>();
+
+        _ = _repository.Update(Arg.Any<ScanEmailDefinition>()).Returns(entity);
+        _ = _unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+        var appService = new ScanEmailDefinitionAppService(_configuration, _repository, _unitOfWork);
+
+        // Act
+        var result = await appService.UpdateAsync(viewModel, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldSatisfyAllConditions(() =>
+        {
+            result.IsSuccess.ShouldBeTrue();
+            _ = result.ShouldNotBeNull();
+            _ = result.Value.ShouldNotBeNull();
+        });
+
+        _ = _repository.Received(1)
+            .Update(Arg.Is<ScanEmailDefinition>(s => string.IsNullOrWhiteSpace(s.FilePassword)));
+
+        _ = _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

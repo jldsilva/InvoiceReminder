@@ -200,8 +200,8 @@ namespace InvoiceReminder.Data.Migrations
                         .HasColumnName("sender_email_address");
 
                     b.Property<string>("FilePassword")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
                         .HasColumnName("file_password");
 
                     b.Property<DateTime>("UpdatedAt")
