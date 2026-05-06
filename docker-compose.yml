@@ -40,7 +40,7 @@ services:
     command: >
       http api:8080
       --authtoken=${NGROK_AUTHTOKEN}
-      --domain=${NGROK_DOMAIN}
+      --url=${NGROK_URL}
     env_file:
       - .env
     depends_on:

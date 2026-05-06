@@ -12,7 +12,8 @@ namespace InvoiceReminder.Application.AppServices;
 public class ScanEmailDefinitionAppService : BaseAppService<ScanEmailDefinition, ScanEmailDefinitionViewModel>,
     IScanEmailDefinitionAppService
 {
-    private readonly string _thumbPrint;
+    private readonly string _certificateFilePath;
+    private readonly string _certificatePassword;
     private readonly IScanEmailDefinitionRepository _repository;
 
     public ScanEmailDefinitionAppService(
@@ -20,8 +21,12 @@ public class ScanEmailDefinitionAppService : BaseAppService<ScanEmailDefinition,
         IScanEmailDefinitionRepository repository,
         IUnitOfWork unitOfWork) : base(repository, unitOfWork)
     {
+        var fileName = configuration.GetAppSetting("Security:CertificateFileName");
+        var filePath = configuration.GetAppSetting("Security:CertificateFilePath");
+
         _repository = repository;
-        _thumbPrint = configuration.GetAppSetting("Security:CertificateThumbprint");
+        _certificateFilePath = Path.Combine(filePath, fileName);
+        _certificatePassword = configuration.GetAppSetting("Security:CertificatePassword");
     }
 
     public override async Task<Result<ScanEmailDefinitionViewModel>> AddAsync(
@@ -35,7 +40,7 @@ public class ScanEmailDefinitionAppService : BaseAppService<ScanEmailDefinition,
 
         if (!string.IsNullOrWhiteSpace(viewModel.FilePassword))
         {
-            viewModel.FilePassword = viewModel.FilePassword.X509_Encrypt(_thumbPrint);
+            viewModel.FilePassword = viewModel.FilePassword.X509_Encrypt(_certificateFilePath, _certificatePassword);
         }
 
         return await base.AddAsync(viewModel, cancellationToken);
@@ -52,7 +57,7 @@ public class ScanEmailDefinitionAppService : BaseAppService<ScanEmailDefinition,
 
         if (!string.IsNullOrWhiteSpace(viewModel.FilePassword))
         {
-            viewModel.FilePassword = viewModel.FilePassword.X509_Encrypt(_thumbPrint);
+            viewModel.FilePassword = viewModel.FilePassword.X509_Encrypt(_certificateFilePath, _certificatePassword);
         }
 
         return await base.UpdateAsync(viewModel, cancellationToken);

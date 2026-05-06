@@ -11,6 +11,9 @@ public sealed class StringHashExtensionTests
     private readonly string _expected256Hash;
     private readonly string _expected512Hash;
     private readonly string _expectedMD5Hash;
+    private readonly string _invalidCertFilePath;
+    private readonly string _validCertFilePath;
+    private readonly string _validBase64String;
 
     public StringHashExtensionTests()
     {
@@ -18,6 +21,21 @@ public sealed class StringHashExtensionTests
         _expectedMD5Hash = "5B56F40F8828701F97FA4511DDCD25FB";
         _expected256Hash = "6DD79F2770A0BB38073B814A5FF000647B37BE5ABBDE71EC9176C6CE0CB32A27";
         _expected512Hash = "69DFD91314578F7F329939A7EA6BE4497E6FE3909B9C8F308FE711D29D4340D90D77B7FDF359B7D0DBEED940665274F7CA514CD067895FDF59DE0CF142B62336";
+        _invalidCertFilePath = Path.Combine(Path.GetTempPath(), "invalid_cert_12345.pfx");
+        _validCertFilePath = Path.Combine(Path.GetTempPath(), "valid_cert_placeholder.pfx");
+        _validBase64String = "QmFzZTY0RW5jb2RlZFN0cmluZw==";
+    }
+
+    private static void AssertCertificateNotFoundError(Action action)
+    {
+        var exception = Should.Throw<FileNotFoundException>(action);
+        exception.Message.ShouldBe("Certificado de segurança não encontrado no servidor.");
+    }
+
+    private static void AssertCertificateNotFoundErrorWithContains(Action action)
+    {
+        var exception = Should.Throw<FileNotFoundException>(action);
+        exception.Message.ShouldContain("Certificado");
     }
 
     #region ToSHA256 Tests
@@ -396,42 +414,29 @@ public sealed class StringHashExtensionTests
     #region X509_Encrypt Tests
 
     [TestMethod]
-    public void X509_Encrypt_WithInvalidThumbPrint_ShouldThrowFileNotFoundException()
+    public void X509_Encrypt_WithInvalidCertFilePath_ShouldThrowFileNotFoundException()
     {
-        // Arrange
-        var input = "TestString";
-        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-
         // Act & Assert
-        var exception = Should.Throw<FileNotFoundException>(() => input.X509_Encrypt(invalidThumbPrint));
-        exception.Message.ShouldContain("Certificado");
+        AssertCertificateNotFoundErrorWithContains(() => _testString.X509_Encrypt(_invalidCertFilePath));
     }
 
     [TestMethod]
-    public void X509_Encrypt_WithNullInput_ShouldThrowFileNotFoundExceptionBeforeCrashing()
+    public void X509_Encrypt_WithNullInput_ShouldThrowArgumentException()
     {
-        // Arrange
-        var thumbPrint = "0000000000000000000000000000000000000000";
-
         // Act & Assert
-        // The method will throw FileNotFoundException when certificate is not found
-        // before it can process the null input
-        _ = Should.Throw<FileNotFoundException>(() => ((string)null!).X509_Encrypt(thumbPrint));
+        var exception = Should.Throw<ArgumentException>(() => ((string)null!).X509_Encrypt(_validCertFilePath));
+        exception.ParamName.ShouldBe("inputString");
     }
 
     [TestMethod]
     [DataRow("")]
     [DataRow(" ")]
     [DataRow("\t")]
-    public void X509_Encrypt_WithEmptyOrWhitespaceInput_ShouldThrowFileNotFoundExceptionWhenNoCertificate(string input)
+    public void X509_Encrypt_WithEmptyOrWhitespaceInput_ShouldThrowArgumentException(string input)
     {
-        // Arrange
-        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-
         // Act & Assert
-        // The method will throw FileNotFoundException when certificate is not found
-        // The input validation does not happen before certificate lookup
-        _ = Should.Throw<FileNotFoundException>(() => input.X509_Encrypt(invalidThumbPrint));
+        var exception = Should.Throw<ArgumentException>(() => input.X509_Encrypt(_invalidCertFilePath));
+        exception.ParamName.ShouldBe("inputString");
     }
 
     [TestMethod]
@@ -441,25 +446,34 @@ public sealed class StringHashExtensionTests
     [DataRow("VeryLongStringForEncryption1234567890!@#$%^&*()_+-=[]{}|;:,.<>?")]
     public void X509_Encrypt_WithVariousValidInputs_ShouldThrowFileNotFoundWhenNoCertificate(string input)
     {
-        // Arrange
-        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-
         // Act & Assert
-        var exception = Should.Throw<FileNotFoundException>(() => input.X509_Encrypt(invalidThumbPrint));
-        exception.Message.ShouldContain("Certificado");
+        AssertCertificateNotFoundErrorWithContains(() => input.X509_Encrypt(_invalidCertFilePath));
     }
 
     [TestMethod]
-    public void X509_Encrypt_CertificateValidation_ShouldOccurBeforeEncryption()
+    public void X509_Encrypt_CertificateValidation_ShouldOccurAfterInputValidation()
     {
-        // Arrange
-        var input = "TestString";
-        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-
         // Act & Assert
-        // Demonstrates that certificate validation happens first
-        var exception = Should.Throw<FileNotFoundException>(() => input.X509_Encrypt(invalidThumbPrint));
-        exception.Message.ShouldBe("Certificado de segurança não encontrado no servidor.");
+        // Input validation happens first, certificate file validation is second step
+        AssertCertificateNotFoundError(() => _testString.X509_Encrypt(_invalidCertFilePath));
+    }
+
+    [TestMethod]
+    public void X509_Encrypt_WithNullCertFilePath_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var exception = Should.Throw<ArgumentException>(() => _testString.X509_Encrypt(null!));
+        exception.ParamName.ShouldBe("certFilePath");
+    }
+
+    [TestMethod]
+    [DataRow("")]
+    [DataRow(" ")]
+    public void X509_Encrypt_WithEmptyCertFilePath_ShouldThrowArgumentException(string certFilePath)
+    {
+        // Act & Assert
+        var exception = Should.Throw<ArgumentException>(() => _testString.X509_Encrypt(certFilePath));
+        exception.ParamName.ShouldBe("certFilePath");
     }
 
     #endregion
@@ -467,93 +481,85 @@ public sealed class StringHashExtensionTests
     #region X509_Decrypt Tests
 
     [TestMethod]
-    public void X509_Decrypt_WithInvalidThumbPrint_ShouldThrowFileNotFoundException()
+    public void X509_Decrypt_WithInvalidCertFilePath_ShouldThrowFileNotFoundException()
     {
-        // Arrange
-        var encryptedInput = "QmFzZTY0RW5jb2RlZFN0cmluZw==";
-        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-
         // Act & Assert
-        var exception = Should.Throw<FileNotFoundException>(() => encryptedInput.X509_Decrypt(invalidThumbPrint));
-        exception.Message.ShouldContain("Certificado");
+        AssertCertificateNotFoundErrorWithContains(() => _validBase64String.X509_Decrypt(_invalidCertFilePath));
     }
 
     [TestMethod]
-    public void X509_Decrypt_WithValidBase64ButInvalidThumbPrint_ShouldThrowFileNotFoundException()
+    public void X509_Decrypt_WithValidBase64ButInvalidCertFilePath_ShouldThrowFileNotFoundException()
     {
         // Arrange
-        var validBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("TestString"));
-        var invalidThumbPrint = "0000000000000000000000000000000000000000";
+        var validBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(_testString));
 
         // Act & Assert
-        var exception = Should.Throw<FileNotFoundException>(() => validBase64.X509_Decrypt(invalidThumbPrint));
-        exception.Message.ShouldContain("Certificado");
+        AssertCertificateNotFoundErrorWithContains(() => validBase64.X509_Decrypt(_validCertFilePath));
     }
 
     [TestMethod]
-    public void X509_Decrypt_WithNullInput_ShouldThrowFileNotFoundExceptionBeforeCrashing()
+    public void X509_Decrypt_WithNullInput_ShouldThrowArgumentException()
     {
-        // Arrange
-        var thumbPrint = "0000000000000000000000000000000000000000";
-
         // Act & Assert
-        // The method will throw FileNotFoundException when certificate is not found
-        // before it can process the null input
-        _ = Should.Throw<FileNotFoundException>(() => ((string)null!).X509_Decrypt(thumbPrint));
+        var exception = Should.Throw<ArgumentException>(() => ((string)null!).X509_Decrypt(_validCertFilePath));
+        exception.ParamName.ShouldBe("encryptedString");
     }
 
     [TestMethod]
     [DataRow("")]
     [DataRow(" ")]
     [DataRow("\t")]
-    public void X509_Decrypt_WithEmptyOrWhitespaceInput_ShouldThrowFileNotFoundExceptionWhenNoCertificate(string input)
+    public void X509_Decrypt_WithEmptyOrWhitespaceInput_ShouldThrowArgumentException(string input)
     {
-        // Arrange
-        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-
         // Act & Assert
-        // The method will throw FileNotFoundException when certificate is not found
-        // The input validation does not happen before certificate lookup
-        _ = Should.Throw<FileNotFoundException>(() => input.X509_Decrypt(invalidThumbPrint));
+        var exception = Should.Throw<ArgumentException>(() => input.X509_Decrypt(_invalidCertFilePath));
+        exception.ParamName.ShouldBe("encryptedString");
     }
 
     [TestMethod]
     [DataRow("QmFzZTY0")]
     [DataRow("VmFsaWRCYXNlNjRFbmNvZGVkU3RyaW5n")]
     [DataRow("QmFzZTY0RW5jb2RlZFN0cmluZ3dpdGhSYW5kb21EYXRh")]
-    public void X509_Decrypt_WithValidBase64ButWrongCertificate_ShouldThrowFileNotFoundException(string encryptedInput)
+    public void X509_Decrypt_WithValidBase64ButMissingCertificate_ShouldThrowFileNotFoundException(string encryptedInput)
     {
-        // Arrange
-        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-
         // Act & Assert
-        _ = Should.Throw<FileNotFoundException>(() => encryptedInput.X509_Decrypt(invalidThumbPrint));
+        _ = Should.Throw<FileNotFoundException>(() => encryptedInput.X509_Decrypt(_invalidCertFilePath));
     }
 
     [TestMethod]
     [DataRow("InvalidBase64!@#$")]
     [DataRow("NotValidBase64WithSpecialChars@#$%")]
-    public void X509_Decrypt_WithInvalidBase64Input_ShouldThrowFileNotFoundExceptionFirst(string encryptedInput)
+    public void X509_Decrypt_WithInvalidBase64Input_ShouldThrowFileNotFoundWhenCertificateMissing(string encryptedInput)
     {
-        // Arrange
-        var invalidThumbPrint = "0000000000000000000000000000000000000000";
-
         // Act & Assert
-        // Certificate lookup happens before Base64 decoding, so FileNotFoundException is thrown first
-        _ = Should.Throw<FileNotFoundException>(() => encryptedInput.X509_Decrypt(invalidThumbPrint));
+        // Input validation passes, but certificate file lookup will fail first
+        _ = Should.Throw<FileNotFoundException>(() => encryptedInput.X509_Decrypt(_invalidCertFilePath));
     }
 
     [TestMethod]
-    public void X509_Decrypt_CertificateValidation_ShouldOccurBeforeDecryption()
+    public void X509_Decrypt_CertificateValidation_ShouldOccurAfterInputValidation()
     {
-        // Arrange
-        var encryptedInput = "QmFzZTY0RW5jb2RlZFN0cmluZw==";
-        var invalidThumbPrint = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-
         // Act & Assert
-        // Demonstrates that certificate validation happens first
-        var exception = Should.Throw<FileNotFoundException>(() => encryptedInput.X509_Decrypt(invalidThumbPrint));
-        exception.Message.ShouldBe("Certificado de segurança não encontrado no servidor.");
+        // Input validation happens first, certificate file validation is second step
+        AssertCertificateNotFoundError(() => _validBase64String.X509_Decrypt(_invalidCertFilePath));
+    }
+
+    [TestMethod]
+    public void X509_Decrypt_WithNullCertFilePath_ShouldThrowArgumentException()
+    {
+        // Act & Assert
+        var exception = Should.Throw<ArgumentException>(() => _validBase64String.X509_Decrypt(null!));
+        exception.ParamName.ShouldBe("certFilePath");
+    }
+
+    [TestMethod]
+    [DataRow("")]
+    [DataRow(" ")]
+    public void X509_Decrypt_WithEmptyCertFilePath_ShouldThrowArgumentException(string certFilePath)
+    {
+        // Act & Assert
+        var exception = Should.Throw<ArgumentException>(() => _validBase64String.X509_Decrypt(certFilePath));
+        exception.ParamName.ShouldBe("certFilePath");
     }
 
     #endregion

@@ -90,6 +90,7 @@ public sealed class SendMessageServiceTests
             .RuleFor(s => s.Description, faker => faker.Lorem.Sentence())
             .RuleFor(s => s.SenderEmailAddress, faker => faker.Internet.Email())
             .RuleFor(s => s.AttachmentFileName, faker => faker.System.FileName())
+            .RuleFor(s => s.FilePassword, faker => null)
             .RuleFor(s => s.CreatedAt, faker => faker.Date.PastOffset().DateTime)
             .RuleFor(s => s.UpdatedAt, faker => faker.Date.RecentOffset().DateTime);
 
@@ -121,7 +122,10 @@ public sealed class SendMessageServiceTests
             .Generate();
 
         var invoice = _invoiceFaker.Generate();
-        var attachments = new Dictionary<string, byte[]> { { scanEmailDefinition.Beneficiary, Array.Empty<byte>() } };
+        var attachments = new Dictionary<string, byte[]>
+        {
+            { scanEmailDefinition.SenderEmailAddress, Array.Empty<byte>() }
+        };
 
         _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(user));
@@ -129,18 +133,28 @@ public sealed class SendMessageServiceTests
         _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
 
-        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
+        _ = _barcodeReader
+            .ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(invoice);
 
         // Act
         var result = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
 
         // Assert
-        _ = _userRepository.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
-        _ = _gmailService.Received(1).GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
-        _ = _barcodeReader.Received(1).ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
-        _ = _telegramMessageService.Received(1).SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
-        _ = _invoiceRepository.Received(1).BulkInsertAsync(Arg.Any<ICollection<Invoice>>(), Arg.Any<CancellationToken>());
+        _ = _userRepository.Received(1)
+            .GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+
+        _ = _gmailService.Received(1)
+            .GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
+
+        _ = _barcodeReader.Received(1)
+            .ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
+
+        _ = _telegramMessageService.Received(1)
+            .SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+        _ = _invoiceRepository.Received(1)
+            .BulkInsertAsync(Arg.Any<ICollection<Invoice>>(), Arg.Any<CancellationToken>());
 
         result.ShouldSatisfyAllConditions(result =>
         {
@@ -169,8 +183,8 @@ public sealed class SendMessageServiceTests
 
         var attachments = new Dictionary<string, byte[]>
         {
-            { scanEmailDefinition1.Beneficiary, Array.Empty<byte>() },
-            { scanEmailDefinition2.Beneficiary, Array.Empty<byte>() }
+            { scanEmailDefinition1.SenderEmailAddress, Array.Empty<byte>() },
+            { scanEmailDefinition2.SenderEmailAddress, Array.Empty<byte>() }
         };
 
         _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
@@ -179,18 +193,23 @@ public sealed class SendMessageServiceTests
         _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
 
-        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), scanEmailDefinition1.Beneficiary, Arg.Any<string>(), Arg.Any<InvoiceType>())
+        _ = _barcodeReader
+            .ReadTextContentFromPdf(Arg.Any<byte[]>(), scanEmailDefinition1.Beneficiary, Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(invoice1);
 
-        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), scanEmailDefinition2.Beneficiary, Arg.Any<string>(), Arg.Any<InvoiceType>())
+        _ = _barcodeReader
+            .ReadTextContentFromPdf(Arg.Any<byte[]>(), scanEmailDefinition2.Beneficiary, Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(invoice2);
 
         // Act
         var result = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
 
         // Assert
-        _ = _barcodeReader.Received(2).ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
-        _ = _telegramMessageService.Received(2).SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        _ = _barcodeReader.Received(2)
+            .ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
+
+        _ = _telegramMessageService.Received(2)
+            .SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         result.ShouldBe($"Total messages sent: {attachments.Count}");
     }
@@ -218,8 +237,11 @@ public sealed class SendMessageServiceTests
         var result = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
 
         // Assert
-        _ = _barcodeReader.DidNotReceive().ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
-        _ = _telegramMessageService.DidNotReceive().SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        _ = _barcodeReader.DidNotReceive()
+            .ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
+
+        _ = _telegramMessageService.DidNotReceive()
+            .SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         result.ShouldBe("Total messages sent: 0");
     }
@@ -237,7 +259,10 @@ public sealed class SendMessageServiceTests
             .Generate();
 
         var generatedInvoice = _invoiceFaker.Generate();
-        var attachments = new Dictionary<string, byte[]> { { scanEmailDefinition.Beneficiary, Array.Empty<byte>() } };
+        var attachments = new Dictionary<string, byte[]>
+        {
+            { scanEmailDefinition.SenderEmailAddress, Array.Empty<byte>() }
+        };
 
         _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(user));
@@ -245,7 +270,8 @@ public sealed class SendMessageServiceTests
         _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
 
-        _ = _barcodeReader.ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
+        _ = _barcodeReader
+            .ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>())
             .Returns(generatedInvoice);
 
         // Act
@@ -257,8 +283,144 @@ public sealed class SendMessageServiceTests
                 invoices.Count == 1 &&
                 invoices.First().UserId == user.Id &&
                 invoices.First().Bank == generatedInvoice.Bank &&
-                invoices.First().Beneficiary == generatedInvoice.Beneficiary),
+                invoices.First().Beneficiary == generatedInvoice.Beneficiary &&
+                invoices.First().Id != Guid.Empty),
             Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task SendMessage_With_EmptyFilePassword_Should_Pass_Null_To_BarcodeReader()
+    {
+        // Arrange
+        // This test validates that when FilePassword is null or empty, null is passed to BarcodeReader
+        var authToken = _emailAuthTokenFaker.Generate();
+        var scanEmailDefinition = _scanEmailDefinitionFaker
+            .Clone()
+            .RuleFor(s => s.FilePassword, (Faker faker) => null)
+            .Generate();
+
+        var user = _userFaker
+            .Clone()
+            .RuleFor(u => u.EmailAuthTokens, new HashSet<EmailAuthToken> { authToken })
+            .RuleFor(u => u.ScanEmailDefinitions, new HashSet<ScanEmailDefinition> { scanEmailDefinition })
+            .Generate();
+
+        var generatedInvoice = _invoiceFaker.Generate();
+        var attachments = new Dictionary<string, byte[]>
+        {
+            { scanEmailDefinition.SenderEmailAddress, Array.Empty<byte>() }
+        };
+
+        _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(user));
+
+        _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
+
+        var definitions = user.ScanEmailDefinitions.First();
+
+        _ = _barcodeReader.ReadTextContentFromPdf(
+            Arg.Any<byte[]>(),
+            scanEmailDefinition.Beneficiary,
+            Arg.Is<string>(p => p == null),
+            definitions.InvoiceType)
+            .Returns(generatedInvoice);
+
+        // Act
+        var result = await _sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken);
+
+        // Assert
+        result.ShouldBe($"Total messages sent: {attachments.Count}");
+
+        // Verify barcodeReader was called with null password parameter
+        _ = _barcodeReader.Received(1).ReadTextContentFromPdf(
+            Arg.Any<byte[]>(),
+            scanEmailDefinition.Beneficiary,
+            Arg.Is<string>(p => p == null),
+            definitions.InvoiceType);
+
+        _ = _invoiceRepository.Received(1).BulkInsertAsync(
+            Arg.Any<ICollection<Invoice>>(),
+            Arg.Any<CancellationToken>());
+
+        _ = _telegramMessageService.Received(1).SendMessageAsync(
+            Arg.Any<long>(),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task SendMessage_With_NonEmptyFilePassword_Should_Attempt_Decryption()
+    {
+        // Arrange
+        // This test validates that when FilePassword is non-empty, the X509_Decrypt path is attempted
+        // With an invalid certificate file path, the decryption will fail as expected
+        var authToken = _emailAuthTokenFaker.Generate();
+        var scanEmailDefinition = _scanEmailDefinitionFaker
+            .Clone()
+            .RuleFor(s => s.FilePassword, faker => "EncryptedPasswordValue")
+            .Generate();
+
+        var user = _userFaker
+            .Clone()
+            .RuleFor(u => u.EmailAuthTokens, new HashSet<EmailAuthToken> { authToken })
+            .RuleFor(u => u.ScanEmailDefinitions, new HashSet<ScanEmailDefinition> { scanEmailDefinition })
+            .Generate();
+
+        var attachments = new Dictionary<string, byte[]> { { scanEmailDefinition.SenderEmailAddress, Array.Empty<byte>() } };
+
+        // Mock configuration to return an invalid/nonexistent certificate file path
+        var invalidCertPath = Path.Combine(Path.GetTempPath(), "nonexistent_certificate_12345.pfx");
+        var configurationMock = Substitute.For<IConfigurationService>();
+        _ = configurationMock.GetAppSetting("Security:CertificateFilePath").Returns(invalidCertPath);
+        _ = configurationMock.GetAppSetting("Security:CertificatePassword").Returns((string)null);
+
+        // Create a new service with the mocked configuration
+        var sendMessageService = new SendMessageService(
+            _barcodeReader,
+            configurationMock,
+            _gmailService,
+            _telegramMessageService,
+            _invoiceRepository,
+            _userRepository,
+            _logger
+        );
+
+        _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(user));
+
+        _ = _gmailService.GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IDictionary<string, byte[]>>(attachments));
+
+        _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
+        // Act & Assert
+        // The X509_Decrypt will fail because the certificate file doesn't exist
+        var exception = await Should.ThrowAsync<InvalidOperationException>(async () =>
+            await sendMessageService.SendMessageAsync(user.Id, TestContext.CancellationToken)
+        );
+
+        exception.Message.ShouldContain("Error occurred while sending messages");
+
+        // Verify error was logged (FileNotFoundException from missing certificate file)
+        _logger.Received(1).Log(
+            LogLevel.Error,
+            Arg.Any<EventId>(),
+            Arg.Any<object>(),
+            Arg.Is<Exception>(ex =>
+                (ex is FileNotFoundException && ex.Message.Contains("Certificado")) ||
+                (ex.InnerException is FileNotFoundException &&
+                 ex.InnerException.Message.Contains("Certificado"))
+            ),
+            Arg.Any<Func<object, Exception, string>>()
+        );
+
+        // BarcodeReader should not be called because decryption failed first
+        _ = _barcodeReader.DidNotReceive().ReadTextContentFromPdf(
+            Arg.Any<byte[]>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<InvoiceType>());
     }
 
     #endregion
@@ -282,9 +444,14 @@ public sealed class SendMessageServiceTests
         // Assert
         result.ShouldBe("User not found!");
 
-        _ = _gmailService.DidNotReceive().GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
-        _ = _barcodeReader.DidNotReceive().ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
-        _ = _telegramMessageService.DidNotReceive().SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        _ = _gmailService.DidNotReceive()
+            .GetAttachmentsAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
+
+        _ = _barcodeReader.DidNotReceive()
+            .ReadTextContentFromPdf(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<InvoiceType>());
+
+        _ = _telegramMessageService.DidNotReceive()
+            .SendMessageAsync(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         _logger.Received(1).Log(
             LogLevel.Warning,
@@ -399,7 +566,7 @@ public sealed class SendMessageServiceTests
             .RuleFor(u => u.ScanEmailDefinitions, new HashSet<ScanEmailDefinition> { scanEmailDefinition })
             .Generate();
 
-        var attachments = new Dictionary<string, byte[]> { { scanEmailDefinition.Beneficiary, Array.Empty<byte>() } };
+        var attachments = new Dictionary<string, byte[]> { { scanEmailDefinition.SenderEmailAddress, Array.Empty<byte>() } };
 
         _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(user));
@@ -467,7 +634,7 @@ public sealed class SendMessageServiceTests
             .Generate();
 
         var invoice = _invoiceFaker.Generate();
-        var attachments = new Dictionary<string, byte[]> { { scanEmailDefinition.Beneficiary, Array.Empty<byte>() } };
+        var attachments = new Dictionary<string, byte[]> { { scanEmailDefinition.SenderEmailAddress, Array.Empty<byte>() } };
 
         _ = _userRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(user));

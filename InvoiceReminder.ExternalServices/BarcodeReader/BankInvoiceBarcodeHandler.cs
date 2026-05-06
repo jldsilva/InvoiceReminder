@@ -1,4 +1,5 @@
 using InvoiceReminder.Domain.Entities;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace InvoiceReminder.ExternalServices.BarcodeReader;
@@ -27,10 +28,13 @@ public class BankInvoiceBarcodeHandler : IInvoiceBarcodeHandler
         ArgumentException.ThrowIfNullOrWhiteSpace(content);
 
         var (bankId, barcode) = FilterContent(content);
+        var bankCode = int.Parse(bankId[..3], CultureInfo.InvariantCulture);
 
         return new Invoice
         {
-            Bank = $"[{bankId}] - {knowBanks[int.Parse(bankId[..3])]}",
+            Bank = knowBanks.TryGetValue(bankCode, out var bankName)
+                ? $"[{bankId}] - {bankName}"
+                : $"[{bankId}]",
             Beneficiary = beneficiary,
             Amount = GetPaymentValue(barcode),
             Barcode = barcode,
@@ -40,13 +44,19 @@ public class BankInvoiceBarcodeHandler : IInvoiceBarcodeHandler
 
     private static (string, string) FilterContent(string content)
     {
+        var rawPattern = @"(\d{3}-\d)\s(\d+\.\d{5})\s(\d+\.\d{6})\s(\d+\.\d{6})\s(\d)\s(\d+)";
+        var rawMatch = Regex.Match(content, rawPattern);
+        var rawValue = rawMatch.Value;
+
         var bankIdPattern = @"(\d{3}-\d)";
-        var bankIdMatch = Regex.Match(content, bankIdPattern);
+        var bankIdMatch = Regex.Match(rawValue, bankIdPattern);
 
         var barcodePattern = @"(\d+\.\d{5})\s(\d+\.\d{6})\s(\d+\.\d{6})\s(\d)\s(\d+)";
-        var barcodeMatch = Regex.Match(content, barcodePattern);
+        var barcodeMatch = Regex.Match(rawValue, barcodePattern);
 
-        return (bankIdMatch.Groups[0].Value, barcodeMatch.Groups[0].Value);
+        return bankIdMatch.Success && barcodeMatch.Success
+            ? (bankIdMatch.Value, barcodeMatch.Value)
+            : throw new FormatException("Não foi possível identificar o banco e a linha digitável no mesmo trecho.");
     }
 
     private static DateTime GetPaymentDueDate(string content)
@@ -63,6 +73,6 @@ public class BankInvoiceBarcodeHandler : IInvoiceBarcodeHandler
         var value = content.Replace(".", "").Replace(" ", "");
         var valorStr = value.Substring(37, 10);
 
-        return Convert.ToDecimal(valorStr) / 100;
+        return Convert.ToDecimal(valorStr, CultureInfo.InvariantCulture) / 100;
     }
 }
