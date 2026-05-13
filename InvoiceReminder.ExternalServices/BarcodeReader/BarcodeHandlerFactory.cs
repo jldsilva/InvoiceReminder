@@ -8,6 +8,18 @@ public class BarcodeHandlerFactory : IBarcodeHandlerFactory
 
     public BarcodeHandlerFactory(IEnumerable<IInvoiceBarcodeHandler> handlers)
     {
+        var duplicatedTypes = handlers
+            .GroupBy(h => h.InvoiceType)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToArray();
+
+        if (duplicatedTypes.Length > 0)
+        {
+            throw new InvalidOperationException(
+                $"Duplicate barcode handlers registered for: {string.Join(", ", duplicatedTypes)}");
+        }
+
         _handlers = handlers.ToDictionary(h => h.InvoiceType, h => h);
     }
 
