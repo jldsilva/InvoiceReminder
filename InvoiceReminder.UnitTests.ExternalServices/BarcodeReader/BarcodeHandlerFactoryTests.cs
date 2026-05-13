@@ -89,4 +89,26 @@ public sealed class BarcodeHandlerFactoryTests
 
         exception.Message.ShouldContain("No barcode handler found for invoice type:");
     }
+
+    [TestMethod]
+    public void Constructor_ShouldThrowInvalidOperationException_WhenDuplicateHandlersProvidedForSameType()
+    {
+        // Arrange
+        var duplicateAccountHandler = Substitute.For<IInvoiceBarcodeHandler>();
+        _ = duplicateAccountHandler.InvoiceType.Returns(InvoiceType.AccountInvoice);
+
+        var handlers = new List<IInvoiceBarcodeHandler> 
+        { 
+            _accountInvoiceHandler, 
+            duplicateAccountHandler,
+            _bankInvoiceHandler 
+        };
+
+        // Act && Assert
+        var exception = Should.Throw<InvalidOperationException>(() =>
+            new BarcodeHandlerFactory(handlers));
+
+        exception.Message.ShouldContain("Duplicate barcode handlers registered for:");
+        exception.Message.ShouldContain(InvoiceType.AccountInvoice.ToString());
+    }
 }
