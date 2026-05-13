@@ -11,11 +11,12 @@ namespace InvoiceReminder.ExternalServices.BarcodeReader;
 public class BarcodeReaderService : IBarcodeReaderService
 {
     private readonly ILogger<BarcodeReaderService> _logger;
-    private IInvoiceBarcodeHandler _barcodeHandler;
+    private readonly IBarcodeHandlerFactory _factory;
 
-    public BarcodeReaderService(ILogger<BarcodeReaderService> logger)
+    public BarcodeReaderService(ILogger<BarcodeReaderService> logger, IBarcodeHandlerFactory factory)
     {
         _logger = logger;
+        _factory = factory;
     }
 
     public Invoice ReadTextContentFromPdf(byte[] byteStream, string beneficiary, string password, InvoiceType invoiceType)
@@ -45,6 +46,7 @@ public class BarcodeReaderService : IBarcodeReaderService
 
         StringBuilder content = new();
         var numberOfPages = pdfDoc.GetNumberOfPages();
+        var barcodeHandler = _factory.GetHandler(invoiceType);
 
         for (var page = 1; page <= numberOfPages; page++)
         {
@@ -57,18 +59,6 @@ public class BarcodeReaderService : IBarcodeReaderService
             _ = content.Append(currentText).Replace(" \n", "\n").Replace(" \r\n", "\r\n");
         }
 
-        SetBarcodeHandler(invoiceType);
-
-        return _barcodeHandler.CreateInvoice(content.ToString(), beneficiary);
-    }
-
-    private void SetBarcodeHandler(InvoiceType invoiceType)
-    {
-        _barcodeHandler = invoiceType switch
-        {
-            InvoiceType.BankInvoice => new BankInvoiceBarcodeHandler(),
-            InvoiceType.AccountInvoice => new AccountInvoiceBarcodeHandler(),
-            _ => default
-        };
+        return barcodeHandler.CreateInvoice(content.ToString(), beneficiary);
     }
 }

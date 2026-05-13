@@ -1,4 +1,5 @@
 using InvoiceReminder.Domain.Entities;
+using InvoiceReminder.Domain.Enums;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -7,6 +8,8 @@ namespace InvoiceReminder.ExternalServices.BarcodeReader;
 public class BankInvoiceBarcodeHandler : IInvoiceBarcodeHandler
 {
     private readonly Dictionary<int, string> knowBanks;
+
+    public InvoiceType InvoiceType => InvoiceType.BankInvoice;
 
     public BankInvoiceBarcodeHandler()
     {
