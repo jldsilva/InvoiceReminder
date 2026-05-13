@@ -16,6 +16,7 @@ public sealed class BarcodeReaderServiceTests
 {
     private readonly ILogger<BarcodeReaderService> _logger;
     private readonly IInvoiceBarcodeHandler _barcodeHandler;
+    private readonly IBarcodeHandlerFactory _barcodeHandlerFactory;
     private readonly BarcodeReaderService _barcodeReaderService;
     private readonly Faker<Invoice> _invoiceFaker;
     private readonly Faker _faker;
@@ -26,7 +27,8 @@ public sealed class BarcodeReaderServiceTests
     {
         _logger = Substitute.For<ILogger<BarcodeReaderService>>();
         _barcodeHandler = Substitute.For<IInvoiceBarcodeHandler>();
-        _barcodeReaderService = new BarcodeReaderService(_logger);
+        _barcodeHandlerFactory = Substitute.For<IBarcodeHandlerFactory>();
+        _barcodeReaderService = new BarcodeReaderService(_logger, _barcodeHandlerFactory);
         _faker = new Faker();
 
         _invoiceFaker = new Faker<Invoice>()
@@ -83,6 +85,9 @@ public sealed class BarcodeReaderServiceTests
         var expectedInvoice = _invoiceFaker.Generate();
         var password = string.Empty;
 
+        _ = _barcodeHandlerFactory.GetHandler(InvoiceType.AccountInvoice)
+            .Returns(_barcodeHandler);
+
         _ = _barcodeHandler.CreateInvoice(Arg.Any<string>(), Arg.Any<string>())
             .Returns(expectedInvoice);
 
@@ -110,6 +115,9 @@ public sealed class BarcodeReaderServiceTests
         var pdfData = CreatePdfInMemory(InvoiceType.BankInvoice);
         var expectedInvoice = _invoiceFaker.Generate();
         var password = string.Empty;
+
+        _ = _barcodeHandlerFactory.GetHandler(InvoiceType.BankInvoice)
+            .Returns(_barcodeHandler);
 
         _ = _barcodeHandler.CreateInvoice(Arg.Any<string>(), Arg.Any<string>())
             .Returns(expectedInvoice);

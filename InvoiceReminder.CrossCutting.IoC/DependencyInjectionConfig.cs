@@ -92,7 +92,7 @@ public static class DependencyInjectionConfig
         _ = services.Scan(scan =>
             scan.FromAssembliesOf(typeof(IGmailServiceWrapper))
                 .AddClasses(classes => classes.InNamespaces(namespaces))
-                .UsingRegistrationStrategy(RegistrationStrategy.Skip)
+                .UsingRegistrationStrategy(RegistrationStrategy.Append)
                 .AsImplementedInterfaces()
                 .WithScopedLifetime()
         );

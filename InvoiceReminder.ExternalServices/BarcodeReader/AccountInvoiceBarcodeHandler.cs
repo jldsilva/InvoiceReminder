@@ -1,10 +1,13 @@
 using InvoiceReminder.Domain.Entities;
+using InvoiceReminder.Domain.Enums;
 using System.Text.RegularExpressions;
 
 namespace InvoiceReminder.ExternalServices.BarcodeReader;
 
 public class AccountInvoiceBarcodeHandler : IInvoiceBarcodeHandler
 {
+    public InvoiceType InvoiceType => InvoiceType.AccountInvoice;
+
     public Invoice CreateInvoice(string content, string beneficiary)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(content);
