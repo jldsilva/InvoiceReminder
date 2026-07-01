@@ -43,7 +43,7 @@
     <PackageVersion Include="Npgsql" Version="10.0.3" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
     <PackageVersion Include="Quartz" Version="3.18.1" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.3" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.7" />
     <PackageVersion Include="Scrutor" Version="7.0.0" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.27.0.140913" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
