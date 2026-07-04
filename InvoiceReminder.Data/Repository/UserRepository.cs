@@ -15,7 +15,6 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
 {
     private readonly IDbConnection _dbConnection;
     private readonly ILogger<UserRepository> _logger;
-    private readonly SqlBuilder _sqlBuilder;
     private readonly string _query;
     private const string LogExceptionMessage = "{ContextualInfo} - Exception: {Message}";
 
@@ -23,7 +22,6 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
     {
         _dbConnection = dbContext.Database.GetDbConnection();
         _logger = logger;
-        _sqlBuilder = new SqlBuilder();
         _query = """
             select * from invoice_reminder.user u
             left join invoice_reminder.invoice i 
@@ -43,11 +41,12 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
     public async Task<User> GetByEmailAsync(string value, CancellationToken cancellationToken = default)
     {
         var result = new Dictionary<Guid, User>();
+        var sqlBuilder = new SqlBuilder();
 
         try
         {
-            _ = _sqlBuilder.Where("u.email = @value", new { value });
-            var template = _sqlBuilder.AddTemplate(_query);
+            _ = sqlBuilder.Where("u.email = @value", new { value });
+            var template = sqlBuilder.AddTemplate(_query);
             var command = new CommandDefinition(template.RawSql, template.Parameters, cancellationToken: cancellationToken);
 
             _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, UserPassword, EmailAuthToken, ScanEmailDefinition, User>
@@ -99,11 +98,12 @@ public class UserRepository : BaseRepository<CoreDbContext, User>, IUserReposito
     public override async Task<User> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var result = new Dictionary<Guid, User>();
+        var sqlBuilder = new SqlBuilder();
 
         try
         {
-            _ = _sqlBuilder.Where("u.id = @id", new { id });
-            var template = _sqlBuilder.AddTemplate(_query);
+            _ = sqlBuilder.Where("u.id = @id", new { id });
+            var template = sqlBuilder.AddTemplate(_query);
             var command = new CommandDefinition(template.RawSql, template.Parameters, cancellationToken: cancellationToken);
 
             _ = await _dbConnection.QueryAsync<User, Invoice, JobSchedule, UserPassword, EmailAuthToken, ScanEmailDefinition, User>(
