@@ -1,5 +1,6 @@
 using InvoiceReminder.API.AuthenticationSetup;
 using InvoiceReminder.API.Extensions;
+using InvoiceReminder.API.Middleware;
 using InvoiceReminder.CrossCutting.IoC;
 using Scalar.AspNetCore;
 
@@ -40,6 +41,7 @@ app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<UserContextMiddlerware>();
 app.RegisterEndpoints();
 app.MapHealthChecks("/healthz");
 

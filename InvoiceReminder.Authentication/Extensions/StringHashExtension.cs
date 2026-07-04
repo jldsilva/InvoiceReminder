@@ -113,14 +113,6 @@ public static class StringHashExtension
         return GetStringFromHash(hash);
     }
 
-    public static string ToMD5(this string inputString)
-    {
-        var bytes = Encoding.UTF8.GetBytes(inputString);
-        var hash = MD5.HashData(bytes);
-
-        return GetStringFromHash(hash);
-    }
-
     private static string GetStringFromHash(byte[] hash)
     {
         var result = new StringBuilder();
