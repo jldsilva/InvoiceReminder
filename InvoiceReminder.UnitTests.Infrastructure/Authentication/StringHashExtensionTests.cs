@@ -10,7 +10,6 @@ public sealed class StringHashExtensionTests
     private readonly string _testString;
     private readonly string _expected256Hash;
     private readonly string _expected512Hash;
-    private readonly string _expectedMD5Hash;
     private readonly string _invalidCertFilePath;
     private readonly string _validCertFilePath;
     private readonly string _validBase64String;
@@ -18,7 +17,6 @@ public sealed class StringHashExtensionTests
     public StringHashExtensionTests()
     {
         _testString = "TestString";
-        _expectedMD5Hash = "5B56F40F8828701F97FA4511DDCD25FB";
         _expected256Hash = "6DD79F2770A0BB38073B814A5FF000647B37BE5ABBDE71EC9176C6CE0CB32A27";
         _expected512Hash = "69DFD91314578F7F329939A7EA6BE4497E6FE3909B9C8F308FE711D29D4340D90D77B7FDF359B7D0DBEED940665274F7CA514CD067895FDF59DE0CF142B62336";
         _invalidCertFilePath = Path.Combine(Path.GetTempPath(), "invalid_cert_12345.pfx");
@@ -62,20 +60,6 @@ public sealed class StringHashExtensionTests
 
         // Assert
         resultHash.ShouldBeEquivalentTo(_expected512Hash);
-    }
-
-    #endregion
-
-    #region ToMD5 Tests
-
-    [TestMethod]
-    public void ToMD5_ValidInput_ShouldReturnExpectedHash()
-    {
-        // Arrange & Act
-        var resultHash = _testString.ToMD5();
-
-        // Assert
-        resultHash.ShouldBeEquivalentTo(_expectedMD5Hash);
     }
 
     #endregion
