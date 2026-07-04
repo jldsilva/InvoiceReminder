@@ -41,7 +41,7 @@ app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<UserContextMiddlerware>();
+app.UseMiddleware<UserContextMiddleware>();
 app.RegisterEndpoints();
 app.MapHealthChecks("/healthz");
 

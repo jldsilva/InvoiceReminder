@@ -3,15 +3,15 @@ using System.Security.Claims;
 
 namespace InvoiceReminder.API.Middleware;
 
-internal sealed class UserContextMiddlerware(RequestDelegate next, ILogger<UserContextMiddlerware> logger)
+internal sealed class UserContextMiddleware(RequestDelegate next, ILogger<UserContextMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier);
+        var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        if (userId is not null)
+        if (!string.IsNullOrWhiteSpace(userId))
         {
-            _ = (Activity.Current?.SetTag("user.id", userId));
+            _ = Activity.Current?.SetTag("user.id", userId);
 
             var data = new Dictionary<string, object>
             {
