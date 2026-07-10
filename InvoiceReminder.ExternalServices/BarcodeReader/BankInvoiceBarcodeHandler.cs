@@ -48,14 +48,14 @@ public class BankInvoiceBarcodeHandler : IInvoiceBarcodeHandler
     private static (string, string) FilterContent(string content)
     {
         var rawPattern = @"(\d{3}-\d)\s(\d+\.\d{5})\s(\d+\.\d{6})\s(\d+\.\d{6})\s(\d)\s(\d+)";
-        var rawMatch = Regex.Match(content, rawPattern);
+        var rawMatch = Regex.Match(content, rawPattern, RegexOptions.None, TimeSpan.FromMilliseconds(10));
         var rawValue = rawMatch.Value;
 
         var bankIdPattern = @"(\d{3}-\d)";
-        var bankIdMatch = Regex.Match(rawValue, bankIdPattern);
+        var bankIdMatch = Regex.Match(rawValue, bankIdPattern, RegexOptions.None, TimeSpan.FromMilliseconds(10));
 
         var barcodePattern = @"(\d+\.\d{5})\s(\d+\.\d{6})\s(\d+\.\d{6})\s(\d)\s(\d+)";
-        var barcodeMatch = Regex.Match(rawValue, barcodePattern);
+        var barcodeMatch = Regex.Match(rawValue, barcodePattern, RegexOptions.None, TimeSpan.FromMilliseconds(10));
 
         return bankIdMatch.Success && barcodeMatch.Success
             ? (bankIdMatch.Value, barcodeMatch.Value)

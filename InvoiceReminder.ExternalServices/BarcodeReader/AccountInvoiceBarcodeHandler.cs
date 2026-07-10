@@ -27,7 +27,7 @@ public class AccountInvoiceBarcodeHandler : IInvoiceBarcodeHandler
     private static string FilterContent(string content)
     {
         var pattern = @"(\d{11}\s\d)\s(\d{11}\s\d)\s(\d{11}\s\d)\s(\d{11}\s\d)";
-        var match = Regex.Match(content, pattern);
+        var match = Regex.Match(content, pattern, RegexOptions.None, TimeSpan.FromMilliseconds(10));
 
         return match.Groups[0].Value;
     }

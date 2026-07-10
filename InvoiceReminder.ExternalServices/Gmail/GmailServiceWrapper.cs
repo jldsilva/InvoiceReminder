@@ -87,7 +87,7 @@ public class GmailServiceWrapper : IGmailServiceWrapper
     private static string FilterEmailAddress(string email)
     {
         var pattern = @"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}";
-        var match = Regex.Match(email, pattern);
+        var match = Regex.Match(email, pattern, RegexOptions.None, TimeSpan.FromMilliseconds(10));
 
         return match.Value;
     }
