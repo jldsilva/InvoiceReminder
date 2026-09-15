@@ -28,8 +28,8 @@
     
   <ItemGroup Label="System Packages">
     <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
-    <PackageVersion Include="Dapper" Version="2.1.79" />
-    <PackageVersion Include="Dapper.SqlBuilder" Version="2.1.66" />
+    <PackageVersion Include="Dapper" Version="2.1.86" />
+    <PackageVersion Include="Dapper.SqlBuilder" Version="2.1.86" />
     <PackageVersion Include="EFCore.BulkExtensions" Version="10.0.1" />
     <PackageVersion Include="EFCore.BulkExtensions.PostgreSql" Version="10.0.1" />
     <PackageVersion Include="Google.Apis.Gmail.v1" Version="1.75.0.4225" />
@@ -48,7 +48,7 @@
     <PackageVersion Include="Scrutor" Version="7.0.0" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.34.0.3385" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
-    <PackageVersion Include="Telegram.Bot" Version="22.10.3" />
+    <PackageVersion Include="Telegram.Bot" Version="22.10.3.1" />
   </ItemGroup>
     
   <ItemGroup Label="Unit Tests Packages: Support">
