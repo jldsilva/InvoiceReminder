@@ -96,14 +96,7 @@ public class JobSchedulerHostedService : IHostedService
 
         var jobKey = new JobKey($"{schedule.Id}.job");
 
-        try
-        {
-            _ = await Scheduler.DeleteJob(jobKey, cancellationToken);
-        }
-        catch (SchedulerException)
-        {
-            // Job doesn't exist, safe to continue
-        }
+        _ = await Scheduler.DeleteJob(jobKey, cancellationToken);
     }
 
     public async Task PauseJobAsync(JobSchedule schedule, CancellationToken cancellationToken = default)

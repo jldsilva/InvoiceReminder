@@ -118,7 +118,7 @@ public static class DependencyInjectionConfig
         _ = services.AddHostedService<JobSchedulerHostedService>();
         _ = services.AddSingleton<CronJob>();
         _ = services.AddQuartz();
-        _ = services.AddQuartzHostedService();
+        _ = services.AddQuartzHostedService(opt => opt.WaitForJobsToComplete = true);
 
         return services;
     }
