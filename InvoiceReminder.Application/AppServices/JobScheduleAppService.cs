@@ -6,23 +6,21 @@ using InvoiceReminder.Domain.Entities;
 using InvoiceReminder.JobScheduler.HostedService;
 using Mapster;
 using Quartz;
-using Quartz.Spi;
 
 namespace InvoiceReminder.Application.AppServices;
 
 public class JobScheduleAppService : BaseAppService<JobSchedule, JobScheduleViewModel>, IJobScheduleAppService
 {
-    private readonly QuartzHostedService _quartz;
+    private readonly JobSchedulerHostedService _quartz;
     private readonly IJobScheduleRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 
     public JobScheduleAppService(
         IJobScheduleRepository repository,
         ISchedulerFactory schedulerFactory,
-        IJobFactory jobFactory,
         IUnitOfWork unitOfWork) : base(repository, unitOfWork)
     {
-        _quartz = new QuartzHostedService(jobFactory, schedulerFactory);
+        _quartz = new JobSchedulerHostedService(schedulerFactory);
         _repository = repository;
         _unitOfWork = unitOfWork;
     }
