@@ -6,7 +6,6 @@ using InvoiceReminder.Data.Interfaces;
 using InvoiceReminder.Domain.Entities;
 using NSubstitute;
 using Quartz;
-using Quartz.Spi;
 using Shouldly;
 
 namespace InvoiceReminder.UnitTests.Application.AppServices;
@@ -16,7 +15,7 @@ public sealed class JobScheduleAppServiceTests
 {
     private readonly IJobScheduleRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IJobFactory _jobFactory;
+    private readonly IScheduler _scheduler;
     private readonly ISchedulerFactory _schedulerFactory;
     private readonly Faker _faker;
     private readonly string[] _validCronExpressions;
@@ -27,7 +26,7 @@ public sealed class JobScheduleAppServiceTests
     {
         _repository = Substitute.For<IJobScheduleRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _jobFactory = Substitute.For<IJobFactory>();
+        _scheduler = Substitute.For<IScheduler>();
         _schedulerFactory = Substitute.For<ISchedulerFactory>();
         _faker = new Faker();
         _validCronExpressions = [
@@ -65,7 +64,7 @@ public sealed class JobScheduleAppServiceTests
     public void JobScheduleAppService_ShouldBeAssignableToItsInterface_And_GenericInterface_And_GenericAppService()
     {
         // Arrange && Act
-        var appService = new JobScheduleAppService(_repository, _schedulerFactory, _jobFactory, _unitOfWork);
+        var appService = new JobScheduleAppService(_repository, _schedulerFactory, _unitOfWork);
 
         // Assert
         appService.ShouldSatisfyAllConditions(() =>
@@ -80,7 +79,7 @@ public sealed class JobScheduleAppServiceTests
     public async Task AddNewJobAsync_ShouldReturnFailure_WhenViewModelIsNull()
     {
         // Arrange
-        var appService = new JobScheduleAppService(_repository, _schedulerFactory, _jobFactory, _unitOfWork);
+        var appService = new JobScheduleAppService(_repository, _schedulerFactory, _unitOfWork);
         JobScheduleViewModel viewModel = null;
 
         // Act
@@ -102,8 +101,11 @@ public sealed class JobScheduleAppServiceTests
     public async Task AddNewJobAsync_ShouldReturnSuccess_WhenViewModelIsValid()
     {
         // Arrange
-        var appService = new JobScheduleAppService(_repository, _schedulerFactory, _jobFactory, _unitOfWork);
+        var appService = new JobScheduleAppService(_repository, _schedulerFactory, _unitOfWork);
         var viewModel = CreateJobScheduleViewModelFaker().Generate();
+
+        _ = _schedulerFactory.GetScheduler(Arg.Any<CancellationToken>())
+            .Returns(await new ValueTask<IScheduler>(_scheduler));
 
         // Act
         var result = await appService.AddNewJobAsync(viewModel, TestContext.CancellationToken);
@@ -128,7 +130,7 @@ public sealed class JobScheduleAppServiceTests
     public async Task GetByUserIdAsync_ShouldReturnSuccess_WhenUserHasJobSchedules()
     {
         // Arrange
-        var appService = new JobScheduleAppService(_repository, _schedulerFactory, _jobFactory, _unitOfWork);
+        var appService = new JobScheduleAppService(_repository, _schedulerFactory, _unitOfWork);
         var userId = _faker.Random.Guid();
         var jobSchedules = CreateJobScheduleFaker()
             .RuleFor(j => j.UserId, userId)
@@ -157,7 +159,7 @@ public sealed class JobScheduleAppServiceTests
     public async Task GetByUserIdAsync_ShouldReturnFailure_WhenUserHasNoJobSchedules()
     {
         // Arrange
-        var appService = new JobScheduleAppService(_repository, _schedulerFactory, _jobFactory, _unitOfWork);
+        var appService = new JobScheduleAppService(_repository, _schedulerFactory, _unitOfWork);
         var userId = _faker.Random.Guid();
 
         _ = _repository.GetByUserIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns([]);

@@ -3,49 +3,44 @@ using InvoiceReminder.JobScheduler.JobSettings;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Quartz;
-using Quartz.Spi;
 
 namespace InvoiceReminder.JobScheduler.HostedService;
 
-public class QuartzHostedService : IHostedService
+public class JobSchedulerHostedService : IHostedService
 {
-    private readonly ILogger<QuartzHostedService> _logger;
+    private readonly ILogger<JobSchedulerHostedService> _logger;
     private readonly ISchedulerFactory _schedulerFactory;
-    private readonly IJobFactory _jobFactory;
     private readonly IEnumerable<JobSchedule> _schedules;
 
     public IScheduler Scheduler { get; private set; }
 
-    public QuartzHostedService(
-        ILogger<QuartzHostedService> logger,
+    public JobSchedulerHostedService(
+        ILogger<JobSchedulerHostedService> logger,
         ISchedulerFactory schedulerFactory,
-        IJobFactory jobFactory,
         IEnumerable<JobSchedule> schedules)
     {
         _logger = logger;
         _schedulerFactory = schedulerFactory;
-        _jobFactory = jobFactory;
         _schedules = schedules ?? [];
     }
 
-    public QuartzHostedService(IJobFactory jobFactory, ISchedulerFactory schedulerFactory)
+    public JobSchedulerHostedService(ISchedulerFactory schedulerFactory)
     {
-        _jobFactory = jobFactory;
         _schedulerFactory = schedulerFactory;
+        _schedules = [];
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         Scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
-        Scheduler.JobFactory = _jobFactory;
 
         foreach (var schedule in _schedules)
         {
-            if (!CronExpression.IsValidExpression(schedule.CronExpression))
+            if (!ValidateCronExpression(schedule.CronExpression))
             {
-                if (_logger.IsEnabled(LogLevel.Error))
+                if (_logger?.IsEnabled(LogLevel.Error) ?? false)
                 {
-                    _logger.LogError("CronJob inválido: {JobId}", schedule.Id);
+                    _logger?.LogError("CronJob inválido: {JobId}", schedule.Id);
                 }
 
                 continue;
@@ -53,21 +48,19 @@ public class QuartzHostedService : IHostedService
 
             var job = CreateJob(schedule);
             var trigger = CreateTrigger(schedule);
+            var opts = new ScheduleJobOptions { Replace = false };
 
-            _ = await Scheduler.ScheduleJob(job, trigger, cancellationToken);
+            _ = await Scheduler.ScheduleJob(job, trigger, opts, cancellationToken);
         }
 
-        if (!Scheduler.IsStarted)
-        {
-            await Scheduler.Start(cancellationToken);
-        }
+        await Scheduler.Start(cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (Scheduler is not null && !Scheduler.IsShutdown)
+        if (Scheduler is not null)
         {
-            await Scheduler.Shutdown(cancellationToken);
+            await Scheduler.Shutdown(waitForJobsToComplete: true, cancellationToken);
         }
     }
 
@@ -77,12 +70,13 @@ public class QuartzHostedService : IHostedService
 
         await EnsureSchedulerInitializedAsync(cancellationToken);
 
-        _ = await Scheduler.ScheduleJob(CreateJob(schedule), CreateTrigger(schedule), cancellationToken);
+        var job = CreateJob(schedule);
+        var trigger = CreateTrigger(schedule);
+        var opts = new ScheduleJobOptions { Replace = true };
 
-        if (!Scheduler.IsStarted)
-        {
-            await Scheduler.Start(cancellationToken);
-        }
+        _ = await Scheduler.ScheduleJob(job, trigger, opts, cancellationToken);
+
+        await Scheduler.Start(cancellationToken);
     }
 
     public async Task UpdateJobScheduleAsync(JobSchedule schedule, CancellationToken cancellationToken = default)
@@ -102,9 +96,13 @@ public class QuartzHostedService : IHostedService
 
         var jobKey = new JobKey($"{schedule.Id}.job");
 
-        if (await Scheduler.CheckExists(jobKey, cancellationToken))
+        try
         {
             _ = await Scheduler.DeleteJob(jobKey, cancellationToken);
+        }
+        catch (SchedulerException)
+        {
+            // Job doesn't exist, safe to continue
         }
     }
 
@@ -117,8 +115,8 @@ public class QuartzHostedService : IHostedService
         var jobKey = new JobKey($"{schedule.Id}.job");
         var triggerKey = new TriggerKey($"{schedule.Id}.trigger");
 
-        await Scheduler.PauseTrigger(triggerKey, cancellationToken);
-        await Scheduler.PauseJob(jobKey, cancellationToken);
+        _ = await Scheduler.PauseTrigger(triggerKey, cancellationToken);
+        _ = await Scheduler.PauseJob(jobKey, cancellationToken);
     }
 
     public async Task ResumeJobAsync(JobSchedule schedule, CancellationToken cancellationToken = default)
@@ -130,17 +128,13 @@ public class QuartzHostedService : IHostedService
         var jobKey = new JobKey($"{schedule.Id}.job");
         var triggerKey = new TriggerKey($"{schedule.Id}.trigger");
 
-        await Scheduler.ResumeJob(jobKey, cancellationToken);
-        await Scheduler.ResumeTrigger(triggerKey, cancellationToken);
+        _ = await Scheduler.ResumeJob(jobKey, cancellationToken);
+        _ = await Scheduler.ResumeTrigger(triggerKey, cancellationToken);
     }
 
     private async Task EnsureSchedulerInitializedAsync(CancellationToken cancellationToken)
     {
-        if (Scheduler is null)
-        {
-            Scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
-            Scheduler.JobFactory = _jobFactory;
-        }
+        Scheduler ??= await _schedulerFactory.GetScheduler(cancellationToken);
     }
 
     private static ITrigger CreateTrigger(JobSchedule schedule)
@@ -156,16 +150,24 @@ public class QuartzHostedService : IHostedService
 
     private static IJobDetail CreateJob(JobSchedule schedule)
     {
-        var jobType = typeof(CronJob);
-        var data = new JobDataMap(new Dictionary<string, Guid>
-        {
-            { "UserId", schedule.UserId }
-        });
-
-        return JobBuilder.Create(jobType)
+        return JobBuilder.Create<CronJob>()
             .WithIdentity($"{schedule.Id}.job")
-            .WithDescription($"{jobType.Name} [{schedule.UserId}].job")
-            .UsingJobData(data)
+            .WithDescription($"CronJob [{schedule.UserId}].job")
+            .UsingJobData("UserId", schedule.UserId)
             .Build();
     }
+
+    private static bool ValidateCronExpression(string cronExpression)
+    {
+        try
+        {
+            _ = new CronExpression(cronExpression);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
+

@@ -13,8 +13,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Quartz;
-using Quartz.Impl;
-using Quartz.Spi;
 using Scrutor;
 using System.Diagnostics.CodeAnalysis;
 
@@ -117,10 +115,10 @@ public static class DependencyInjectionConfig
 
     private static IServiceCollection AddQuartzJobService(this IServiceCollection services)
     {
-        _ = services.AddHostedService<QuartzHostedService>();
-        _ = services.AddSingleton<IJobFactory, JobFactory>();
-        _ = services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
+        _ = services.AddHostedService<JobSchedulerHostedService>();
         _ = services.AddSingleton<CronJob>();
+        _ = services.AddQuartz();
+        _ = services.AddQuartzHostedService();
 
         return services;
     }

@@ -30,7 +30,10 @@ public sealed class CronJobTests
         _sendMessageService = Substitute.For<ISendMessageService>();
         _jobExecutionContext = Substitute.For<IJobExecutionContext>();
         _jobDetail = Substitute.For<IJobDetail>();
-        _jobDataMap = [.. (IDictionary<string, object>)new Dictionary<string, object> { { "UserId", Guid.NewGuid() } }];
+        _jobDataMap = new JobDataMap
+        {
+            { "UserId", Guid.NewGuid() }
+        };
 
         var services = new ServiceCollection();
         _ = services.AddSingleton(provider => _sendMessageService);
@@ -52,7 +55,7 @@ public sealed class CronJobTests
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
         // Act
-        await cronJob.Execute(_jobExecutionContext);
+        await cronJob.Execute(_jobExecutionContext, TestContext.CancellationToken);
 
         // Assert
         _ = _serviceScopeFactory.Received(1).CreateScope();
@@ -75,7 +78,8 @@ public sealed class CronJobTests
         var cronJob = new CronJob(_logger, _serviceScopeFactory);
 
         // Act & Assert
-        _ = await Should.ThrowAsync<ArgumentNullException>(async () => await cronJob.Execute(null));
+        _ = await Should.ThrowAsync<ArgumentNullException>(async () =>
+            await cronJob.Execute(null, TestContext.CancellationToken));
     }
 
     [TestMethod]
@@ -83,10 +87,11 @@ public sealed class CronJobTests
     {
         // Arrange
         var cronJob = new CronJob(_logger, _serviceScopeFactory);
-        _ = _jobExecutionContext.MergedJobDataMap.Returns([]);
+        _ = _jobExecutionContext.MergedJobDataMap.Returns(new JobDataMap { { "UserId", null } });
 
         // Act & Assert
-        _ = await Should.ThrowAsync<NullReferenceException>(async () => await cronJob.Execute(_jobExecutionContext));
+        _ = await Should.ThrowAsync<NullReferenceException>(async () =>
+            await cronJob.Execute(_jobExecutionContext, TestContext.CancellationToken));
     }
 
     [TestMethod]
@@ -101,7 +106,7 @@ public sealed class CronJobTests
         _ = _logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
         // Act
-        await cronJob.Execute(_jobExecutionContext);
+        await cronJob.Execute(_jobExecutionContext, TestContext.CancellationToken);
 
         // Assert
         _ = _serviceScopeFactory.Received(1).CreateScope();

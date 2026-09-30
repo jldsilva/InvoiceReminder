@@ -16,12 +16,12 @@ public class CronJob : IJob
         _serviceScopeFactory = serviceScopeFactory;
     }
 
-    public async Task Execute(IJobExecutionContext context)
+    public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
 
         using var scope = _serviceScopeFactory.CreateScope();
-        var id = context.MergedJobDataMap.GetGuidValue("UserId");
+        var id = (Guid)context.MergedJobDataMap["UserId"];
         var service = scope.ServiceProvider.GetRequiredService<ISendMessageService>();
         var message = $"{DateTime.Now:HH:mm:ss} - {context.JobDetail.Description} triggered...";
 
@@ -30,6 +30,6 @@ public class CronJob : IJob
             _logger.LogInformation("{Message}", message);
         }
 
-        _ = await service.SendMessageAsync(id, context.CancellationToken);
+        _ = await service.SendMessageAsync(id, cancellationToken);
     }
 }
