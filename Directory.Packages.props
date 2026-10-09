@@ -48,7 +48,7 @@
     <PackageVersion Include="Scrutor" Version="7.0.0" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.35.0.4138" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
-    <PackageVersion Include="Telegram.Bot" Version="22.10.3.2" />
+    <PackageVersion Include="Telegram.Bot" Version="22.10.3.3" />
   </ItemGroup>
     
   <ItemGroup Label="Unit Tests Packages: Support">
@@ -59,8 +59,8 @@
     <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="System.CodeDom" Version="10.0.12" />
-    <PackageVersion Include="Testcontainers" Version="4.15.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
+    <PackageVersion Include="Testcontainers" Version="4.16.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.16.0" />
   </ItemGroup>
     
   <ItemGroup Label="Unit Tests Packages: Essentials">
